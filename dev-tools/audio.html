@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#020403">
+<title>Audio Compendium // BLOCKCHAIN</title>
+<style>
+  :root {
+    --bg: #020403;
+    --panel: #0b1512;
+    --panel-2: #0e1a16;
+    --line: #1c3d33;
+    --green: #39ff8f;
+    --green-dim: #1f7a52;
+    --text: #c9f7dc;
+    --text-dim: #7fb89b;
+    --amber: #ffd166;
+    --red: #ff4d5e;
+    --mono: 'Courier New', Courier, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: radial-gradient(ellipse at top, #0d1b16 0%, #020403 70%);
+    background-color: var(--bg);
+    background-attachment: fixed;
+    color: var(--text);
+    font-family: var(--mono);
+    line-height: 1.55;
+  }
+
+  .wrap { max-width: 900px; margin: 0 auto; padding: 40px 20px 80px; }
+
+  .back {
+    display: inline-block;
+    margin-bottom: 28px;
+    color: var(--green-dim);
+    text-decoration: none;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+  }
+  .back:hover { color: var(--green); }
+
+  /* hero */
+  .eyebrow {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 11px; letter-spacing: 0.18em; color: var(--green-dim); margin-bottom: 12px;
+  }
+  .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); }
+  h1 {
+    margin: 0 0 14px;
+    font-size: clamp(28px, 5vw, 40px);
+    letter-spacing: 0.04em;
+    color: var(--green);
+    text-shadow: 0 0 10px rgba(57, 255, 143, 0.45);
+  }
+  h1 span { color: var(--amber); text-shadow: 0 0 10px rgba(255, 209, 102, 0.45); }
+  .lede { color: var(--text-dim); max-width: 66ch; margin: 0 0 22px; font-size: 14px; }
+  code { color: var(--green); background: var(--panel-2); border: 1px solid var(--line); border-radius: 4px; padding: 0.05em 0.35em; font-size: 0.92em; }
+  .wf-strip {
+    height: 64px; border: 1px solid var(--line); border-radius: 8px; overflow: hidden;
+    background: var(--panel);
+  }
+  .wf-strip canvas { display: block; width: 100%; height: 100%; }
+  .wf-label { font-size: 10px; letter-spacing: 0.14em; color: var(--green-dim); margin-top: 6px; }
+
+  /* nav */
+  .tocnav { display: flex; flex-wrap: wrap; gap: 4px 22px; border-bottom: 1px solid var(--line); margin: 36px 0 34px; font-size: 12px; }
+  .tocnav a { color: var(--text-dim); text-decoration: none; padding: 8px 0; border-bottom: 2px solid transparent; }
+  .tocnav a:hover { color: var(--green); border-bottom-color: var(--green-dim); }
+
+  section { margin-bottom: 52px; scroll-margin-top: 16px; }
+  h2 { display: flex; align-items: baseline; gap: 10px; margin: 0 0 8px; font-size: 19px; color: var(--green); letter-spacing: 0.06em; }
+  .sec-num { font-size: 12px; color: var(--green-dim); }
+  .sec-desc { color: var(--text-dim); font-size: 13.5px; max-width: 70ch; margin: 0 0 20px; }
+
+  /* cards */
+  .card {
+    background: var(--panel);
+    border: 1px dashed var(--green-dim);
+    border-radius: 6px;
+    padding: 16px 18px;
+    margin-bottom: 14px;
+  }
+  .card-top { display: flex; align-items: flex-start; gap: 14px; }
+  .card-main { flex: 1; min-width: 0; }
+  .card-name { font-weight: bold; color: var(--green); letter-spacing: 0.08em; }
+  .card-id { font-size: 11px; color: var(--green-dim); margin-left: 8px; font-weight: normal; }
+  .card-desc { font-size: 13px; color: var(--text-dim); margin: 6px 0 10px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font-size: 11px; color: var(--text-dim); border: 1px solid var(--line); border-radius: 4px; padding: 2px 7px; background: var(--panel-2); }
+  .uses { margin: 12px 0 0; padding: 10px 12px; border-left: 2px solid var(--green-dim); background: rgba(57, 255, 143, 0.03); font-size: 12.5px; }
+  .uses h4 { margin: 0 0 4px; font-size: 10px; letter-spacing: 0.16em; color: var(--green-dim); font-weight: normal; }
+  .uses ul { margin: 0; padding-left: 18px; }
+  .uses li { margin: 2px 0; }
+
+  button.play {
+    flex-shrink: 0;
+    background: transparent;
+    border: 1px solid var(--green);
+    color: var(--green);
+    font-family: inherit;
+    font-size: 12px;
+    letter-spacing: 1px;
+    padding: 7px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    min-width: 84px;
+  }
+  button.play:hover { background: rgba(57, 255, 143, 0.15); }
+  button.play.playing { background: var(--green); color: var(--panel); font-weight: bold; box-shadow: 0 0 10px rgba(57, 255, 143, 0.4); }
+
+  /* tracks */
+  .sections { margin: 14px 0 0; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  .sec-row { display: grid; grid-template-columns: 58px 1fr; gap: 12px; padding: 8px 12px; font-size: 12.5px; border-top: 1px solid var(--line); transition: background 0.2s; }
+  .sec-row:first-child { border-top: none; }
+  .sec-row .time { color: var(--green-dim); }
+  .sec-row b { color: var(--text); }
+  .sec-row.active { background: rgba(57, 255, 143, 0.1); }
+  .sec-row.active .time { color: var(--amber); }
+  .now { font-size: 11px; color: var(--amber); letter-spacing: 0.1em; min-height: 16px; margin-top: 8px; }
+
+  .intensity { margin-top: 14px; padding: 12px; border: 1px dashed var(--line); border-radius: 6px; }
+  .intensity-head { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; font-size: 11px; letter-spacing: 0.12em; color: var(--green-dim); }
+  .intensity-head .val { color: var(--amber); }
+  .intensity input[type="range"] { width: 100%; margin: 10px 0; accent-color: var(--green); }
+  .presets { display: flex; flex-wrap: wrap; gap: 6px; }
+  .presets button {
+    background: transparent; border: 1px solid var(--line); color: var(--text-dim);
+    font-family: inherit; font-size: 11px; padding: 4px 9px; border-radius: 4px; cursor: pointer;
+  }
+  .presets button:hover { border-color: var(--green-dim); color: var(--green); }
+  .presets button.on { border-color: var(--amber); color: var(--amber); }
+  .meter { height: 6px; border-radius: 3px; background: var(--panel-2); border: 1px solid var(--line); overflow: hidden; margin-top: 10px; }
+  .meter > div { height: 100%; width: 0; background: linear-gradient(90deg, var(--green), var(--amber), var(--red)); transition: width 0.1s linear; }
+
+  /* tables */
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin: 6px 0 18px; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 10px; letter-spacing: 0.14em; color: var(--green-dim); font-weight: normal; }
+  td:first-child { color: var(--green); white-space: nowrap; }
+  .table-scroll { overflow-x: auto; }
+  h3 { font-size: 13px; letter-spacing: 0.12em; color: var(--green); margin: 22px 0 6px; }
+
+  footer { text-align: center; font-size: 10px; letter-spacing: 0.16em; color: var(--green-dim); margin-top: 40px; }
+
+  @media (max-width: 560px) {
+    .card-top { flex-direction: column; }
+    button.play { align-self: flex-start; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../index.html">&larr; BACK TO THE GAME</a>
+
+  <div class="hero">
+    <div class="eyebrow"><span class="dot"></span>BLOCKCHAIN // DEV TOOLS</div>
+    <h1>AUDIO <span>COMPENDIUM</span></h1>
+    <p class="lede">Every sound in the game: the one-shot effects, both music tracks, and how the music intensifies near the red line. Nothing here is a recording. This page loads the game's own <code>sfx.js</code>, <code>music-theme.js</code> and <code>music-sleep-mode.js</code>, so every button plays exactly what the game plays.</p>
+    <div class="wf-strip"><canvas id="scope"></canvas></div>
+    <div class="wf-label" id="scope-label">// SCOPE IDLE &mdash; PLAY A TRACK TO SEE ITS WAVEFORM</div>
+  </div>
+
+  <nav class="tocnav">
+    <a href="#effects">01 One-Shot Effects</a>
+    <a href="#tracks">02 Music Tracks</a>
+    <a href="#intensity">03 Music Intensity</a>
+  </nav>
+
+  <section id="effects">
+    <h2><span class="sec-num">01</span> One-Shot Effects</h2>
+    <p class="sec-desc">Nine short synthesized sounds ported from the ECHOES terminal audio compendium, defined in <code>sfx.js</code>. They're turned on and off with the SOUND button in the game; the buttons here play them regardless.</p>
+    <div id="sfx-list"></div>
+  </section>
+
+  <section id="tracks">
+    <h2><span class="sec-num">02</span> Music Tracks</h2>
+    <p class="sec-desc">The playlist tracks, each a 32-bar loop scheduled live by <code>music.js</code>. In the game, music starts on your first click or key press and the speaker icon picks the track. Play one here and drag its intensity slider to hear the danger layers blend in.</p>
+    <div id="track-list"></div>
+  </section>
+
+  <section id="intensity">
+    <h2><span class="sec-num">03</span> Music Intensity</h2>
+    <p class="sec-desc">Whichever track is playing gets more intense as your tallest stack nears the red <code>=======</code> line. The game sends the music a target from 0 to 1 every time the board redraws; the music eases toward it a little every 16th note, so layers fade in and out over a few seconds instead of switching. The track itself never restarts.</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>TALLEST STACK</th><th>INTENSITY</th><th>WHAT YOU HEAR</th></tr></thead>
+        <tbody>
+          <tr><td>0&ndash;4 rows</td><td>0%</td><td>The track as written.</td></tr>
+          <tr><td>5 rows</td><td>33%</td><td>Danger layers start fading in, quietly.</td></tr>
+          <tr><td>6 rows</td><td>67%</td><td>Clearly busier and brighter.</td></tr>
+          <tr><td>7+ rows</td><td>100%</td><td>Full intensity: one row from the line (or already in the overflow row).</td></tr>
+          <tr><td>Game over</td><td>0%</td><td>Eases back to calm behind the CONNECTION LOST screen.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="sec-desc">It moves 6% of the remaining distance each 16th note: about two-thirds of the way in roughly 2 seconds on the theme (1.6 seconds on SLEEP MODE, which is faster), and fully settled after about 6 seconds. Each track decides what its layers are &mdash; see the <b>Intensity layers</b> list on each track above.</p>
+  </section>
+
+  <footer>GENERATED FROM SOURCE &mdash; NO AUDIO FILES, ALL SYNTHESIZED ON PLAY</footer>
+</div>
+
+<script src="../sfx.js"></script>
+<script src="../music-theme.js"></script>
+<script src="../music-sleep-mode.js"></script>
+<script>
+(() => {
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  // ── One-shot effects ───────────────────────────────────────────────
+  const EFFECTS = [
+    {
+      id: 'click', name: 'TYPING CLICK',
+      desc: 'A 25 ms burst of noise through a bandpass filter. Short and dry, so it can repeat quickly.',
+      params: ['dur 25ms', 'noise', 'bandpass 3000–4000Hz'],
+      uses: ['Every row a dropped packet or hack falls through', 'Every row packets drop after a clear (gravity)'],
+    },
+    {
+      id: 'enter', name: 'ENTER / SUBMIT',
+      desc: 'A louder, low-passed thump.',
+      params: ['dur 55ms', 'noise', 'lowpass 800Hz', '1.2× volume'],
+      uses: ['A packet or hack lands in its stack', 'Stack Overflow, RNG or Bitflip finishes changing the board'],
+    },
+    {
+      id: 'pop', name: 'IDLE POP',
+      desc: 'A soft band-passed pop.',
+      params: ['dur 60ms', 'bandpass 1200Hz', '0.35× volume'],
+      uses: ['Each step of a chain when packets clear', 'Worm Virus or Trojan destroys its cells'],
+    },
+    {
+      id: 'egg', name: 'EASTER EGG TONE',
+      desc: 'Two rising sine pings (660Hz then 880Hz), a bright "found something" chime.',
+      params: ['660 → 880Hz sine', 'stagger 90ms'],
+      uses: ['Every chain step from 2x upward, on top of the pop', 'A hack is unlocked'],
+    },
+    {
+      id: 'backspace', name: 'BACKSPACE',
+      desc: 'A duller, double-filtered noise tick.',
+      params: ['dur 32ms', 'bandpass 900–1200Hz', 'lowpass 1800Hz'],
+      uses: ['A clear cracks a neighbouring firewall from [=] to [-]'],
+    },
+    {
+      id: 'punct', name: 'PUNCTUATION CLICK',
+      desc: 'A soft triangle-wave blip at 200Hz.',
+      params: ['200Hz triangle', 'dur 40ms', '0.55× volume'],
+      uses: ['A firewall breaks open and reveals a packet (plays instead of the backspace tick)', 'Turning SOUND on, as confirmation'],
+    },
+    {
+      id: 'alert', name: 'ALERT (TWO-TONE)',
+      desc: 'Two falling sawtooth tones, a classic warning beep.',
+      params: ['440 → 330Hz saw', 'stagger 120ms'],
+      uses: ['FIREWALL // INCOMING ROW, just before a firewall row rises'],
+    },
+    {
+      id: 'static', name: 'LINE STATIC',
+      desc: 'A brief high-passed noise pop.',
+      params: ['dur 35ms', 'highpass 2000Hz', '0.75× volume'],
+      uses: ['A dropped hack starts executing', 'RESTART or RECONNECT starts a new run'],
+    },
+    {
+      id: 'denied', name: 'ACCESS DENIED',
+      desc: 'Three noise bursts that get quieter, each with a short high static tick.',
+      params: ['3× burst', 'bandpass 320Hz', 'tick 3500Hz', 'vol 0.9 → 0.35 → 0.12'],
+      uses: ['Game over (CONNECTION LOST)', 'Pressing a number key for a stack that has no room'],
+    },
+  ];
+
+  const sfxList = document.getElementById('sfx-list');
+  for (const fx of EFFECTS) {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="card-top">
+        <div class="card-main">
+          <div class="card-name">${esc(fx.name)}<span class="card-id">SFX.play('${esc(fx.id)}')</span></div>
+          <div class="card-desc">${esc(fx.desc)}</div>
+          <div class="chips">${fx.params.map((p) => `<span class="chip">${esc(p)}</span>`).join('')}</div>
+        </div>
+        <button class="play" type="button">&#9654; PLAY</button>
+      </div>
+      <div class="uses"><h4>// PLAYS WHEN</h4><ul>${fx.uses.map((u) => `<li>${esc(u)}</li>`).join('')}</ul></div>`;
+    card.querySelector('button').addEventListener('click', () => SFX.preview(fx.id));
+    sfxList.appendChild(card);
+  }
+
+  // ── Music tracks ───────────────────────────────────────────────────
+  const TRACKS = [
+    {
+      id: 'theme', num: '01', title: 'BLOCKCHAIN THEME', create: createSynthwave, file: 'music-theme.js',
+      meta: ['synthwave', '108 BPM', 'A minor', '32 bars', '~71s loop'],
+      desc: 'An original 80s-style synthwave loop: gated-reverb snare, octave-pulsing bass, detuned saw pads, an echoing 16th-note arpeggio and a square/saw lead.',
+      sections: [
+        ['0:00', 'Intro', 'Am–F–C–G–Am–F–C–E. Pads, bass and arpeggio; drums hold back for 4 bars, then a snare roll.'],
+        ['0:18', 'Melody 1', 'The lead melody enters over the full groove.'],
+        ['0:36', 'Section B', 'New chords (F–G–Em–Am–F–G–E–E), a higher second melody, four-on-the-floor kick and 16th hats, ending in a snare roll.'],
+        ['0:53', 'Climax', 'Melody 1 doubled an octave up over the driving drums, then back to the intro.'],
+      ],
+      layers: ['A kick on every beat', '16th-note hi-hats', 'Bass filter opens (900 → 2000Hz)', 'Arpeggio gets brighter and louder', 'A high pulsing saw two octaves up (root/fifth)'],
+    },
+    {
+      id: 'sleep-mode', num: '02', title: 'SLEEP MODE', create: createSleepMode, file: 'music-sleep-mode.js',
+      meta: ['electronicore', '150 BPM', 'A minor', '32 bars', '~51s loop'],
+      desc: 'Original trance-meets-metalcore built on the public-domain lullaby "Schlaf, Kindlein, schlaf": a music box, supersaws, and down-tuned distorted power chords through one shared amp.',
+      sections: [
+        ['0:00', 'Music box', 'The lullaby on a music box over a dark pad; ominous guitar hits from bar 5.'],
+        ['0:13', 'Trance build', 'Four-on-the-floor kick, supersaw arpeggio, the lullaby on a supersaw lead, a noise riser and a snare roll.'],
+        ['0:26', 'Drop', 'Chugging palm-muted guitars, double-kick, crashes, the lullaby on the trance lead.'],
+        ['0:38', 'Breakdown', 'Half-time: syncopated chugs locked to the kick, the music box tinkling the lullaby above.'],
+      ],
+      layers: ['Double-kick fills between the written kicks', '16th-note hi-hats', 'Extra 8th-note chugs in the intro and build', 'The amp opens up (cabinet 2200 → 4800Hz)', 'A square-wave alarm alternating A5 and C6'],
+    },
+  ];
+
+  const EASE = 0.06; // matches INTENSITY_EASE in music.js
+  let ctx = null;
+  let analyser = null;
+  let player = null; // { track, session, engine, timer, step, nextTime, intensity, target, ui }
+
+  function audio() {
+    if (!ctx) {
+      ctx = new (window.AudioContext || window.webkitAudioContext)();
+      analyser = ctx.createAnalyser();
+      analyser.fftSize = 2048;
+      analyser.connect(ctx.destination);
+    }
+    if (ctx.state === 'suspended') ctx.resume();
+    return ctx;
+  }
+
+  function stopTrack() {
+    if (!player) return;
+    clearInterval(player.timer);
+    const { session, ui } = player;
+    session.gain.cancelScheduledValues(ctx.currentTime);
+    session.gain.setTargetAtTime(0, ctx.currentTime, 0.08);
+    setTimeout(() => session.disconnect(), 600);
+    ui.btn.classList.remove('playing');
+    ui.btn.innerHTML = '&#9654; PLAY';
+    ui.rows.forEach((r) => r.classList.remove('active'));
+    ui.now.textContent = '';
+    ui.meter.style.width = '0';
+    player = null;
+    document.getElementById('scope-label').textContent = '// SCOPE IDLE — PLAY A TRACK TO SEE ITS WAVEFORM';
+  }
+
+  function startTrack(track, ui) {
+    stopTrack();
+    const c = audio();
+    const session = c.createGain();
+    session.gain.setValueAtTime(0, c.currentTime);
+    session.gain.linearRampToValueAtTime(1, c.currentTime + 0.8);
+    session.connect(analyser);
+    const p = {
+      track, session, ui,
+      engine: track.create(c, session),
+      step: 0,
+      nextTime: c.currentTime + 0.05,
+      intensity: 0,
+      target: Number(ui.slider.value) / 100,
+    };
+    p.timer = setInterval(() => {
+      if (p.nextTime < c.currentTime) p.nextTime = c.currentTime + 0.02;
+      while (p.nextTime < c.currentTime + 0.12) {
+        p.intensity += (p.target - p.intensity) * EASE;
+        p.engine.schedule(p.step, p.nextTime, p.intensity);
+        p.nextTime += p.engine.step;
+        p.step++;
+      }
+      const bar = Math.floor(p.step / 16) % 32;
+      ui.rows.forEach((r, i) => r.classList.toggle('active', i === Math.floor(bar / 8)));
+      ui.now.textContent = `// NOW PLAYING — BAR ${bar + 1} OF 32 — INTENSITY ${Math.round(p.intensity * 100)}%`;
+      ui.meter.style.width = `${p.intensity * 100}%`;
+    }, 25);
+    player = p;
+    ui.btn.classList.add('playing');
+    ui.btn.innerHTML = '&#9632; STOP';
+    document.getElementById('scope-label').textContent = `// SCOPE — ${track.title}`;
+  }
+
+  const trackList = document.getElementById('track-list');
+  for (const track of TRACKS) {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="card-top">
+        <div class="card-main">
+          <div class="card-name">${track.num} ${esc(track.title)}<span class="card-id">${esc(track.file)}</span></div>
+          <div class="card-desc">${esc(track.desc)}</div>
+          <div class="chips">${track.meta.map((m) => `<span class="chip">${esc(m)}</span>`).join('')}</div>
+        </div>
+        <button class="play" type="button">&#9654; PLAY</button>
+      </div>
+      <div class="sections">${track.sections.map(([time, name, what]) => `
+        <div class="sec-row"><span class="time">${esc(time)}</span><span><b>${esc(name)}</b> — ${esc(what)}</span></div>`).join('')}
+      </div>
+      <div class="now"></div>
+      <div class="intensity">
+        <div class="intensity-head"><span>// INTENSITY TARGET</span><span class="val">0%</span></div>
+        <input type="range" min="0" max="100" step="1" value="0" aria-label="${esc(track.title)} intensity">
+        <div class="presets">
+          <button type="button" data-v="0">STACK ≤4 · 0%</button>
+          <button type="button" data-v="33">STACK 5 · 33%</button>
+          <button type="button" data-v="67">STACK 6 · 67%</button>
+          <button type="button" data-v="100">STACK 7+ · 100%</button>
+        </div>
+        <div class="meter"><div></div></div>
+      </div>
+      <div class="uses"><h4>// INTENSITY LAYERS (FADE IN AS IT RISES)</h4><ul>${track.layers.map((l) => `<li>${esc(l)}</li>`).join('')}</ul></div>`;
+    const ui = {
+      btn: card.querySelector('button.play'),
+      rows: [...card.querySelectorAll('.sec-row')],
+      now: card.querySelector('.now'),
+      slider: card.querySelector('input[type="range"]'),
+      val: card.querySelector('.intensity-head .val'),
+      presets: [...card.querySelectorAll('.presets button')],
+      meter: card.querySelector('.meter > div'),
+    };
+    const setTarget = (v) => {
+      ui.slider.value = v;
+      ui.val.textContent = `${v}%`;
+      ui.presets.forEach((b) => b.classList.toggle('on', Number(b.dataset.v) === Number(v)));
+      if (player && player.track === track) player.target = v / 100;
+    };
+    ui.slider.addEventListener('input', () => setTarget(Number(ui.slider.value)));
+    ui.presets.forEach((b) => b.addEventListener('click', () => setTarget(Number(b.dataset.v))));
+    setTarget(0);
+    ui.btn.addEventListener('click', () => {
+      if (player && player.track === track) stopTrack();
+      else startTrack(track, ui);
+    });
+    trackList.appendChild(card);
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (!ctx || !player) return;
+    if (document.hidden) ctx.suspend();
+    else ctx.resume();
+  });
+
+  // ── Scope: live waveform while a track plays, idle trace otherwise ─
+  const scope = document.getElementById('scope');
+  const g = scope.getContext('2d');
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let wave = null;
+  function drawScope(now) {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = Math.round(scope.clientWidth * dpr);
+    const h = Math.round(scope.clientHeight * dpr);
+    if (scope.width !== w || scope.height !== h) { scope.width = w; scope.height = h; }
+    g.clearRect(0, 0, w, h);
+    g.lineWidth = 1.5 * dpr;
+    g.strokeStyle = 'rgba(57, 255, 143, 0.85)';
+    g.beginPath();
+    if (player && analyser) {
+      if (!wave || wave.length !== analyser.fftSize) wave = new Float32Array(analyser.fftSize);
+      analyser.getFloatTimeDomainData(wave);
+      for (let i = 0; i < wave.length; i++) {
+        const x = (i / (wave.length - 1)) * w;
+        const y = h / 2 - wave[i] * h * 1.4;
+        if (i) g.lineTo(x, y); else g.moveTo(x, y);
+      }
+    } else {
+      const t = reduceMotion ? 0 : now / 1000;
+      g.strokeStyle = 'rgba(57, 255, 143, 0.35)';
+      for (let x = 0; x <= w; x += 4 * dpr) {
+        const p = x / w;
+        const y = h / 2 + Math.sin(p * 12 + t * 1.3) * h * 0.1 * Math.sin(p * 3 + 0.4) + Math.sin(p * 41 + t * 3) * h * 0.02;
+        if (x) g.lineTo(x, y); else g.moveTo(x, y);
+      }
+    }
+    g.stroke();
+    requestAnimationFrame(drawScope);
+  }
+  requestAnimationFrame(drawScope);
+})();
+</script>
+</body>
+</html>

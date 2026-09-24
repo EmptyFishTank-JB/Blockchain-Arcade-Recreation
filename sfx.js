@@ -124,6 +124,10 @@ const SFX = (() => {
       if (muted) return;
       try { sounds[name](getCtx()); } catch (e) {}
     },
+    // Plays even when muted (used by the dev audio compendium).
+    preview(name) {
+      try { sounds[name](getCtx()); } catch (e) {}
+    },
     isMuted: () => muted,
     toggle() {
       muted = !muted;

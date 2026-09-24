@@ -62,17 +62,20 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
   (static when the OS asks for reduced motion)
 - `sfx.js` — synthesized sound effects ported from the ECHOES terminal audio
   compendium; toggle with the SOUND button
-- `music.js` — an original synthwave track synthesized live with Web Audio
-  (32-bar loop: intro, melody 1, section B with melody 2, octave-doubled
-  climax); starts on your first click or key press, toggle with the MUSIC
-  button. It intensifies as your tallest stack nears the red line (kick,
-  16th hats, brighter bass/arp and a tension pulse blend in from height 5,
-  full at 7). The speaker icon opens the playlist; new tracks go in the
-  `TRACKS` list in `music.js`
+- `music.js` — the music player: scheduler, playlist and intensity input.
+  Music starts on your first click or key press (toggle with the MUSIC
+  button) and intensifies as your tallest stack nears the red line (from
+  height 5, full at 7). The speaker icon opens the playlist; new tracks go in
+  the `TRACKS` list here, with their engine in a `music-*.js` file
+- `music-theme.js` — track 01, BLOCKCHAIN THEME: an original synthwave loop
+  (intro, melody 1, section B with melody 2, octave-doubled climax)
 - `music-sleep-mode.js` — track 02, SLEEP MODE: original electronicore
   (music box, trance synths, chugging distorted guitars, double-kick) at
   150 BPM, built on the public-domain lullaby "Schlaf, Kindlein, schlaf";
   same intensity layers as the theme
+- `dev-tools/audio.html` — the audio compendium, opened by the `</>` icon in
+  the footer: every sound effect and track with a play button, where each is
+  used in the game, and a live intensity slider for each track
 - `audio/` — offline WAV renders of the music for reference (not loaded by
   the game): `blockchain-theme-v1.wav` is the original 16-bar loop,
   `blockchain-theme-v2.wav` the current 32-bar version,
