@@ -46,6 +46,10 @@ current packet shown in the HUD.
 
 ## Files
 
+`index.html` loads its CSS and JS with a `?v=N` tag. Bump `N` on all four
+links whenever any of those files change, so browsers don't pair a fresh page
+with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
+
 - `index.html` — page structure, HUD, rules and hacks panels
 - `style.css` — terminal/hacker visual theme
 - `script.js` — game state, rendering, chain resolution and hacks
