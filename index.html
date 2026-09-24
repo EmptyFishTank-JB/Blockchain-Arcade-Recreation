@@ -12,7 +12,7 @@
   } catch (e) {}
 </script>
 <title>BYTEFALL // decryption terminal</title>
-<link rel="stylesheet" href="style.css?v=39">
+<link rel="stylesheet" href="style.css?v=40">
 </head>
 <body>
   <main class="cabinet">
@@ -81,6 +81,13 @@
       <header>
         <h1>BYTE<span>FALL</span></h1>
         <p class="tagline">// DECRYPTION TERMINAL</p>
+        <div class="modes" role="group" aria-label="Game mode">
+          <button data-mode="classic">CLASSIC</button>
+          <button data-mode="daily">DAILY</button>
+          <button data-mode="blitz">BLITZ</button>
+          <button data-mode="zen">ZEN</button>
+        </div>
+        <p class="mode-info" id="mode-info" hidden></p>
         <div class="difficulty" role="group" aria-label="Difficulty">
           <button data-difficulty="easy">EASY</button>
           <button data-difficulty="normal">NORMAL</button>
@@ -106,9 +113,13 @@
           <span class="label" id="next-label">NEXT</span>
           <div class="next-disc" id="next-piece">[?]</div>
         </div>
-        <div class="stat">
-          <span class="label">NEW LAYER IN</span>
+        <div class="stat" id="pulse-stat">
+          <span class="label" id="pulse-label">NEW LAYER IN</span>
           <span class="value" id="pulse-counter">8</span>
+        </div>
+        <div class="stat" id="time-stat" hidden>
+          <span class="label">TIME</span>
+          <span class="value" id="time-left">2:00</span>
         </div>
       </div>
 
@@ -196,27 +207,28 @@
 
   <div id="game-over" class="overlay hidden">
     <div class="overlay-box">
-      <h2>TRACE COMPLETE</h2>
-      <p class="overlay-sub">They found you.</p>
+      <h2 id="overlay-title">TRACE COMPLETE</h2>
+      <p class="overlay-sub" id="overlay-sub">They found you.</p>
       <p>Final score: <span id="final-score">0</span></p>
+      <p class="overlay-note" id="overlay-note" hidden></p>
       <p id="new-best" class="new-best" hidden>NEW HIGH SCORE</p>
       <button id="overlay-restart-btn">NEW SESSION</button>
     </div>
   </div>
 
-  <script src="unlocks.js?v=37"></script>
-  <script src="progress.js?v=37"></script>
-  <script src="sfx.js?v=37"></script>
-  <script src="music-theme.js?v=37"></script>
-  <script src="music-sleep-mode.js?v=37"></script>
-  <script src="music-brute-force.js?v=37"></script>
-  <script src="music-deep-web.js?v=37"></script>
-  <script src="music-zero-day.js?v=37"></script>
-  <script src="music-system-restore.js?v=37"></script>
-  <script src="music.js?v=37"></script>
-  <script src="fx.js?v=37"></script>
-  <script src="viz.js?v=37"></script>
-  <script src="script.js?v=37"></script>
-  <script src="grid-bg.js?v=37"></script>
+  <script src="unlocks.js?v=40"></script>
+  <script src="progress.js?v=40"></script>
+  <script src="sfx.js?v=40"></script>
+  <script src="music-theme.js?v=40"></script>
+  <script src="music-sleep-mode.js?v=40"></script>
+  <script src="music-brute-force.js?v=40"></script>
+  <script src="music-deep-web.js?v=40"></script>
+  <script src="music-zero-day.js?v=40"></script>
+  <script src="music-system-restore.js?v=40"></script>
+  <script src="music.js?v=40"></script>
+  <script src="fx.js?v=40"></script>
+  <script src="viz.js?v=40"></script>
+  <script src="script.js?v=40"></script>
+  <script src="grid-bg.js?v=40"></script>
 </body>
 </html>

@@ -71,8 +71,53 @@ const storage = {
   },
 };
 
-let difficulty = DIFFICULTIES[storage.get('blockchain-difficulty')] ? storage.get('blockchain-difficulty') : 'normal';
-if (difficulty === 'hard' && !Progress.isUnlocked('mode-hard')) difficulty = 'normal';
+// The EASY / NORMAL / HARD choice (CLASSIC mode). `difficulty` is the rules of the current
+// run: the classic choice in CLASSIC, Normal in every other mode.
+let classicDifficulty = DIFFICULTIES[storage.get('blockchain-difficulty')] ? storage.get('blockchain-difficulty') : 'normal';
+if (classicDifficulty === 'hard' && !Progress.isUnlocked('mode-hard')) classicDifficulty = 'normal';
+let difficulty = classicDifficulty;
+
+const BLITZ_SECONDS = 120;
+const MODES = {
+  classic: { label: 'CLASSIC' },
+  daily: { label: 'DAILY', info: (date) => `DAILY DECRYPT // ${date} (UTC): the same bits for everyone today, on Normal rules.` },
+  blitz: { label: 'BLITZ', info: () => 'BLITZ // 2 minutes on the clock, starting with your first drop. Score all you can.' },
+  zen: { label: 'ZEN', noLayers: true, info: () => 'ZEN // no encryption layers and no clock. Just decrypt.' },
+};
+let mode = MODES[storage.get('bytefall-mode')] ? storage.get('bytefall-mode') : 'classic';
+
+// Randomness. DAILY seeds each stream from the date, so the bits you're dealt are the same for
+// everyone however they play; bits revealed under layers and exploits use their own streams.
+function seeded(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6D2B79F5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function hashString(str) {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) h = Math.imul(h ^ str.charCodeAt(i), 16777619);
+  return h >>> 0;
+}
+const todayKey = () => new Date().toISOString().slice(0, 10); // UTC, so the daily is the same worldwide
+const dice = { queue: Math.random, reveal: Math.random, hack: Math.random };
+function setupDice() {
+  if (mode === 'daily') {
+    const day = todayKey();
+    for (const stream of Object.keys(dice)) dice[stream] = seeded(hashString(`bytefall:${day}:${stream}`));
+  } else {
+    for (const stream of Object.keys(dice)) dice[stream] = Math.random;
+  }
+}
+
+// BLITZ clock: counts down from the first drop, paused while the tab is hidden
+let timeLeft = BLITZ_SECONDS;
+let clockRunning = false;
+let timeUp = false;
 
 const boardEl = document.getElementById('board');
 const boardWrapEl = document.querySelector('.board-wrap');
@@ -94,8 +139,9 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function newPacket() {
-  return { type: 'number', val: 1 + Math.floor(Math.random() * COLS) };
+// stream: 'queue' for bits you're dealt, 'reveal' for bits uncovered or rerolled on the board
+function newPacket(stream = 'reveal') {
+  return { type: 'number', val: 1 + Math.floor(dice[stream]() * COLS) };
 }
 
 function newFirewall(level = 2) {
@@ -103,18 +149,27 @@ function newFirewall(level = 2) {
 }
 
 // Hard moved to 8x8, so it keeps a fresh best apart from old 7x7 Hard scores.
+// Other modes keep their own bests; DAILY keeps one per day.
 function bestKey() {
+  if (mode === 'daily') return `bytefall-daily-${todayKey()}`;
+  if (mode !== 'classic') return `bytefall-best-${mode}`;
   return difficulty === 'hard' ? 'blockchain-best-hard-8x8' : `blockchain-best-${difficulty}`;
 }
 
 // Always enough upcoming bits for the widest preview (the keylogger's).
 function refillQueue() {
-  while (queue.length < 1 + KEYLOGGER_PREVIEW) queue.push(newPacket());
+  while (queue.length < 1 + KEYLOGGER_PREVIEW) queue.push(newPacket('queue'));
 }
 
 function initGame() {
   runId++;
-  Progress.startRun(difficulty);
+  difficulty = mode === 'classic' ? classicDifficulty : 'normal';
+  setupDice();
+  Progress.startRun(difficulty, mode);
+  timeLeft = BLITZ_SECONDS;
+  clockRunning = false;
+  timeUp = false;
+  applyModeUi();
   COLS = ROWS = DIFFICULTIES[difficulty].size;
   MAX_ROWS = ROWS + 1;
   boardWrapEl.style.setProperty('--cols', COLS);
@@ -133,7 +188,7 @@ function initGame() {
   busy = false;
   chainEl.textContent = '0x';
   document.querySelectorAll('.difficulty button').forEach((btn) => {
-    btn.classList.toggle('active', btn.dataset.difficulty === difficulty);
+    btn.classList.toggle('active', btn.dataset.difficulty === classicDifficulty);
   });
   const easy = difficulty === 'easy';
   document.getElementById('hack-intro').textContent = easy
@@ -308,7 +363,7 @@ function updateHud() {
     nextEl.title = '';
   }
   pulseCounterEl.textContent = pulseInterval - dropsSinceLastPulse;
-  pulseCounterEl.closest('.stat').classList.toggle('danger', !gameOver && pulseInterval - dropsSinceLastPulse === 1);
+  pulseCounterEl.closest('.stat').classList.toggle('danger', !gameOver && !MODES[mode].noLayers && pulseInterval - dropsSinceLastPulse === 1);
   const heldHack = queue[0].type === 'hack' ? queue[0].id : null;
   document.querySelectorAll('.hack-item').forEach((el) => {
     el.classList.toggle('held', el.dataset.hack === heldHack);
@@ -352,6 +407,7 @@ async function attemptDrop(col) {
   }
   columns[col].push(piece);
   Progress.drop();
+  if (mode === 'blitz') clockRunning = true;
   let wentOver = overflowed();
   render();
   SFX.play('enter');
@@ -360,7 +416,7 @@ async function attemptDrop(col) {
   if (piece.type === 'hack') await runHack(piece.id, landing, col);
   await resolveChains();
 
-  if (!overflowed()) {
+  if (!overflowed() && !MODES[mode].noLayers) {
     dropsSinceLastPulse++;
     if (dropsSinceLastPulse >= pulseInterval) {
       dropsSinceLastPulse = 0;
@@ -385,8 +441,9 @@ function finishTurn() {
   Progress.score(score);
   announce(Progress.check());
   if (overflowed()) endGame();
+  else if (timeUp) endGame('time');
   // One drop until a firewall row: warn until the player drops (unless a hack message is showing)
-  else if (pulseInterval - dropsSinceLastPulse === 1 && messageEl.classList.contains('hidden')) {
+  else if (!MODES[mode].noLayers && pulseInterval - dropsSinceLastPulse === 1 && messageEl.classList.contains('hidden')) {
     setMessage('ENCRYPTION // NEW LAYER NEXT DROP', 'warn');
   }
 }
@@ -452,7 +509,7 @@ function hackForChain(chain) {
   } else if (chain < HACK_COMBO) {
     return null;
   }
-  return ids[Math.floor(Math.random() * ids.length)];
+  return ids[Math.floor(dice.hack() * ids.length)];
 }
 
 // Hard: 8 bits decrypted by one drop make a byte.
@@ -696,15 +753,22 @@ function meltBoard(run) {
   return pieces.length;
 }
 
-function endGame() {
+// reason: 'trace' (something left above the line) or 'time' (BLITZ ran out)
+function endGame(reason = 'trace') {
   gameOver = true;
   busy = true;
+  clockRunning = false;
   SFX.play('denied');
   render();
   Music.setIntensity(0);
   setMessage('');
   finalScoreEl.textContent = score;
   newBestEl.hidden = !(score > bestAtStart);
+  document.getElementById('overlay-title').textContent = reason === 'time' ? "TIME'S UP" : 'TRACE COMPLETE';
+  document.getElementById('overlay-sub').textContent = reason === 'time' ? 'The connection timed out.' : 'They found you.';
+  const note = document.getElementById('overlay-note');
+  note.hidden = mode === 'classic';
+  note.textContent = mode === 'daily' ? `DAILY DECRYPT // ${todayKey()} // TODAY'S BEST ${best}` : `${MODES[mode].label} // BEST ${best}`;
 
   const run = runId;
   meltBoard(run);
@@ -787,18 +851,66 @@ restartBtn.addEventListener('click', () => requestReset(restartBtn, 'CONFIRM RES
 document.querySelectorAll('.difficulty button').forEach((btn) => {
   btn.addEventListener('click', () => {
     const next = btn.dataset.difficulty;
-    if (next === difficulty) return;
+    if (next === classicDifficulty) return;
     if (next === 'hard' && !Progress.isUnlocked('mode-hard')) {
       SFX.play('denied');
       showToast(`LOCKED // ${Progress.unlock('mode-hard').need.toUpperCase()}`);
       return;
     }
     requestReset(btn, 'CONFIRM?', () => {
-      difficulty = next;
+      classicDifficulty = next;
       storage.set('blockchain-difficulty', next);
     });
   });
 });
+
+// Mode buttons: switching mid-run asks to confirm, like RESTART.
+document.querySelectorAll('.modes button').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const next = btn.dataset.mode;
+    if (next === mode) return;
+    requestReset(btn, 'CONFIRM?', () => {
+      mode = next;
+      storage.set('bytefall-mode', next);
+    });
+  });
+});
+
+// Shows what the current mode changes: the mode row, its note, the difficulty row (CLASSIC
+// only), the layer countdown (not in ZEN) and the BLITZ clock.
+function applyModeUi() {
+  document.querySelectorAll('.modes button').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.mode === mode);
+  });
+  const info = document.getElementById('mode-info');
+  info.hidden = mode === 'classic';
+  info.textContent = mode === 'classic' ? '' : MODES[mode].info(todayKey());
+  document.querySelector('.difficulty').hidden = mode !== 'classic';
+  document.getElementById('pulse-stat').hidden = !!MODES[mode].noLayers;
+  document.getElementById('time-stat').hidden = mode !== 'blitz';
+  showClock();
+}
+
+const timeLeftEl = document.getElementById('time-left');
+function showClock() {
+  const secs = Math.ceil(timeLeft);
+  timeLeftEl.textContent = `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
+  timeLeftEl.closest('.stat').classList.toggle('time-low', clockRunning && secs <= 10);
+}
+
+let lastClockTick = performance.now();
+setInterval(() => {
+  const now = performance.now();
+  const dt = (now - lastClockTick) / 1000;
+  lastClockTick = now;
+  if (mode !== 'blitz' || !clockRunning || gameOver || document.hidden) return;
+  timeLeft = Math.max(0, timeLeft - dt);
+  showClock();
+  if (timeLeft === 0 && !timeUp) {
+    timeUp = true;
+    if (!busy) endGame('time'); // mid-drop: finishTurn ends it once the drop resolves
+  }
+}, 200);
 
 document.getElementById('overlay-restart-btn').addEventListener('click', restart);
 
@@ -1119,6 +1231,11 @@ function renderRecords() {
       ['LONGEST HARD SESSION', `${fmt(s.bestHardDrops)} drops`],
       ['CLEAN SWEEPS', fmt(s.sweeps)],
       ['CLOSE CALLS', fmt(s.closeCalls)],
+      ['DAILY DECRYPTS PLAYED', fmt(s.dailies)],
+      ['DAILY STREAK', `${fmt(s.lastDaily === todayKey() || s.lastDaily === new Date(Date.now() - 86400000).toISOString().slice(0, 10) ? s.dailyStreak : 0)} (best ${fmt(s.bestDailyStreak)})`],
+      ['BEST // DAILY TODAY', fmt(Number(storage.get(`bytefall-daily-${todayKey()}`)) || 0)],
+      ['BEST // BLITZ', fmt(Number(storage.get('bytefall-best-blitz')) || 0)],
+      ['BEST // ZEN', fmt(Number(storage.get('bytefall-best-zen')) || 0)],
     ];
     const dl = document.createElement('dl');
     dl.className = 'rec-stats';

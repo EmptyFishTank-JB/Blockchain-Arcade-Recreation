@@ -803,6 +803,42 @@ h1 span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
   margin-top: 14px;
 }
 
+.modes {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.modes button {
+  background: transparent;
+  border: 1px solid var(--fg-dim);
+  color: var(--fg-dim);
+  font-family: inherit;
+  font-size: 11px;
+  padding: 4px 9px;
+  border-radius: 4px;
+  cursor: pointer;
+  letter-spacing: 1px;
+}
+.modes button:hover { color: var(--fg); border-color: var(--fg); }
+.modes button.active { color: var(--fg); border-color: var(--fg); box-shadow: 0 0 8px rgba(var(--fg-rgb), 0.3); }
+.modes button.danger { background: rgba(var(--danger-rgb), 0.12); border-color: var(--danger); color: var(--danger); }
+
+.mode-info {
+  margin: 8px auto 0;
+  max-width: 340px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--fg-dim);
+}
+.difficulty[hidden] { display: none; }
+
+.overlay-note { font-size: 11px; letter-spacing: 1px; color: var(--fg-dim); }
+
+.stat.time-low .value { color: var(--danger); text-shadow: 0 0 8px var(--danger); }
+
 .difficulty button {
   background: transparent;
   border: 1px solid var(--fg);

@@ -20,6 +20,10 @@ const Progress = (() => {
     bestDropBytes: 0, // most bytes from a single drop
     sweeps: 0, // board cleared completely (after 10+ drops)
     closeCalls: 0, // decrypted back under the line
+    dailies: 0, // days the Daily Decrypt was played
+    lastDaily: '', // UTC date of the last one
+    dailyStreak: 0, // consecutive days, up to lastDaily
+    bestDailyStreak: 0,
     earned: {}, // unlock id -> true, kept once earned
     achieved: {}, // achievement id -> true
   });
@@ -97,6 +101,7 @@ const Progress = (() => {
     { id: 'ghost', name: 'GHOST', desc: 'Last 100 drops in one Hard session', value: () => d.bestHardDrops, goal: 100 },
     { id: 'clean-sweep', name: 'CLEAN SWEEP', desc: 'Clear the whole board after 10+ drops', value: () => d.sweeps, goal: 1 },
     { id: 'close-call', name: 'CLOSE CALL', desc: 'Decrypt your way back under the line', value: () => d.closeCalls, goal: 1 },
+    { id: 'daily-driver', name: 'DAILY DRIVER', desc: 'Play the Daily Decrypt 7 days in a row', value: () => d.bestDailyStreak, goal: 7 },
     { id: 'collector', name: 'COLLECTOR', desc: 'Unlock every theme', value: () => themeIds.filter(isUnlocked).length, goal: themeIds.length },
   ];
 
@@ -107,7 +112,18 @@ const Progress = (() => {
   }
 
   // The current run, reset by startRun()
-  let run = { difficulty: 'normal', drops: 0, started: false };
+  let run = { difficulty: 'normal', mode: 'classic', drops: 0, started: false };
+
+  // One Daily Decrypt per UTC day counts toward the streak
+  function playedDaily() {
+    const today = new Date().toISOString().slice(0, 10);
+    if (d.lastDaily === today) return;
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    d.dailyStreak = d.lastDaily === yesterday ? d.dailyStreak + 1 : 1;
+    d.bestDailyStreak = Math.max(d.bestDailyStreak, d.dailyStreak);
+    d.lastDaily = today;
+    d.dailies++;
+  }
 
   // Marks newly met unlocks and achievements; returns them as [{ type, name }] (quiet: just record).
   function check(quiet = false) {
@@ -142,13 +158,14 @@ const Progress = (() => {
     stats: () => ({ ...d, bestNormal: best('normal'), bestEasy: best('easy'), bestHard: best('hard') }),
 
     // Run events from script.js
-    startRun(difficulty) {
-      run = { difficulty, drops: 0, started: false };
+    startRun(difficulty, mode = 'classic') {
+      run = { difficulty, mode, drops: 0, started: false };
     },
     drop() {
       if (!run.started) {
         run.started = true;
         d.games++;
+        if (run.mode === 'daily') playedDaily();
       }
       run.drops++;
       d.drops++;
