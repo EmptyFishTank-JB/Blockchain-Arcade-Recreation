@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#020403">
 <title>BLOCKCHAIN // arcade recreation</title>
-<link rel="stylesheet" href="style.css?v=12">
+<link rel="stylesheet" href="style.css?v=14">
 </head>
 <body>
   <main class="cabinet">
@@ -30,7 +30,9 @@
       </button>
       <div id="playlist" class="playlist" hidden>
         <p class="playlist-title">// PLAYLIST</p>
-        <canvas id="playlist-viz" class="playlist-viz" aria-hidden="true"></canvas>
+        <button type="button" id="viz-toggle" class="viz-toggle">
+          <canvas id="playlist-viz" aria-hidden="true"></canvas>
+        </button>
         <ol id="playlist-tracks"></ol>
         <div class="playlist-options">
           <button type="button" id="bg-play-btn" class="bg-play-btn">BACKGROUND PLAY: OFF</button>
@@ -142,12 +144,13 @@
     </div>
   </div>
 
-  <script src="sfx.js?v=12"></script>
-  <script src="music-theme.js?v=12"></script>
-  <script src="music-sleep-mode.js?v=12"></script>
-  <script src="music.js?v=12"></script>
-  <script src="fx.js?v=12"></script>
-  <script src="script.js?v=12"></script>
-  <script src="grid-bg.js?v=12"></script>
+  <script src="sfx.js?v=14"></script>
+  <script src="music-theme.js?v=14"></script>
+  <script src="music-sleep-mode.js?v=14"></script>
+  <script src="music.js?v=14"></script>
+  <script src="fx.js?v=14"></script>
+  <script src="viz.js?v=14"></script>
+  <script src="script.js?v=14"></script>
+  <script src="grid-bg.js?v=14"></script>
 </body>
 </html>

@@ -63,8 +63,16 @@
     height: 64px; border: 1px solid var(--line); border-radius: 8px; overflow: hidden;
     background: var(--panel);
   }
+  .wf-strip { cursor: pointer; }
+  .wf-strip:hover { border-color: var(--green-dim); }
   .wf-strip canvas { display: block; width: 100%; height: 100%; }
-  .wf-label { font-size: 10px; letter-spacing: 0.14em; color: var(--green-dim); margin-top: 6px; }
+  .wf-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 6px; }
+  .wf-label { font-size: 10px; letter-spacing: 0.14em; color: var(--green-dim); }
+  .viz-mode {
+    background: transparent; border: 1px solid var(--line); color: var(--text-dim);
+    font-family: inherit; font-size: 10px; letter-spacing: 0.1em; padding: 3px 8px; border-radius: 4px; cursor: pointer; white-space: nowrap;
+  }
+  .viz-mode:hover { border-color: var(--green-dim); color: var(--green); }
 
   /* nav */
   .tocnav { display: flex; flex-wrap: wrap; gap: 4px 22px; border-bottom: 1px solid var(--line); margin: 36px 0 34px; font-size: 12px; }
@@ -182,8 +190,11 @@
     <div class="eyebrow"><span class="dot"></span>BLOCKCHAIN // DEV TOOLS</div>
     <h1>AUDIO <span>COMPENDIUM</span></h1>
     <p class="lede">Every sound in the game: the one-shot effects, both music tracks, and how the music intensifies near the red line. Nothing here is a recording. This page loads the game's own <code>sfx.js</code>, <code>music-theme.js</code> and <code>music-sleep-mode.js</code>, so every button plays exactly what the game plays.</p>
-    <div class="wf-strip"><canvas id="scope"></canvas></div>
-    <div class="wf-label" id="scope-label">// SCOPE IDLE &mdash; PLAY A TRACK TO SEE ITS WAVEFORM</div>
+    <div class="wf-strip" title="Click to switch visualizer style"><canvas id="scope"></canvas></div>
+    <div class="wf-row">
+      <div class="wf-label" id="scope-label">// SCOPE IDLE &mdash; PLAY A TRACK TO SEE IT MOVE</div>
+      <button type="button" class="viz-mode" id="viz-mode">BARS</button>
+    </div>
   </div>
 
   <nav class="tocnav">
@@ -225,9 +236,10 @@
   <footer>GENERATED FROM SOURCE &mdash; NO AUDIO FILES, ALL SYNTHESIZED ON PLAY</footer>
 </div>
 
-<script src="../sfx.js?v=11"></script>
-<script src="../music-theme.js?v=11"></script>
-<script src="../music-sleep-mode.js?v=11"></script>
+<script src="../sfx.js?v=14"></script>
+<script src="../music-theme.js?v=14"></script>
+<script src="../music-sleep-mode.js?v=14"></script>
+<script src="../viz.js?v=14"></script>
 <script>
 (() => {
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -366,7 +378,7 @@
     ui.media.classList.remove('live');
     showPosition(ui, player.track, 0);
     player = null;
-    document.getElementById('scope-label').textContent = '// SCOPE IDLE — PLAY A TRACK TO SEE ITS WAVEFORM';
+    document.getElementById('scope-label').textContent = '// SCOPE IDLE — PLAY A TRACK TO SEE IT MOVE';
   }
 
   function startTrack(track, ui) {
@@ -565,41 +577,18 @@
     else ctx.resume();
   });
 
-  // ── Scope: live waveform while a track plays, idle trace otherwise ─
-  const scope = document.getElementById('scope');
-  const g = scope.getContext('2d');
-  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let wave = null;
-  function drawScope(now) {
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const w = Math.round(scope.clientWidth * dpr);
-    const h = Math.round(scope.clientHeight * dpr);
-    if (scope.width !== w || scope.height !== h) { scope.width = w; scope.height = h; }
-    g.clearRect(0, 0, w, h);
-    g.lineWidth = 1.5 * dpr;
-    g.strokeStyle = 'rgba(57, 255, 143, 0.85)';
-    g.beginPath();
-    if (player && analyser) {
-      if (!wave || wave.length !== analyser.fftSize) wave = new Float32Array(analyser.fftSize);
-      analyser.getFloatTimeDomainData(wave);
-      for (let i = 0; i < wave.length; i++) {
-        const x = (i / (wave.length - 1)) * w;
-        const y = h / 2 - wave[i] * h * 1.4;
-        if (i) g.lineTo(x, y); else g.moveTo(x, y);
-      }
-    } else {
-      const t = reduceMotion ? 0 : now / 1000;
-      g.strokeStyle = 'rgba(57, 255, 143, 0.35)';
-      for (let x = 0; x <= w; x += 4 * dpr) {
-        const p = x / w;
-        const y = h / 2 + Math.sin(p * 12 + t * 1.3) * h * 0.1 * Math.sin(p * 3 + 0.4) + Math.sin(p * 41 + t * 3) * h * 0.02;
-        if (x) g.lineTo(x, y); else g.moveTo(x, y);
-      }
-    }
-    g.stroke();
-    requestAnimationFrame(drawScope);
-  }
-  requestAnimationFrame(drawScope);
+  // ── Visualizer: the game's shared bars/wave styles on this page's output ─
+  const viz = createVisualizer(document.getElementById('scope'), () => (player ? analyser : null), { bars: 48 });
+  const vizBtn = document.getElementById('viz-mode');
+  const updateVizBtn = () => { vizBtn.textContent = viz.mode === 'bars' ? 'BARS · switch to wave' : 'WAVE · switch to bars'; };
+  const toggleViz = () => { viz.toggle(); updateVizBtn(); };
+  vizBtn.addEventListener('click', toggleViz);
+  document.querySelector('.wf-strip').addEventListener('click', toggleViz);
+  updateVizBtn();
+  (function vizLoop(now) {
+    viz.draw(now);
+    requestAnimationFrame(vizLoop);
+  })(performance.now());
 })();
 </script>
 </body>

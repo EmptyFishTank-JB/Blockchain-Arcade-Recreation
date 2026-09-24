@@ -560,63 +560,23 @@ function renderPlaylist() {
   }
 }
 
-// Retro LED spectrum under the playlist title: log-spaced bars built from
-// short segments, with peak caps that fall back slowly.
-const vizCanvas = document.getElementById('playlist-viz');
-const vizCtx = vizCanvas.getContext('2d');
-const VIZ_BARS = 28;
-const VIZ_SEGMENT = 3; // css px per LED segment, plus a 1px gap
-const vizPeaks = new Float32Array(VIZ_BARS);
+const vizBtn = document.getElementById('viz-toggle');
+const playlistViz = createVisualizer(document.getElementById('playlist-viz'), Music.getAnalyser);
 
-function drawVisualizer() {
-  const dpr = window.devicePixelRatio || 1;
-  const w = vizCanvas.clientWidth;
-  const h = vizCanvas.clientHeight;
-  if (vizCanvas.width !== Math.round(w * dpr) || vizCanvas.height !== Math.round(h * dpr)) {
-    vizCanvas.width = Math.round(w * dpr);
-    vizCanvas.height = Math.round(h * dpr);
-  }
-  vizCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  vizCtx.clearRect(0, 0, w, h);
-
-  const spec = Music.spectrum();
-  const segments = Math.floor((h + 1) / (VIZ_SEGMENT + 1));
-  const gap = 2;
-  const barW = (w - gap * (VIZ_BARS - 1)) / VIZ_BARS;
-  for (let b = 0; b < VIZ_BARS; b++) {
-    let level = 0;
-    if (spec) {
-      // 40Hz–14kHz, log-spaced so the kick and bass get their own bars
-      const lo = 40 * Math.pow(14000 / 40, b / VIZ_BARS);
-      const hi = 40 * Math.pow(14000 / 40, (b + 1) / VIZ_BARS);
-      const from = Math.max(1, Math.floor(lo / spec.hzPerBin));
-      const to = Math.max(from + 1, Math.ceil(hi / spec.hzPerBin));
-      let peak = 0;
-      for (let i = from; i < to && i < spec.data.length; i++) peak = Math.max(peak, spec.data[i]);
-      level = Math.min(1, (peak / 255) * (1 + 0.7 * (b / VIZ_BARS))); // lift the quieter treble end
-    }
-    vizPeaks[b] = Math.max(level, vizPeaks[b] - 0.025);
-    const lit = Math.round(level * segments);
-    const cap = Math.min(segments - 1, Math.round(vizPeaks[b] * segments));
-    const x = b * (barW + gap);
-    for (let seg = 0; seg < segments; seg++) {
-      const y = h - (seg + 1) * (VIZ_SEGMENT + 1) + 1;
-      if (seg < lit) {
-        const hot = seg / segments;
-        vizCtx.fillStyle = hot > 0.8 ? 'rgba(255, 209, 102, 0.9)' : `rgba(57, 255, 143, ${(0.55 + hot * 0.45).toFixed(2)})`;
-      } else if (spec && seg === cap && cap > 0) {
-        vizCtx.fillStyle = 'rgba(255, 209, 102, 0.75)';
-      } else {
-        vizCtx.fillStyle = 'rgba(57, 255, 143, 0.08)';
-      }
-      vizCtx.fillRect(x, y, barW, VIZ_SEGMENT);
-    }
-  }
+function updateVizLabel() {
+  const next = playlistViz.mode === 'bars' ? 'wave' : 'bars';
+  vizBtn.setAttribute('aria-label', `Visualizer: ${playlistViz.mode}. Click to switch to ${next}.`);
+  vizBtn.title = `Switch to ${next}`;
 }
+vizBtn.addEventListener('click', () => {
+  playlistViz.toggle();
+  updateVizLabel();
+});
+updateVizLabel();
 
 function visualizerLoop() {
   if (playlistEl.hidden) return;
-  drawVisualizer();
+  playlistViz.draw();
   requestAnimationFrame(visualizerLoop);
 }
 

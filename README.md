@@ -58,6 +58,9 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
 - `script.js` — game state, rendering, chain resolution and hacks
 - `fx.js` — particle overlay: cleared cells dissolve into pixel fragments and
   drifting hex/binary glyphs (skipped under reduced motion)
+- `viz.js` — the shared music visualizer (LED bars or auto-gained
+  oscilloscope wave with a CRT trail) used by the playlist and the dev page;
+  the chosen style is remembered for both
 - `grid-bg.js` — the dim "defragmenting" micro-grid animated behind the board
   (static when the OS asks for reduced motion)
 - `sfx.js` — synthesized sound effects, mostly ported from the ECHOES terminal
@@ -67,8 +70,8 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
   Music starts on your first click or key press (toggle with the MUSIC
   button) and intensifies as your tallest stack nears the red line (from
   height 5, full at 7). The speaker icon opens the playlist, which also has
-  a small LED spectrum visualizer of the live music and the BACKGROUND PLAY
-  toggle (keep playing or pause when you switch tabs or
+  a small visualizer of the live music (click it to switch between LED bars
+  and an oscilloscope wave) and the BACKGROUND PLAY toggle (keep playing or pause when you switch tabs or
   apps). New tracks go in the `TRACKS` list here, with their engine in a
   `music-*.js` file
 - `music-theme.js` — track 01, BLOCKCHAIN THEME: an original synthwave loop

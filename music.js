@@ -27,7 +27,6 @@ const Music = (() => {
   let targetIntensity = 0;
   let ctx = null;
   let analyser = null;
-  let spectrum = null;
   let session = null; // per-play gain so stopped notes can't bleed into the next start
   let engine = null;
   let timer = null;
@@ -51,12 +50,11 @@ const Music = (() => {
       if (!ctx) {
         ctx = new (window.AudioContext || window.webkitAudioContext)();
         analyser = ctx.createAnalyser();
-        analyser.fftSize = 1024;
+        analyser.fftSize = 2048;
         analyser.smoothingTimeConstant = 0.72;
         analyser.minDecibels = -90;
         analyser.maxDecibels = -34;
         analyser.connect(ctx.destination);
-        spectrum = new Uint8Array(analyser.frequencyBinCount);
       }
       ctx.resume();
       session = ctx.createGain();
@@ -107,12 +105,8 @@ const Music = (() => {
     },
     tracks: () => TRACKS.map(({ id, title }) => ({ id, title })),
     currentTrack: () => trackId,
-    // Live spectrum of the music (0–255 per bin) for the playlist visualizer; null when silent.
-    spectrum() {
-      if (!timer) return null;
-      analyser.getByteFrequencyData(spectrum);
-      return { data: spectrum, hzPerBin: ctx.sampleRate / analyser.fftSize };
-    },
+    // The music's output analyser for the playlist visualizer; null when nothing is playing.
+    getAnalyser: () => (timer ? analyser : null),
     // Selecting a track always starts it, restarting playback if another was playing.
     play(id) {
       if (!TRACKS.some((t) => t.id === id)) return;
