@@ -7,44 +7,85 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="crt">
-    <header>
-      <h1>BLOCK<span>CHAIN</span></h1>
-      <p class="tagline">// NEOXXX INFILTRATION TERMINAL</p>
-    </header>
+  <main class="cabinet">
+    <aside class="panel panel-rules">
+      <h2>RULES</h2>
+      <p>Drop packets onto the network stacks, one column at a time.</p>
+      <p>If the width or height of an unbroken stack matches a packet's number, that packet disappears.</p>
+      <p>Firewalls <b>[=]</b> / <b>[-]</b> slow your hacking down. Making adjacent packets disappear breaks them down and reveals their numbers.</p>
+      <p>A new row of firewalls rises every <span id="rules-pulse">8</span> drops. Overflow the top and you're disconnected.</p>
+      <p class="keys">1&ndash;7 drop &middot; H hack &middot; Esc cancel</p>
+    </aside>
 
-    <div class="hud">
-      <div class="stat">
-        <span class="label">SCORE</span>
-        <span class="value" id="score">0</span>
+    <div class="crt">
+      <header>
+        <h1>BLOCK<span>CHAIN</span></h1>
+        <p class="tagline">// NEOXXX INFILTRATION TERMINAL</p>
+      </header>
+
+      <div class="hud">
+        <div class="stat">
+          <span class="label">SCORE</span>
+          <span class="value" id="score">0</span>
+        </div>
+        <div class="stat">
+          <span class="label">CHAIN</span>
+          <span class="value" id="chain">0x</span>
+        </div>
+        <div class="stat">
+          <span class="label">NEXT</span>
+          <div class="next-disc" id="next-disc">?</div>
+        </div>
+        <div class="stat">
+          <span class="label">FIREWALL IN</span>
+          <span class="value" id="pulse-counter">8</span>
+        </div>
       </div>
-      <div class="stat">
-        <span class="label">CHAIN</span>
-        <span class="value" id="chain">0x</span>
+
+      <div class="board-wrap">
+        <div id="column-buttons" class="column-buttons"></div>
+        <div id="board" class="board"></div>
       </div>
-      <div class="stat">
-        <span class="label">NEXT</span>
-        <div class="next-disc" id="next-disc">?</div>
+
+      <div id="hack-slot" class="hack-slot">
+        <span class="label">HACK</span>
+        <span id="hack-name" class="hack-name">&mdash;</span>
+        <button id="hack-btn" disabled>USE</button>
       </div>
-      <div class="stat">
-        <span class="label">DROPS TIL PULSE</span>
-        <span class="value" id="pulse-counter">8</span>
+
+      <div id="message" class="message hidden"></div>
+
+      <div class="controls">
+        <button id="restart-btn">RESTART</button>
+        <button id="sound-btn">SOUND: ON</button>
       </div>
     </div>
 
-    <div class="board-wrap">
-      <div id="column-buttons" class="column-buttons"></div>
-      <div id="board" class="board"></div>
-    </div>
-
-    <div id="message" class="message hidden"></div>
-
-    <div class="controls">
-      <button id="restart-btn">RESTART</button>
-      <button id="sound-btn">SOUND: ON</button>
-      <p class="hint">Click a column (or press 1-7) to drop a packet. Match its number to the length of an unbroken row/column run to break it.</p>
-    </div>
-  </div>
+    <aside class="panel panel-hacks">
+      <h2>HACKS</h2>
+      <p>Get a combo of <span id="hack-combo">5</span> to unlock a hack.</p>
+      <div class="hack-item" data-hack="worm">
+        <h3><span class="icon">§</span> WORM VIRUS</h3>
+        <p>A self-replicating virus that destroys an entire vertical packet-stack. Pick the stack.</p>
+      </div>
+      <div class="hack-item" data-hack="overflow">
+        <h3><span class="icon">≡</span> STACK OVERFLOW</h3>
+        <p>A buffer overflow that adds 1 to each packet. Any packet showing a 7 becomes a level 2 firewall.</p>
+      </div>
+      <div class="hack-item" data-hack="trojan">
+        <h3><span class="icon">◈</span> TROJAN</h3>
+        <p>Destroys a packet and everything adjacent to it. Pick the packet.</p>
+      </div>
+      <div class="hack-item" data-hack="rng">
+        <h3><span class="icon">?</span> RNG</h3>
+        <p>Shifts the values of every packet at random.</p>
+      </div>
+      <div class="hack-item" data-hack="bitflip">
+        <h3><span class="icon">↕</span> BITFLIP</h3>
+        <p>Flips every stack from top to bottom.</p>
+      </div>
+    </aside>
+  </main>
 
   <footer>
     <p>BLOCKCHAIN · &copy; 2026 <span>EmptyFishTank-JB</span> &middot; Fan Recreation</p>

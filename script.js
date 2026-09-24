@@ -1,20 +1,31 @@
 // BLOCKCHAIN — fan recreation of the arcade minigame from Arcade Paradise.
-// Core mechanic is a Drop7-style puzzle: discs 1-7 fall into a 7-wide grid
-// and a numbered disc pops when it sits in an unbroken row/column run whose
-// length equals its number. Popping can crack/convert blank "packet" discs
-// that get injected periodically ("pulses"), and chains award combo bonuses.
+// Core mechanic is a Drop7-style puzzle: packets 1-7 fall into a 7-wide grid
+// and a packet clears when it sits in an unbroken row/column run whose length
+// equals its number. Clears break down adjacent firewalls, which rise in rows
+// every few drops, and a 5x combo unlocks a one-shot hack.
 
 const COLS = 7;
 const ROWS = 7;
-const PULSE_INTERVAL = 8; // drops between blank-row injections
+const PULSE_INTERVAL = 8; // drops between firewall-row injections
 const STEP_MS = 35; // per-row fall speed
+const HACK_COMBO = 5;
+
+const HACKS = {
+  worm: { name: 'WORM VIRUS', icon: '§', target: 'column' },
+  overflow: { name: 'STACK OVERFLOW', icon: '≡', target: null },
+  trojan: { name: 'TROJAN', icon: '◈', target: 'cell' },
+  rng: { name: 'RNG', icon: '?', target: null },
+  bitflip: { name: 'BITFLIP', icon: '↕', target: null },
+};
 
 let columns = []; // columns[c] = array of cells, index 0 = bottom
 let score = 0;
 let dropsSinceLastPulse = 0;
 let currentDisc = null;
 let gameOver = false;
-let busy = false; // true while resolving chains, blocks input
+let busy = false; // true while animating/resolving, blocks input
+let heldHack = null;
+let targeting = null; // hack id awaiting a target
 
 const boardEl = document.getElementById('board');
 const columnButtonsEl = document.getElementById('column-buttons');
@@ -25,17 +36,20 @@ const pulseCounterEl = document.getElementById('pulse-counter');
 const messageEl = document.getElementById('message');
 const overlayEl = document.getElementById('game-over');
 const finalScoreEl = document.getElementById('final-score');
+const hackSlotEl = document.getElementById('hack-slot');
+const hackNameEl = document.getElementById('hack-name');
+const hackBtn = document.getElementById('hack-btn');
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function newNumberDisc() {
+function newPacket() {
   return { type: 'number', val: 1 + Math.floor(Math.random() * 7) };
 }
 
-function newBlankDisc() {
-  return { type: 'blank', cracks: 0 };
+function newFirewall(level = 2) {
+  return { type: 'firewall', level };
 }
 
 function initGame() {
@@ -44,7 +58,10 @@ function initGame() {
   dropsSinceLastPulse = 0;
   gameOver = false;
   busy = false;
-  currentDisc = newNumberDisc();
+  heldHack = null;
+  targeting = null;
+  currentDisc = newPacket();
+  chainEl.textContent = '0x';
   updateHud();
   buildColumnButtons();
   render();
@@ -57,16 +74,40 @@ function buildColumnButtons() {
   for (let c = 0; c < COLS; c++) {
     const btn = document.createElement('button');
     btn.textContent = c + 1;
-    btn.addEventListener('click', () => attemptDrop(c));
+    btn.addEventListener('click', () => onColumn(c));
     columnButtonsEl.appendChild(btn);
   }
+}
+
+function onColumn(col) {
+  if (targeting === 'worm') {
+    if (columns[col].length && !busy) runHack('worm', { col });
+    return;
+  }
+  if (!targeting) attemptDrop(col);
 }
 
 function updateColumnButtons() {
   const buttons = columnButtonsEl.querySelectorAll('button');
   buttons.forEach((btn, c) => {
-    btn.disabled = gameOver || busy || columns[c].length >= ROWS;
+    let disabled = gameOver || busy;
+    if (targeting === 'worm') disabled = disabled || columns[c].length === 0;
+    else if (targeting) disabled = true;
+    else disabled = disabled || columns[c].length >= ROWS;
+    btn.disabled = disabled;
   });
+}
+
+function updateHackUi() {
+  const hack = heldHack && HACKS[heldHack];
+  hackSlotEl.classList.toggle('armed', !!hack);
+  hackNameEl.textContent = hack ? `${hack.icon} ${hack.name}` : `— ${HACK_COMBO}x COMBO TO UNLOCK`;
+  hackBtn.textContent = targeting ? 'CANCEL' : 'USE';
+  hackBtn.disabled = !hack || busy || gameOver;
+  document.querySelectorAll('.hack-item').forEach((el) => {
+    el.classList.toggle('held', el.dataset.hack === heldHack);
+  });
+  boardEl.classList.toggle('targeting', !!targeting);
 }
 
 function buildGrid() {
@@ -91,14 +132,16 @@ function render(popped = [], falling = null) {
       const cell = grid[r][c];
       const div = document.createElement('div');
       div.className = 'cell';
+      div.dataset.row = r;
+      div.dataset.col = c;
       if (cell) {
         if (cell.type === 'number') {
           div.classList.add('disc');
           div.textContent = `[${cell.val}]`;
         } else {
-          div.classList.add('blank');
-          if (cell.cracks > 0) div.classList.add('cracked');
-          div.textContent = cell.cracks > 0 ? '[-]' : '[=]';
+          div.classList.add('firewall');
+          if (cell.level < 2) div.classList.add('cracked');
+          div.textContent = cell.level < 2 ? '[-]' : '[=]';
         }
       }
       if (popped.some((p) => p.row === r && p.col === c)) {
@@ -108,6 +151,7 @@ function render(popped = [], falling = null) {
     }
   }
   updateColumnButtons();
+  updateHackUi();
 }
 
 function updateHud() {
@@ -122,7 +166,7 @@ function setMessage(text) {
 }
 
 async function attemptDrop(col) {
-  if (gameOver || busy) return;
+  if (gameOver || busy || targeting) return;
   if (columns[col].length >= ROWS) {
     SFX.play('denied');
     return;
@@ -151,18 +195,19 @@ async function attemptDrop(col) {
     await resolveChains();
   }
 
-  currentDisc = newNumberDisc();
+  currentDisc = newPacket();
+  finishTurn();
+}
+
+function finishTurn() {
   updateHud();
   busy = false;
   render();
-
-  if (columns.every((c) => c.length >= ROWS)) {
-    endGame();
-  }
+  if (columns.every((c) => c.length >= ROWS)) endGame();
 }
 
 async function injectPulse() {
-  setMessage('PULSE // INCOMING PACKET ROW');
+  setMessage('FIREWALL // INCOMING ROW');
   SFX.play('alert');
   await sleep(250);
   for (let c = 0; c < COLS; c++) {
@@ -170,11 +215,7 @@ async function injectPulse() {
       endGame();
       return;
     }
-    columns[c].unshift(newBlankDisc());
-    if (columns[c].length > ROWS) {
-      endGame();
-      return;
-    }
+    columns[c].unshift(newFirewall());
   }
   render();
   await sleep(200);
@@ -216,6 +257,19 @@ function computeRunLength(grid, row, col, dRow, dCol) {
   return count;
 }
 
+function awardHack() {
+  if (heldHack) {
+    score += 500;
+    setMessage('HACK SLOT FULL // +500');
+  } else {
+    const ids = Object.keys(HACKS);
+    heldHack = ids[Math.floor(Math.random() * ids.length)];
+    setMessage(`HACK UNLOCKED // ${HACKS[heldHack].name}`);
+  }
+  SFX.play('egg');
+  updateHackUi();
+}
+
 async function resolveChains() {
   let chain = 0;
 
@@ -241,15 +295,11 @@ async function resolveChains() {
     score += pops.length * 10 * chain;
     chainEl.textContent = `${chain}x`;
 
-    if (chain === 5) {
-      score += 500;
-      setMessage('CHAIN BREAK! +500 BONUS');
-    }
-
     render(pops);
     updateHud();
     SFX.play('pop');
     if (chain >= 2) SFX.play('egg');
+    if (chain === HACK_COMBO) awardHack();
     await sleep(220);
 
     let cracked = false;
@@ -264,11 +314,11 @@ async function resolveChains() {
       for (const n of neighbors) {
         if (n.row < 0 || n.row >= ROWS || n.col < 0 || n.col >= COLS) continue;
         const neighborCell = columns[n.col][n.row];
-        if (neighborCell && neighborCell.type === 'blank') {
-          neighborCell.cracks++;
+        if (neighborCell && neighborCell.type === 'firewall') {
+          neighborCell.level--;
           cracked = true;
-          if (neighborCell.cracks >= 2) {
-            columns[n.col][n.row] = newNumberDisc();
+          if (neighborCell.level <= 0) {
+            columns[n.col][n.row] = newPacket();
             revealed = true;
           }
         }
@@ -286,13 +336,100 @@ async function resolveChains() {
 
   if (chain > 0) {
     await sleep(300);
-    if (chain < 5) setMessage('');
+    if (chain < HACK_COMBO) setMessage('');
   }
 }
+
+function activateHack() {
+  if (!heldHack || busy || gameOver) return;
+  if (targeting) {
+    cancelTargeting();
+    return;
+  }
+  const hack = HACKS[heldHack];
+  if (!hack.target) {
+    runHack(heldHack);
+    return;
+  }
+  targeting = heldHack;
+  setMessage(hack.target === 'column' ? 'WORM VIRUS // SELECT A STACK' : 'TROJAN // SELECT A PACKET');
+  SFX.play('punct');
+  render();
+}
+
+function cancelTargeting() {
+  targeting = null;
+  setMessage('');
+  render();
+}
+
+function occupied(row, col) {
+  return row >= 0 && row < ROWS && col >= 0 && col < COLS && !!columns[col][row];
+}
+
+async function runHack(id, target = {}) {
+  busy = true;
+  targeting = null;
+  heldHack = null;
+  chainEl.textContent = '0x';
+  setMessage(`${HACKS[id].name} // EXECUTING`);
+  SFX.play('static');
+
+  if (id === 'worm' || id === 'trojan') {
+    const hits = [];
+    if (id === 'worm') {
+      columns[target.col].forEach((_, row) => hits.push({ row, col: target.col }));
+    } else {
+      for (let dr = -1; dr <= 1; dr++) {
+        for (let dc = -1; dc <= 1; dc++) {
+          const row = target.row + dr;
+          const col = target.col + dc;
+          if (occupied(row, col)) hits.push({ row, col });
+        }
+      }
+    }
+    render(hits);
+    SFX.play('pop');
+    await sleep(220);
+    for (const h of hits) columns[h.col][h.row] = null;
+    score += hits.length * 10;
+    await collapse();
+  } else {
+    for (const col of columns) {
+      if (id === 'bitflip') col.reverse();
+      col.forEach((cell, row) => {
+        if (cell.type !== 'number') return;
+        if (id === 'overflow') {
+          col[row] = cell.val === 7 ? newFirewall(2) : { type: 'number', val: cell.val + 1 };
+        } else if (id === 'rng') {
+          col[row] = newPacket();
+        }
+      });
+    }
+    render();
+    SFX.play('enter');
+    await sleep(300);
+  }
+
+  updateHud();
+  setMessage('');
+  await resolveChains();
+  finishTurn();
+}
+
+boardEl.addEventListener('click', (e) => {
+  const cellEl = e.target.closest('.cell');
+  if (!cellEl || !targeting || busy) return;
+  const row = Number(cellEl.dataset.row);
+  const col = Number(cellEl.dataset.col);
+  if (targeting === 'worm') onColumn(col);
+  else if (targeting === 'trojan' && occupied(row, col)) runHack('trojan', { row, col });
+});
 
 function endGame() {
   gameOver = true;
   busy = true;
+  targeting = null;
   SFX.play('denied');
   render();
   finalScoreEl.textContent = score;
@@ -302,7 +439,11 @@ function endGame() {
 document.addEventListener('keydown', (e) => {
   const num = parseInt(e.key, 10);
   if (num >= 1 && num <= 7) {
-    attemptDrop(num - 1);
+    onColumn(num - 1);
+  } else if (e.key === 'h' || e.key === 'H') {
+    activateHack();
+  } else if (e.key === 'Escape' && targeting) {
+    cancelTargeting();
   }
 });
 
@@ -313,6 +454,9 @@ function restart() {
 
 document.getElementById('restart-btn').addEventListener('click', restart);
 document.getElementById('overlay-restart-btn').addEventListener('click', restart);
+hackBtn.addEventListener('click', activateHack);
+document.getElementById('rules-pulse').textContent = PULSE_INTERVAL;
+document.getElementById('hack-combo').textContent = HACK_COMBO;
 
 const soundBtn = document.getElementById('sound-btn');
 function updateSoundBtn() {

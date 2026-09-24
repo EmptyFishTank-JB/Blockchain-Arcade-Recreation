@@ -168,13 +168,13 @@ h1 span { color: var(--amber); text-shadow: 0 0 8px var(--amber); }
   text-shadow: 0 0 6px rgba(57, 255, 143, 0.6);
 }
 
-.cell.blank {
+.cell.firewall {
   background: repeating-linear-gradient(45deg, #2a2a2a, #2a2a2a 4px, #1a1a1a 4px, #1a1a1a 8px);
   border: 1px dashed #777;
   color: #999;
 }
 
-.cell.blank.cracked {
+.cell.firewall.cracked {
   border-color: var(--amber);
   color: var(--amber);
 }
@@ -206,7 +206,7 @@ h1 span { color: var(--amber); text-shadow: 0 0 8px var(--amber); }
 
 .controls { text-align: center; margin-top: 14px; }
 
-#restart-btn, #sound-btn, #overlay-restart-btn {
+#restart-btn, #sound-btn, #overlay-restart-btn, #hack-btn {
   background: transparent;
   border: 1px solid var(--green);
   color: var(--green);
@@ -217,16 +217,115 @@ h1 span { color: var(--amber); text-shadow: 0 0 8px var(--amber); }
   letter-spacing: 1px;
 }
 
-#restart-btn:hover, #sound-btn:hover, #overlay-restart-btn:hover {
+#restart-btn:hover, #sound-btn:hover, #overlay-restart-btn:hover, #hack-btn:hover:not(:disabled) {
   background: rgba(57, 255, 143, 0.15);
 }
 
-.hint {
-  font-size: 10px;
-  color: var(--green-dim);
+
+#hack-btn { padding: 4px 12px; }
+#hack-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.hack-slot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-top: 10px;
-  line-height: 1.5;
+  padding: 6px 8px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--grid-line);
+  border-radius: 6px;
 }
+
+.hack-slot .label {
+  font-size: 9px;
+  color: var(--green-dim);
+  letter-spacing: 1px;
+}
+
+.hack-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--green-dim);
+}
+
+.hack-slot.armed { border-color: var(--amber); }
+.hack-slot.armed .hack-name { color: var(--amber); font-weight: bold; }
+
+.board.targeting .cell { cursor: crosshair; }
+.board.targeting .cell:hover {
+  outline: 2px solid var(--amber);
+  outline-offset: -2px;
+}
+
+.cabinet {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "game" "rules" "hacks";
+  gap: 20px;
+  width: 100%;
+  max-width: 480px;
+}
+
+.cabinet .crt { grid-area: game; }
+.panel-rules { grid-area: rules; }
+.panel-hacks { grid-area: hacks; }
+
+@media (min-width: 1000px) {
+  .cabinet {
+    grid-template-columns: 220px minmax(0, 480px) 220px;
+    grid-template-areas: "rules game hacks";
+    max-width: 960px;
+    align-items: start;
+  }
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px dashed var(--green-dim);
+  border-radius: 6px;
+  padding: 14px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #b9f3d3;
+}
+
+.panel h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  letter-spacing: 3px;
+  color: var(--green);
+  text-shadow: 0 0 8px var(--green);
+}
+
+.panel p { margin: 0 0 10px; }
+.panel b { color: var(--amber); }
+.panel .keys { color: var(--green-dim); margin-bottom: 0; }
+
+.hack-item {
+  border: 1px dashed var(--grid-line);
+  border-radius: 4px;
+  padding: 8px 10px;
+  margin-top: 10px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.hack-item h3 {
+  margin: 0 0 4px;
+  font-size: 13px;
+  letter-spacing: 1px;
+  color: var(--green);
+}
+
+.hack-item .icon { display: inline-block; width: 1.2em; }
+.hack-item p { margin: 0; font-size: 11px; }
+
+.hack-item.held {
+  border: 1px solid var(--amber);
+  box-shadow: 0 0 10px rgba(255, 209, 102, 0.3);
+}
+
+.hack-item.held h3 { color: var(--amber); }
 
 footer {
   margin-top: 20px;
