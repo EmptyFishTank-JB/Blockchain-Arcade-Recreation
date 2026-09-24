@@ -763,6 +763,25 @@ h1 span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
   letter-spacing: 1px;
 }
 
+.free-exploit-btn {
+  margin-left: 8px;
+  background: rgba(var(--accent-rgb), 0.08);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-family: inherit;
+  padding: 8px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  text-shadow: 0 0 6px rgba(var(--accent-rgb), 0.6);
+  animation: warn-pulse 1.6s ease-in-out infinite;
+}
+.free-exploit-btn[hidden] { display: none; }
+.free-exploit-btn:disabled { animation: none; opacity: 0.4; cursor: default; }
+#vibrate-btn { margin-top: 6px; }
+.rec-reset { margin-top: 14px; width: 100%; padding: 6px; background: none; border: 1px solid var(--grid-line); border-radius: 4px; color: var(--fg-dim); font-family: inherit; font-size: 10px; letter-spacing: 1px; cursor: pointer; }
+.rec-reset.danger { border-color: var(--danger); color: var(--danger); background: rgba(var(--danger-rgb), 0.12); }
+
 #restart-btn:hover, #overlay-restart-btn:hover {
   background: rgba(var(--fg-rgb), 0.15);
 }

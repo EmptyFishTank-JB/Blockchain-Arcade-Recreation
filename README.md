@@ -102,6 +102,20 @@ browser (`bytefall-progress`); players who already had a Hard score keep Hard.
 achievements (`ACHIEVEMENTS`); `script.js` reports each drop, decrypt,
 peel, byte and exploit to it.
 
+## Daily bonus, vibration and resetting
+
+- **Daily bonus:** the first time the game opens each day (local date), one
+  free exploit is banked behind the ⚡ FREE EXPLOIT button next to RESTART.
+  Tapping it makes a random unlocked exploit your next drop. It doesn't stack
+  if unused, and it's hidden in DAILY and PUZZLE so those stay equal for
+  everyone.
+- **Vibration:** on devices that support it (Android), drops, decrypts,
+  exploits, new layers and game over give a short buzz. VIBRATION in
+  settings turns it off; the option only appears where it works.
+- **Reset progress:** at the bottom of RECORDS → STATS, with a two-press
+  confirm. It clears stats, unlocks, achievements, puzzles and best scores;
+  settings stay.
+
 ## Full Access
 
 The Android app is planned as free with a banner ad, plus one purchase,

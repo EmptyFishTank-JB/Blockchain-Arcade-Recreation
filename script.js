@@ -312,6 +312,7 @@ function buildColumnButtons() {
 }
 
 function updateColumnButtons() {
+  updateFreeBtn();
   const buttons = columnButtonsEl.querySelectorAll('button');
   buttons.forEach((btn, c) => {
     btn.disabled = gameOver || busy || columns[c].length >= MAX_ROWS;
@@ -1225,6 +1226,65 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && !settingsEl.hidden) setSettingsOpen(false);
 });
 
+// VIBRATION: on devices that support it (Android), the game's key sound events also buzz,
+// whether or not SOUND is on. On by default there; the setting is hidden elsewhere.
+const HAPTICS = { enter: 8, burst: 18, egg: [14, 30, 14], alert: 40, denied: [60, 40, 90], backspace: 10, punct: 14 };
+const canVibrate = typeof navigator.vibrate === 'function';
+let vibrate = canVibrate && storage.get('bytefall-vibrate') !== 'off';
+const playSound = SFX.play;
+SFX.play = (name) => {
+  playSound(name);
+  if (vibrate && HAPTICS[name]) {
+    try { navigator.vibrate(HAPTICS[name]); } catch (e) {}
+  }
+};
+const vibrateBtn = document.getElementById('vibrate-btn');
+vibrateBtn.hidden = !canVibrate;
+function updateVibrateBtn() {
+  vibrateBtn.textContent = `VIBRATION: ${vibrate ? 'ON' : 'OFF'}`;
+  vibrateBtn.classList.toggle('on', vibrate);
+}
+vibrateBtn.addEventListener('click', () => {
+  vibrate = !vibrate;
+  storage.set('bytefall-vibrate', vibrate ? 'on' : 'off');
+  updateVibrateBtn();
+  if (vibrate) navigator.vibrate(20);
+});
+updateVibrateBtn();
+
+// DAILY BONUS: the first time the game opens each day (the player's own date), one free exploit
+// is banked behind the FREE EXPLOIT button until used. Unused, it doesn't stack. Not in DAILY or
+// PUZZLE, which stay the same for everyone.
+const FREE_KEY = 'bytefall-free-exploit';
+const localDay = () => new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD in local time
+const freeBtn = document.getElementById('free-exploit-btn');
+let freeExploit = { day: '', ready: false };
+try { freeExploit = { ...freeExploit, ...JSON.parse(storage.get(FREE_KEY)) }; } catch (e) {}
+const saveFree = () => storage.set(FREE_KEY, JSON.stringify(freeExploit));
+let freeGrantedNow = false;
+if (freeExploit.day !== localDay()) {
+  freeExploit = { day: localDay(), ready: true };
+  saveFree();
+  freeGrantedNow = true;
+}
+function updateFreeBtn() {
+  freeBtn.hidden = !freeExploit.ready || mode === 'daily' || mode === 'puzzle';
+  freeBtn.disabled = gameOver || busy;
+}
+freeBtn.addEventListener('click', () => {
+  if (!freeExploit.ready || gameOver || busy || mode === 'daily' || mode === 'puzzle') return;
+  const ids = Object.keys(HACKS).filter(hackAvailable);
+  const id = ids[Math.floor(Math.random() * ids.length)];
+  freeExploit.ready = false;
+  saveFree();
+  queue.unshift({ type: 'hack', id });
+  setMessage(`FREE EXPLOIT // ${HACKS[id].name}`);
+  burstMessage('warning');
+  SFX.play('egg');
+  updateHud();
+  updateFreeBtn();
+});
+
 // UNLOCKED / ACHIEVEMENT pop-ups, shown one at a time
 const toastEl = document.getElementById('toast');
 const toastQueue = [];
@@ -1353,6 +1413,27 @@ function renderRecords() {
       dl.append(dt, dd);
     }
     recordsBodyEl.appendChild(dl);
+    // RESET PROGRESS: two presses, like RESTART. Clears stats, unlocks, achievements, puzzles and
+    // best scores; settings (sound, music, theme choice...) stay.
+    const reset = document.createElement('button');
+    reset.type = 'button';
+    reset.className = 'rec-reset';
+    reset.textContent = 'RESET PROGRESS';
+    reset.addEventListener('click', () => {
+      if (!armed || armed.btn !== reset) {
+        armReset(reset, 'CONFIRM? THIS ERASES ALL PROGRESS');
+        return;
+      }
+      disarmReset();
+      try {
+        Object.keys(localStorage)
+          .filter((k) => k === 'bytefall-progress' || k === 'bytefall-puzzle' || k.startsWith('blockchain-best-')
+            || k.startsWith('bytefall-best-') || k.startsWith('bytefall-daily-'))
+          .forEach((k) => localStorage.removeItem(k));
+      } catch (e) {}
+      location.reload();
+    });
+    recordsBodyEl.appendChild(reset);
   }
 }
 
@@ -1398,6 +1479,8 @@ Unlocks.onChange(applyUnlocks);
 applyUnlocks();
 
 initGame();
+updateFreeBtn();
+if (freeGrantedNow) showToast('DAILY BONUS // 1 FREE EXPLOIT READY');
 
 function formatCentral(isoDate) {
   const d = new Date(isoDate);
