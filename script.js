@@ -370,7 +370,7 @@ async function resolveChains() {
     FX.burst(cellsAt(pops));
     render(pops);
     updateHud();
-    SFX.play('pop');
+    SFX.play('burst');
     if (chain >= 2) SFX.play('egg');
     await sleep(220);
 
@@ -444,7 +444,7 @@ async function runHack(id, row, col) {
     }
     FX.burst(cellsAt(hits));
     render(hits);
-    SFX.play('pop');
+    SFX.play('burst');
     await sleep(220);
     for (const h of hits) columns[h.col][h.row] = null;
     score += (hits.length - 1) * 10;
@@ -559,6 +559,17 @@ function renderPlaylist() {
     playlistTracksEl.appendChild(li);
   }
 }
+
+const bgPlayBtn = document.getElementById('bg-play-btn');
+function updateBgPlayBtn() {
+  bgPlayBtn.textContent = `BACKGROUND PLAY: ${Music.isBackgroundPlay() ? 'ON' : 'OFF'}`;
+  bgPlayBtn.classList.toggle('on', Music.isBackgroundPlay());
+}
+bgPlayBtn.addEventListener('click', () => {
+  Music.setBackgroundPlay(!Music.isBackgroundPlay());
+  updateBgPlayBtn();
+});
+updateBgPlayBtn();
 
 function setPlaylistOpen(open) {
   playlistEl.hidden = !open;

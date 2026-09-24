@@ -4,7 +4,10 @@
 const Music = (() => {
   const STORAGE_KEY = 'blockchain-music';
   const TRACK_KEY = 'blockchain-track';
+  const BG_KEY = 'blockchain-music-bg';
   const LOOKAHEAD = 0.12;
+  // Hidden tabs get their timers throttled to ~1/s, so queue more notes ahead while in the background.
+  const HIDDEN_LOOKAHEAD = 1.5;
   const INTENSITY_EASE = 0.06; // per 16th step, ~2.5s to settle
   // Add future tracks here: each entry's create(ctx, out) returns an engine like createSynthwave's.
   const TRACKS = [
@@ -12,9 +15,11 @@ const Music = (() => {
     { id: 'sleep-mode', title: 'SLEEP MODE', create: createSleepMode },
   ];
   let enabled = true;
+  let backgroundPlay = false;
   let trackId = TRACKS[0].id;
   try {
     enabled = localStorage.getItem(STORAGE_KEY) !== 'off';
+    backgroundPlay = localStorage.getItem(BG_KEY) === 'on';
     const saved = localStorage.getItem(TRACK_KEY);
     if (TRACKS.some((t) => t.id === saved)) trackId = saved;
   } catch (e) {}
@@ -29,7 +34,8 @@ const Music = (() => {
 
   function tick() {
     if (nextTime < ctx.currentTime) nextTime = ctx.currentTime + 0.02;
-    while (nextTime < ctx.currentTime + LOOKAHEAD) {
+    const ahead = document.hidden ? HIDDEN_LOOKAHEAD : LOOKAHEAD;
+    while (nextTime < ctx.currentTime + ahead) {
       intensity += (targetIntensity - intensity) * INTENSITY_EASE;
       engine.schedule(step, nextTime, intensity);
       nextTime += engine.step;
@@ -71,7 +77,7 @@ const Music = (() => {
 
   document.addEventListener('visibilitychange', () => {
     if (!ctx || !timer) return;
-    if (document.hidden) ctx.suspend();
+    if (document.hidden && !backgroundPlay) ctx.suspend();
     else ctx.resume();
   });
 
@@ -97,6 +103,11 @@ const Music = (() => {
       try { localStorage.setItem(TRACK_KEY, id); } catch (e) {}
       stop();
       setEnabled(true);
+    },
+    isBackgroundPlay: () => backgroundPlay,
+    setBackgroundPlay(on) {
+      backgroundPlay = on;
+      try { localStorage.setItem(BG_KEY, on ? 'on' : 'off'); } catch (e) {}
     },
     setIntensity(value) {
       targetIntensity = Math.max(0, Math.min(1, value));

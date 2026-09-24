@@ -172,7 +172,7 @@
 
   <section id="effects">
     <h2><span class="sec-num">01</span> One-Shot Effects</h2>
-    <p class="sec-desc">Nine short synthesized sounds ported from the ECHOES terminal audio compendium, defined in <code>sfx.js</code>. They're turned on and off with the SOUND button in the game; the buttons here play them regardless.</p>
+    <p class="sec-desc">Nine short synthesized sounds defined in <code>sfx.js</code>: eight ported from the ECHOES terminal audio compendium, plus the data burst made for packet clears. They're turned on and off with the SOUND button in the game; the buttons here play them regardless.</p>
     <div id="sfx-list"></div>
   </section>
 
@@ -203,9 +203,9 @@
   <footer>GENERATED FROM SOURCE &mdash; NO AUDIO FILES, ALL SYNTHESIZED ON PLAY</footer>
 </div>
 
-<script src="../sfx.js"></script>
-<script src="../music-theme.js"></script>
-<script src="../music-sleep-mode.js"></script>
+<script src="../sfx.js?v=9"></script>
+<script src="../music-theme.js?v=9"></script>
+<script src="../music-sleep-mode.js?v=9"></script>
 <script>
 (() => {
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -225,16 +225,16 @@
       uses: ['A packet or hack lands in its stack', 'Stack Overflow, RNG or Bitflip finishes changing the board'],
     },
     {
-      id: 'pop', name: 'IDLE POP',
-      desc: 'A soft band-passed pop.',
-      params: ['dur 60ms', 'bandpass 1200Hz', '0.35× volume'],
+      id: 'burst', name: 'DATA BURST',
+      desc: 'A quiet retro 8-bit explosion: grainy sample-and-hold noise under a falling lowpass, plus a quick square-wave pitch drop. The pitch varies slightly each time so chains don\'t repeat exactly.',
+      params: ['dur 280ms', 'S&H noise', 'lowpass 3200 → 260Hz', 'square 520–660 → 70Hz', '0.2× volume'],
       uses: ['Each step of a chain when packets clear', 'Worm Virus or Trojan destroys its cells'],
     },
     {
       id: 'egg', name: 'EASTER EGG TONE',
       desc: 'Two rising sine pings (660Hz then 880Hz), a bright "found something" chime.',
       params: ['660 → 880Hz sine', 'stagger 90ms'],
-      uses: ['Every chain step from 2x upward, on top of the pop', 'A hack is unlocked'],
+      uses: ['Every chain step from 2x upward, on top of the burst', 'A hack is unlocked'],
     },
     {
       id: 'backspace', name: 'BACKSPACE',
@@ -363,7 +363,7 @@
     };
     p.timer = setInterval(() => {
       if (p.nextTime < c.currentTime) p.nextTime = c.currentTime + 0.02;
-      while (p.nextTime < c.currentTime + 0.12) {
+      while (p.nextTime < c.currentTime + (document.hidden ? 1.5 : 0.12)) {
         p.intensity += (p.target - p.intensity) * EASE;
         p.engine.schedule(p.step, p.nextTime, p.intensity);
         p.nextTime += p.engine.step;
@@ -434,9 +434,12 @@
     trackList.appendChild(card);
   }
 
+  // Follows the game's BACKGROUND PLAY setting (playlist panel).
   document.addEventListener('visibilitychange', () => {
     if (!ctx || !player) return;
-    if (document.hidden) ctx.suspend();
+    let background = false;
+    try { background = localStorage.getItem('blockchain-music-bg') === 'on'; } catch (e) {}
+    if (document.hidden && !background) ctx.suspend();
     else ctx.resume();
   });
 

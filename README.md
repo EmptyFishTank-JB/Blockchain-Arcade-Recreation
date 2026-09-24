@@ -49,8 +49,8 @@ current packet shown in the HUD.
 
 ## Files
 
-`index.html` loads its CSS and JS with a `?v=N` tag. Bump `N` on all of those
-links whenever any of those files change, so browsers don't pair a fresh page
+`index.html` (and `dev-tools/audio.html`) load their CSS and JS with a `?v=N`
+tag. Bump `N` on all of those links whenever any of those files change, so browsers don't pair a fresh page
 with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
 
 - `index.html` — page structure, HUD, rules and hacks panels
@@ -60,13 +60,16 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
   drifting hex/binary glyphs (skipped under reduced motion)
 - `grid-bg.js` — the dim "defragmenting" micro-grid animated behind the board
   (static when the OS asks for reduced motion)
-- `sfx.js` — synthesized sound effects ported from the ECHOES terminal audio
-  compendium; toggle with the SOUND button
+- `sfx.js` — synthesized sound effects, mostly ported from the ECHOES terminal
+  audio compendium, plus a retro 8-bit "data burst" for clears; toggle with
+  the SOUND button
 - `music.js` — the music player: scheduler, playlist and intensity input.
   Music starts on your first click or key press (toggle with the MUSIC
   button) and intensifies as your tallest stack nears the red line (from
-  height 5, full at 7). The speaker icon opens the playlist; new tracks go in
-  the `TRACKS` list here, with their engine in a `music-*.js` file
+  height 5, full at 7). The speaker icon opens the playlist, which also has
+  the BACKGROUND PLAY toggle (keep playing or pause when you switch tabs or
+  apps). New tracks go in the `TRACKS` list here, with their engine in a
+  `music-*.js` file
 - `music-theme.js` — track 01, BLOCKCHAIN THEME: an original synthwave loop
   (intro, melody 1, section B with melody 2, octave-doubled climax)
 - `music-sleep-mode.js` — track 02, SLEEP MODE: original electronicore

@@ -110,12 +110,34 @@ const SFX = (() => {
         osc.start(t); osc.stop(t + 0.08);
       });
     },
-    pop(c) {
-      const dur = 0.06, t = c.currentTime;
-      const src = noiseBuffer(c, dur, (i, n) => Math.exp(-i / (n * 0.3)));
-      const flt = filter(c, 'bandpass', 1200, 0.5);
-      src.connect(flt); flt.connect(envelope(c, VOL * 0.35, t, dur));
-      src.start(); src.stop(t + dur);
+    // Retro 8-bit explosion: sample-and-hold noise (lo-fi crunch) under a falling
+    // lowpass, plus a quick square-wave pitch drop. Pitch varies a little per call.
+    burst(c) {
+      const dur = 0.28, t = c.currentTime;
+      const hold = 5 + Math.floor(Math.random() * 4);
+      const len = Math.floor(c.sampleRate * dur);
+      const buf = c.createBuffer(1, len, c.sampleRate);
+      const d = buf.getChannelData(0);
+      let v = 0;
+      for (let i = 0; i < len; i++) {
+        if (i % hold === 0) v = Math.random() * 2 - 1;
+        d[i] = v * Math.pow(1 - i / len, 1.6);
+      }
+      const src = c.createBufferSource();
+      src.buffer = buf;
+      const lp = filter(c, 'lowpass', 3200, 0.7);
+      lp.frequency.setValueAtTime(3200, t);
+      lp.frequency.exponentialRampToValueAtTime(260, t + dur);
+      src.connect(lp); lp.connect(envelope(c, VOL * 0.2, t, dur));
+      src.start(t); src.stop(t + dur);
+
+      const osc = c.createOscillator();
+      osc.type = 'square';
+      const f0 = 520 + Math.random() * 140;
+      osc.frequency.setValueAtTime(f0, t);
+      osc.frequency.exponentialRampToValueAtTime(70, t + 0.12);
+      osc.connect(envelope(c, VOL * 0.07, t, 0.12));
+      osc.start(t); osc.stop(t + 0.13);
     },
   };
 
