@@ -493,17 +493,8 @@ async function runHack(id, row, col) {
 
 // Game over: every piece shakes and heats up, bursts at its own random moment,
 // then CONNECTION LOST appears (~1.2s in total).
-function endGame() {
-  gameOver = true;
-  busy = true;
-  SFX.play('denied');
-  render();
-  Music.setIntensity(0);
-  setMessage('');
-  finalScoreEl.textContent = score;
-  newBestEl.hidden = !(score > bestAtStart);
-
-  const run = runId;
+// Every piece on the board heats up, shakes and bursts into code over ~1s. Returns the piece count.
+function meltBoard(run) {
   const pieces = [...boardEl.querySelectorAll('.cell.disc, .cell.firewall, .cell.hack')];
   boardEl.classList.add('meltdown');
   let sounds = 0;
@@ -519,6 +510,21 @@ function endGame() {
       }
     }, 450 + Math.random() * 600);
   }
+  return pieces.length;
+}
+
+function endGame() {
+  gameOver = true;
+  busy = true;
+  SFX.play('denied');
+  render();
+  Music.setIntensity(0);
+  setMessage('');
+  finalScoreEl.textContent = score;
+  newBestEl.hidden = !(score > bestAtStart);
+
+  const run = runId;
+  meltBoard(run);
   setTimeout(() => {
     if (run === runId) overlayEl.classList.remove('hidden');
   }, 1200);
@@ -532,9 +538,65 @@ document.addEventListener('keydown', (e) => {
 // Ignored mid-animation: the in-flight drop would keep mutating the fresh board.
 function restart() {
   if (busy && !gameOver) return;
+  resetNow();
+}
+
+function resetNow() {
+  disarmRestart();
   SFX.play('static');
   initGame();
 }
+
+// RESTART mid-run takes two presses, like the ECHOES dice roller's reset: the first arms it
+// (CONFIRM RESTART?) for a few seconds, the second melts the board down and starts over.
+const RESTART_CONFIRM_MS = 3500;
+const restartBtn = document.getElementById('restart-btn');
+let restartArmed = false;
+let restartTimer = null;
+
+function disarmRestart() {
+  restartArmed = false;
+  clearTimeout(restartTimer);
+  restartBtn.textContent = 'RESTART';
+  restartBtn.classList.remove('danger');
+}
+
+function armRestart() {
+  restartArmed = true;
+  restartBtn.textContent = 'CONFIRM RESTART?';
+  restartBtn.classList.add('danger');
+  clearTimeout(restartTimer);
+  restartTimer = setTimeout(disarmRestart, RESTART_CONFIRM_MS);
+}
+
+function wipeAndRestart() {
+  disarmRestart();
+  busy = true;
+  updateColumnButtons();
+  Music.setIntensity(0);
+  setMessage('');
+  const run = runId;
+  const melting = meltBoard(run);
+  setTimeout(() => {
+    if (run === runId) resetNow();
+  }, melting ? 1200 : 0);
+}
+
+restartBtn.addEventListener('click', () => {
+  // Nothing to lose once the run is over or before the first drop.
+  const fresh = score === 0 && columns.every((col) => col.length === 0);
+  if (gameOver || fresh) {
+    restart();
+    return;
+  }
+  if (!restartArmed) {
+    armRestart();
+    SFX.play('alert');
+    return;
+  }
+  if (busy) return; // stays armed; mid-drop the board can't be wiped yet
+  wipeAndRestart();
+});
 
 function setDifficulty(next) {
   if (next === difficulty || (busy && !gameOver)) return;
@@ -543,7 +605,6 @@ function setDifficulty(next) {
   restart();
 }
 
-document.getElementById('restart-btn').addEventListener('click', restart);
 document.getElementById('overlay-restart-btn').addEventListener('click', restart);
 document.querySelectorAll('.difficulty button').forEach((btn) => {
   btn.addEventListener('click', () => setDifficulty(btn.dataset.difficulty));
