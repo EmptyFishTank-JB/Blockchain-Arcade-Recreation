@@ -13,9 +13,10 @@ const Music = (() => {
   const HIDDEN_LOOKAHEAD = 1.5;
   const INTENSITY_EASE = 0.06; // per 16th step, ~2.5s to settle
   // Add future tracks here: each entry's create(ctx, out) returns an engine like createSynthwave's.
+  // free: playable without Full Access (see unlocks.js); the rest need it.
   const TRACKS = [
-    { id: 'theme', title: 'BYTEFALL THEME', create: createSynthwave },
-    { id: 'sleep-mode', title: 'SLEEP MODE', create: createSleepMode },
+    { id: 'theme', title: 'BYTEFALL THEME', create: createSynthwave, free: true },
+    { id: 'sleep-mode', title: 'SLEEP MODE', create: createSleepMode, free: true },
     { id: 'brute-force', title: 'BRUTE FORCE', create: createBruteForce },
     { id: 'deep-web', title: 'DEEP WEB', create: createDeepWeb },
     { id: 'zero-day', title: 'ZERO DAY', create: createZeroDay },
@@ -54,12 +55,15 @@ const Music = (() => {
     fadeStarted = false;
   }
 
+  const isLocked = (track) => !track.free && !Unlocks.hasFullAccess();
+
+  // Sequence and shuffle only move between tracks the player can play.
   function nextTrackId() {
-    const i = TRACKS.findIndex((t) => t.id === trackId);
-    if (mode === 'sequence') return TRACKS[(i + 1) % TRACKS.length].id;
-    let j = Math.floor(Math.random() * (TRACKS.length - 1));
-    if (j >= i) j++; // shuffle never repeats the same track back to back
-    return TRACKS[j].id;
+    const open = TRACKS.filter((t) => !isLocked(t));
+    const i = open.findIndex((t) => t.id === trackId);
+    if (mode === 'sequence') return open[(i + 1) % open.length].id;
+    const others = open.filter((t) => t.id !== trackId); // shuffle never repeats back to back
+    return others.length ? others[Math.floor(Math.random() * others.length)].id : trackId;
   }
 
   // Sequence/shuffle: fade out over the end of the last loop, then start the next track.
@@ -146,13 +150,14 @@ const Music = (() => {
       setEnabled(!enabled);
       return enabled;
     },
-    tracks: () => TRACKS.map(({ id, title }) => ({ id, title })),
+    tracks: () => TRACKS.map((t) => ({ id: t.id, title: t.title, locked: isLocked(t) })),
     currentTrack: () => trackId,
     // The music's output analyser for the playlist visualizer; null when nothing is playing.
     getAnalyser: () => (timer ? analyser : null),
     // Selecting a track always starts it, restarting playback if another was playing.
     play(id) {
-      if (!TRACKS.some((t) => t.id === id)) return;
+      const track = TRACKS.find((t) => t.id === id);
+      if (!track || isLocked(track)) return;
       trackId = id;
       stop();
       setEnabled(true);
@@ -179,6 +184,12 @@ const Music = (() => {
     setBackgroundPlay(on) {
       backgroundPlay = on;
       try { localStorage.setItem(BG_KEY, on ? 'on' : 'off'); } catch (e) {}
+    },
+    // After Full Access changes: a locked track that is current falls back to track 01.
+    refreshUnlocks() {
+      if (!isLocked(TRACKS.find((t) => t.id === trackId))) return;
+      if (timer) this.play(TRACKS[0].id);
+      else trackId = TRACKS[0].id;
     },
     setIntensity(value) {
       targetIntensity = Math.max(0, Math.min(1, value));

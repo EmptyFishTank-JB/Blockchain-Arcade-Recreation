@@ -573,6 +573,22 @@ h1 span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
 
 .hack-item.held h3 { color: var(--accent); }
 
+/* Bonus exploits and tracks without Full Access (preview with ?free) */
+.hack-item .lock-tag { display: none; }
+.hack-item.locked { opacity: 0.45; }
+.hack-item.locked .lock-tag {
+  display: block;
+  margin-top: 4px;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--accent);
+}
+.settings button.locked::after { content: '\1F512'; margin-left: auto; font-size: 11px; }
+
+.stat.keylogger { border-color: var(--accent); }
+.stat.keylogger .label { color: var(--accent); }
+.stat.keylogger .next-disc { font-size: 12px; white-space: nowrap; }
+
 .settings-btn {
   position: absolute;
   top: 12px;

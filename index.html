@@ -11,7 +11,7 @@
   } catch (e) {}
 </script>
 <title>BYTEFALL // decryption terminal</title>
-<link rel="stylesheet" href="style.css?v=31">
+<link rel="stylesheet" href="style.css?v=33">
 </head>
 <body>
   <main class="cabinet">
@@ -47,7 +47,7 @@
         <button type="button" id="buttons-pos-btn" class="toggle-btn on">DROP BUTTONS: BOTTOM</button>
         <p class="settings-note">Where the drop buttons sit: under the grid (easier to reach on a phone) or above it.</p>
         <button type="button" id="theme-btn" class="toggle-btn on">THEME: TERMINAL</button>
-        <p class="settings-note">TERMINAL: green bits, grey layers. CIPHER: cyan bits, magenta layers.</p>
+        <p class="settings-note" id="theme-note">TERMINAL: green bits, grey layers. CIPHER: cyan bits, magenta layers.</p>
         <p class="settings-title settings-section">// PLAYLIST</p>
         <button type="button" id="viz-toggle" class="viz-toggle">
           <canvas id="playlist-viz" aria-hidden="true"></canvas>
@@ -85,7 +85,7 @@
           <div class="next-disc" id="current-piece">[?]</div>
         </div>
         <div class="stat" id="next-stat" hidden>
-          <span class="label">NEXT</span>
+          <span class="label" id="next-label">NEXT</span>
           <div class="next-disc" id="next-piece">[?]</div>
         </div>
         <div class="stat">
@@ -132,6 +132,16 @@
         <h3><span class="icon">↕</span> BITFLIP<span class="combo"></span></h3>
         <p>Turns every column upside down.</p>
       </div>
+      <div class="hack-item" data-hack="dictionary" data-full>
+        <h3><span class="icon">#</span> DICTIONARY ATTACK<span class="combo"></span></h3>
+        <p>Throws every known key at the encryption: every layer on the board loses one level at once.</p>
+        <p class="lock-tag">FULL ACCESS</p>
+      </div>
+      <div class="hack-item" data-hack="keylogger" data-full>
+        <h3><span class="icon">@</span> KEYLOGGER<span class="combo"></span></h3>
+        <p>Records the incoming stream: shows your next 3 bits for the next 10 drops.</p>
+        <p class="lock-tag">FULL ACCESS</p>
+      </div>
     </aside>
   </main>
 
@@ -165,17 +175,18 @@
     </div>
   </div>
 
-  <script src="sfx.js?v=31"></script>
-  <script src="music-theme.js?v=31"></script>
-  <script src="music-sleep-mode.js?v=31"></script>
-  <script src="music-brute-force.js?v=31"></script>
-  <script src="music-deep-web.js?v=31"></script>
-  <script src="music-zero-day.js?v=31"></script>
-  <script src="music-system-restore.js?v=31"></script>
-  <script src="music.js?v=31"></script>
-  <script src="fx.js?v=31"></script>
-  <script src="viz.js?v=31"></script>
-  <script src="script.js?v=31"></script>
-  <script src="grid-bg.js?v=31"></script>
+  <script src="unlocks.js?v=32"></script>
+  <script src="sfx.js?v=32"></script>
+  <script src="music-theme.js?v=32"></script>
+  <script src="music-sleep-mode.js?v=32"></script>
+  <script src="music-brute-force.js?v=32"></script>
+  <script src="music-deep-web.js?v=32"></script>
+  <script src="music-zero-day.js?v=32"></script>
+  <script src="music-system-restore.js?v=32"></script>
+  <script src="music.js?v=32"></script>
+  <script src="fx.js?v=32"></script>
+  <script src="viz.js?v=32"></script>
+  <script src="script.js?v=32"></script>
+  <script src="grid-bg.js?v=32"></script>
 </body>
 </html>

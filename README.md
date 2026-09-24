@@ -32,6 +32,10 @@ lands:
 | Trojan `[◈]` | 4x | Wipes out every block touching the spot where it lands |
 | RNG `[?]` | 3x | Scrambles every bit to a random number |
 | Bitflip `[↕]` | 3x | Turns every column upside down |
+| Dictionary Attack `[#]` * | 4x | Every encryption layer on the board loses one level at once |
+| Keylogger `[@]` * | 3x | Shows your next 3 bits for the next 10 drops |
+
+\* Bonus exploits, part of Full Access (see below).
 
 A drop earns at most one exploit, picked from the longest chain it set off.
 
@@ -48,6 +52,19 @@ On Hard, every 8 bits a single drop decrypts, chains included, make a byte:
 
 High scores are saved in your browser, one per difficulty (Hard's started
 fresh when it moved to 8×8).
+
+## Full Access
+
+The Android app is planned as free with a banner ad, plus one purchase,
+**Full Access**: no ads, every theme, every track and the bonus exploits.
+The free tier keeps the whole game (all difficulties) with the TERMINAL
+theme, tracks 01-02 and the five standard exploits.
+
+This website is the free, fully unlocked version: `unlocks.js` always reports
+Full Access here, and the app will set it from the Google Play purchase. Add
+`?free` to the URL to preview what the free tier locks. Locked items are
+flagged in code with `full: true` (themes in `script.js`, exploits in
+`HACKS`) or without `free: true` (tracks in `music.js`).
 
 ## Playing
 
@@ -78,6 +95,7 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
 - `index.html` — page structure, HUD, rules and exploits panels
 - `style.css` — terminal/hacker visual theme
 - `script.js` — game state, rendering, chain resolution and exploits
+- `unlocks.js` — the Full Access check (always unlocked on the website)
 - `fx.js` — particle overlay: cleared cells dissolve into pixel fragments and
   drifting hex/binary glyphs (skipped under reduced motion)
 - `viz.js` — the shared music visualizer (LED bars or auto-gained

@@ -31,14 +31,21 @@ const DIFFICULTIES = {
   },
 };
 
-// easyCombo: on Easy, the chain length that unlocks each hack (stronger hacks need longer chains)
+// easyCombo: on Easy, the chain length that unlocks each hack (stronger hacks need longer chains).
+// full: a bonus exploit, only awarded with Full Access (see unlocks.js).
 const HACKS = {
   worm: { name: 'WORM VIRUS', icon: '§', easyCombo: 5 },
   overflow: { name: 'BUFFER OVERFLOW', icon: '+', easyCombo: 4 },
   trojan: { name: 'TROJAN', icon: '◈', easyCombo: 4 },
   rng: { name: 'RNG', icon: '?', easyCombo: 3 },
   bitflip: { name: 'BITFLIP', icon: '↕', easyCombo: 3 },
+  dictionary: { name: 'DICTIONARY ATTACK', icon: '#', easyCombo: 4, full: true },
+  keylogger: { name: 'KEYLOGGER', icon: '@', easyCombo: 3, full: true },
 };
+const KEYLOGGER_DROPS = 10; // drops the keylogger keeps showing the next bits for
+const KEYLOGGER_PREVIEW = 3;
+
+const hackAvailable = (id) => !HACKS[id].full || Unlocks.hasFullAccess();
 
 let columns = []; // columns[c] = array of cells, index 0 = bottom
 let queue = []; // upcoming pieces; queue[0] is the one being dropped
@@ -50,6 +57,7 @@ let pulseInterval = BASE_INTERVAL;
 let gameOver = false;
 let busy = false; // true while animating/resolving, blocks input
 let runId = 0; // bumped on every new game so a pending game-over sequence can tell it's stale
+let keyloggerDrops = 0; // drops left with the keylogger's preview showing
 
 const storage = {
   get(key) {
@@ -71,6 +79,7 @@ const chainEl = document.getElementById('chain');
 const currentEl = document.getElementById('current-piece');
 const nextEl = document.getElementById('next-piece');
 const nextStatEl = document.getElementById('next-stat');
+const nextLabelEl = document.getElementById('next-label');
 const pulseCounterEl = document.getElementById('pulse-counter');
 const messageEl = document.getElementById('message');
 const overlayEl = document.getElementById('game-over');
@@ -94,8 +103,9 @@ function bestKey() {
   return difficulty === 'hard' ? 'blockchain-best-hard-8x8' : `blockchain-best-${difficulty}`;
 }
 
+// Always enough upcoming bits for the widest preview (the keylogger's).
 function refillQueue() {
-  while (queue.length < 2) queue.push(newPacket());
+  while (queue.length < 1 + KEYLOGGER_PREVIEW) queue.push(newPacket());
 }
 
 function initGame() {
@@ -112,11 +122,11 @@ function initGame() {
   best = Number(storage.get(bestKey())) || 0;
   bestAtStart = best;
   dropsSinceLastPulse = 0;
+  keyloggerDrops = 0;
   pulseInterval = DIFFICULTIES[difficulty].interval(0);
   gameOver = false;
   busy = false;
   chainEl.textContent = '0x';
-  nextStatEl.hidden = !DIFFICULTIES[difficulty].showNext;
   document.querySelectorAll('.difficulty button').forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.difficulty === difficulty);
   });
@@ -233,7 +243,17 @@ function updateHud() {
   scoreEl.textContent = score;
   bestEl.textContent = best;
   showPiece(currentEl, queue[0]);
-  showPiece(nextEl, queue[1]);
+  // Easy previews the next bit; an active keylogger shows the next three.
+  const preview = keyloggerDrops > 0 ? KEYLOGGER_PREVIEW : DIFFICULTIES[difficulty].showNext ? 1 : 0;
+  nextStatEl.hidden = !preview;
+  nextLabelEl.textContent = keyloggerDrops > 0 ? `KEYLOG ${keyloggerDrops}` : 'NEXT';
+  nextStatEl.classList.toggle('keylogger', keyloggerDrops > 0);
+  if (preview === 1) showPiece(nextEl, queue[1]);
+  else if (preview) {
+    nextEl.textContent = queue.slice(1, 1 + preview).map(pieceLabel).join('');
+    nextEl.classList.remove('hack');
+    nextEl.title = '';
+  }
   pulseCounterEl.textContent = pulseInterval - dropsSinceLastPulse;
   pulseCounterEl.closest('.stat').classList.toggle('danger', !gameOver && pulseInterval - dropsSinceLastPulse === 1);
   const heldHack = queue[0].type === 'hack' ? queue[0].id : null;
@@ -268,6 +288,7 @@ async function attemptDrop(col) {
   setMessage('');
   const piece = queue.shift();
   refillQueue();
+  if (keyloggerDrops > 0) keyloggerDrops--;
   updateHud();
   const landing = columns[col].length;
   for (let r = MAX_ROWS - 1; r > landing; r--) {
@@ -359,7 +380,7 @@ function computeRunLength(grid, row, col, dRow, dCol) {
 }
 
 function hackForChain(chain) {
-  let ids = Object.keys(HACKS);
+  let ids = Object.keys(HACKS).filter(hackAvailable);
   if (difficulty === 'easy') {
     const earned = ids.filter((id) => HACKS[id].easyCombo <= chain);
     if (!earned.length) return null;
@@ -501,6 +522,32 @@ async function runHack(id, row, col) {
     for (const h of hits) columns[h.col][h.row] = null;
     score += (hits.length - 1) * 10;
     await collapse();
+  } else if (id === 'dictionary') {
+    // Peel one layer off every encryption block at once
+    columns[col].pop();
+    const peeled = [];
+    columns.forEach((stack, c) => stack.forEach((cell, r) => {
+      if (cell.type === 'firewall') peeled.push({ row: r, col: c });
+    }));
+    FX.burst(cellsAt(peeled));
+    let revealed = false;
+    for (const { row: r, col: c } of peeled) {
+      const cell = columns[c][r];
+      cell.level--;
+      if (cell.level <= 0) {
+        columns[c][r] = newPacket();
+        revealed = true;
+      }
+    }
+    render();
+    SFX.play(revealed ? 'punct' : 'backspace');
+    await sleep(300);
+  } else if (id === 'keylogger') {
+    columns[col].pop();
+    keyloggerDrops = KEYLOGGER_DROPS;
+    render();
+    SFX.play('enter');
+    await sleep(300);
   } else {
     columns[col].pop();
     for (const stack of columns) {
@@ -685,21 +732,29 @@ buttonsPosBtn.addEventListener('click', () => {
 updateButtonsPos();
 
 // Color themes: each id matches a :root[data-theme] block in style.css ('terminal' is the default :root).
+// full: needs Full Access (see unlocks.js).
 const THEMES = [
   { id: 'terminal', label: 'TERMINAL' },
-  { id: 'cipher', label: 'CIPHER' },
+  { id: 'cipher', label: 'CIPHER', full: true },
 ];
+const themeAvailable = (t) => !t.full || Unlocks.hasFullAccess();
 const themeBtn = document.getElementById('theme-btn');
 const themeMeta = document.querySelector('meta[name="theme-color"]');
 let themeId = THEMES.some((t) => t.id === storage.get('blockchain-theme')) ? storage.get('blockchain-theme') : 'terminal';
 function applyTheme() {
+  if (!themeAvailable(THEMES.find((t) => t.id === themeId))) themeId = 'terminal'; // stays saved for when it unlocks
+  document.getElementById('theme-note').textContent = Unlocks.hasFullAccess()
+    ? 'TERMINAL: green bits, grey layers. CIPHER: cyan bits, magenta layers.'
+    : 'More themes (like CIPHER: cyan bits, magenta layers) come with Full Access.';
   if (themeId === 'terminal') delete document.documentElement.dataset.theme;
   else document.documentElement.dataset.theme = themeId;
   themeMeta.content = getComputedStyle(document.documentElement).getPropertyValue('--bg-solid').trim();
   themeBtn.textContent = `THEME: ${THEMES.find((t) => t.id === themeId).label}`;
 }
 themeBtn.addEventListener('click', () => {
-  themeId = THEMES[(THEMES.findIndex((t) => t.id === themeId) + 1) % THEMES.length].id;
+  const open = THEMES.filter(themeAvailable);
+  if (open.length < 2) return; // nothing to switch to; keep any saved (locked) choice
+  themeId = open[(open.findIndex((t) => t.id === themeId) + 1) % open.length].id;
   storage.set('blockchain-theme', themeId);
   applyTheme();
 });
@@ -717,7 +772,11 @@ function renderPlaylist() {
     const track = tracks[n];
     const btn = document.createElement('button');
     const num = String(n + 1).padStart(2, '0');
-    if (track) {
+    if (track && track.locked) {
+      btn.textContent = `${num}  ${track.title}`;
+      btn.disabled = true;
+      btn.classList.add('locked');
+    } else if (track) {
       btn.textContent = `${num}  ${track.title}`;
       btn.classList.toggle('active', track.id === Music.currentTrack());
       btn.classList.toggle('playing', track.id === Music.currentTrack() && Music.isEnabled());
@@ -798,6 +857,18 @@ document.addEventListener('pointerdown', (e) => {
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && !settingsEl.hidden) setSettingsOpen(false);
 });
+
+// Bonus exploits dim with a FULL ACCESS tag when locked.
+function applyUnlocks() {
+  document.querySelectorAll('.hack-item[data-full]').forEach((el) => {
+    el.classList.toggle('locked', !hackAvailable(el.dataset.hack));
+  });
+  Music.refreshUnlocks();
+  applyTheme();
+  renderPlaylist();
+}
+Unlocks.onChange(applyUnlocks);
+applyUnlocks();
 
 initGame();
 
