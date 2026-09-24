@@ -580,6 +580,21 @@ function visualizerLoop() {
   requestAnimationFrame(visualizerLoop);
 }
 
+const MODE_LABELS = { repeat: 'MODE: REPEAT ONE', sequence: 'MODE: SEQUENCE', shuffle: 'MODE: SHUFFLE' };
+const modeBtn = document.getElementById('play-mode-btn');
+function updateModeBtn() {
+  modeBtn.textContent = MODE_LABELS[Music.getMode()];
+  modeBtn.classList.toggle('on', Music.getMode() !== 'repeat');
+}
+modeBtn.addEventListener('click', () => {
+  Music.cycleMode();
+  updateModeBtn();
+});
+updateModeBtn();
+Music.onTrackChange(() => {
+  if (!playlistEl.hidden) renderPlaylist();
+});
+
 const bgPlayBtn = document.getElementById('bg-play-btn');
 function updateBgPlayBtn() {
   bgPlayBtn.textContent = `BACKGROUND PLAY: ${Music.isBackgroundPlay() ? 'ON' : 'OFF'}`;

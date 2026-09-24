@@ -507,6 +507,8 @@ h1 span { color: var(--amber); text-shadow: 0 0 8px var(--amber); }
 .playlist .bg-play-btn { font-size: 11px; color: var(--green-dim); border-color: var(--grid-line); }
 .playlist .bg-play-btn.on { color: var(--green); border-color: var(--green-dim); }
 
+.playlist-note + .bg-play-btn { margin-top: 10px; }
+
 .playlist-note {
   margin: 6px 2px 0;
   font-size: 10px;

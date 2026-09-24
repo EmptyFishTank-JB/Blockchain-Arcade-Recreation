@@ -5,6 +5,10 @@ const Music = (() => {
   const STORAGE_KEY = 'blockchain-music';
   const TRACK_KEY = 'blockchain-track';
   const BG_KEY = 'blockchain-music-bg';
+  const MODE_KEY = 'blockchain-music-mode';
+  const MODES = ['repeat', 'sequence', 'shuffle'];
+  const FADE_OUT = 3; // seconds of fade at the end of a track's last loop
+  const LOOPS_PER_TRACK = 4; // sequence/shuffle: plays before moving to the next track
   const LOOKAHEAD = 0.12;
   // Hidden tabs get their timers throttled to ~1/s, so queue more notes ahead while in the background.
   const HIDDEN_LOOKAHEAD = 1.5;
@@ -21,7 +25,9 @@ const Music = (() => {
   let enabled = true;
   let backgroundPlay = false;
   let trackId = TRACKS[0].id;
+  let mode = 'repeat';
   try {
+    if (MODES.includes(localStorage.getItem(MODE_KEY))) mode = localStorage.getItem(MODE_KEY);
     enabled = localStorage.getItem(STORAGE_KEY) !== 'off';
     backgroundPlay = localStorage.getItem(BG_KEY) === 'on';
     const saved = localStorage.getItem(TRACK_KEY);
@@ -36,11 +42,57 @@ const Music = (() => {
   let timer = null;
   let step = 0;
   let nextTime = 0;
+  let loopsToPlay = LOOPS_PER_TRACK;
+  let fadeStarted = false;
+  let onTrackChange = null;
+
+  function saveTrack() {
+    try { localStorage.setItem(TRACK_KEY, trackId); } catch (e) {}
+  }
+
+  function openSession(fadeIn) {
+    session = ctx.createGain();
+    session.gain.setValueAtTime(0, ctx.currentTime);
+    session.gain.linearRampToValueAtTime(1, ctx.currentTime + fadeIn);
+    session.connect(analyser);
+    engine = TRACKS.find((t) => t.id === trackId).create(ctx, session);
+    step = 0;
+    loopsToPlay = LOOPS_PER_TRACK;
+    fadeStarted = false;
+  }
+
+  function nextTrackId() {
+    const i = TRACKS.findIndex((t) => t.id === trackId);
+    if (mode === 'sequence') return TRACKS[(i + 1) % TRACKS.length].id;
+    let j = Math.floor(Math.random() * (TRACKS.length - 1));
+    if (j >= i) j++; // shuffle never repeats the same track back to back
+    return TRACKS[j].id;
+  }
+
+  // Sequence/shuffle: fade out over the end of the last loop, then start the next track.
+  function advance() {
+    if (mode === 'repeat') return;
+    const end = loopsToPlay * engine.loopSteps;
+    if (!fadeStarted && step >= end - Math.ceil(FADE_OUT / engine.step)) {
+      fadeStarted = true;
+      session.gain.setValueAtTime(1, nextTime);
+      session.gain.linearRampToValueAtTime(0, nextTime + (end - step) * engine.step);
+    }
+    if (step >= end) {
+      const old = session;
+      setTimeout(() => old.disconnect(), (nextTime - ctx.currentTime + 1) * 1000);
+      trackId = nextTrackId();
+      saveTrack();
+      openSession(0.8);
+      if (onTrackChange) onTrackChange(trackId);
+    }
+  }
 
   function tick() {
     if (nextTime < ctx.currentTime) nextTime = ctx.currentTime + 0.02;
     const ahead = document.hidden ? HIDDEN_LOOKAHEAD : LOOKAHEAD;
     while (nextTime < ctx.currentTime + ahead) {
+      advance();
       intensity += (targetIntensity - intensity) * INTENSITY_EASE;
       engine.schedule(step, nextTime, intensity);
       nextTime += engine.step;
@@ -61,12 +113,7 @@ const Music = (() => {
         analyser.connect(ctx.destination);
       }
       ctx.resume();
-      session = ctx.createGain();
-      session.gain.setValueAtTime(0, ctx.currentTime);
-      session.gain.linearRampToValueAtTime(1, ctx.currentTime + 1.5);
-      session.connect(analyser);
-      engine = TRACKS.find((t) => t.id === trackId).create(ctx, session);
-      step = 0;
+      openSession(1.5);
       nextTime = ctx.currentTime + 0.05;
       timer = setInterval(tick, 25);
     } catch (e) {}
@@ -115,9 +162,27 @@ const Music = (() => {
     play(id) {
       if (!TRACKS.some((t) => t.id === id)) return;
       trackId = id;
-      try { localStorage.setItem(TRACK_KEY, id); } catch (e) {}
+      saveTrack();
       stop();
       setEnabled(true);
+    },
+    getMode: () => mode,
+    // Cycles repeat → sequence → shuffle. Switching mid-track keeps the current track going.
+    cycleMode() {
+      mode = MODES[(MODES.indexOf(mode) + 1) % MODES.length];
+      try { localStorage.setItem(MODE_KEY, mode); } catch (e) {}
+      if (timer) {
+        if (fadeStarted) {
+          session.gain.cancelScheduledValues(ctx.currentTime);
+          session.gain.setTargetAtTime(1, ctx.currentTime, 0.3);
+          fadeStarted = false;
+        }
+        loopsToPlay = Math.max(LOOPS_PER_TRACK, Math.floor(step / engine.loopSteps) + 1);
+      }
+      return mode;
+    },
+    onTrackChange(fn) {
+      onTrackChange = fn;
     },
     isBackgroundPlay: () => backgroundPlay,
     setBackgroundPlay(on) {

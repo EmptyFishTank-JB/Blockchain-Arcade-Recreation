@@ -71,7 +71,9 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
   button) and intensifies as your tallest stack nears the red line (from
   height 4, full at 6). The speaker icon opens the playlist, which also has
   a small visualizer of the live music (click it to switch between LED bars
-  and an oscilloscope wave) and the BACKGROUND PLAY toggle (keep playing or pause when you switch tabs or
+  and an oscilloscope wave), a MODE button (REPEAT ONE, or SEQUENCE / SHUFFLE,
+  which play each track 4 times and then fade into the next), and the
+  BACKGROUND PLAY toggle (keep playing or pause when you switch tabs or
   apps). New tracks go in the `TRACKS` list here, with their engine in a
   `music-*.js` file
 - `music-theme.js` — track 01, BLOCKCHAIN THEME: an original synthwave loop
