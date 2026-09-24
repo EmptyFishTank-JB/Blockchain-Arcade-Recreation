@@ -474,6 +474,16 @@ soundBtn.addEventListener('click', () => {
 });
 updateSoundBtn();
 
+const musicBtn = document.getElementById('music-btn');
+function updateMusicBtn() {
+  musicBtn.textContent = Music.isEnabled() ? 'MUSIC: ON' : 'MUSIC: OFF';
+}
+musicBtn.addEventListener('click', () => {
+  Music.toggle();
+  updateMusicBtn();
+});
+updateMusicBtn();
+
 initGame();
 
 function formatCentral(isoDate) {

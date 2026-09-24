@@ -230,7 +230,7 @@ h1 span { color: var(--amber); text-shadow: 0 0 8px var(--amber); }
 
 .controls { text-align: center; margin-top: 14px; }
 
-#restart-btn, #sound-btn, #overlay-restart-btn, #hack-btn {
+#restart-btn, #sound-btn, #music-btn, #overlay-restart-btn, #hack-btn {
   background: transparent;
   border: 1px solid var(--green);
   color: var(--green);
@@ -241,7 +241,7 @@ h1 span { color: var(--amber); text-shadow: 0 0 8px var(--amber); }
   letter-spacing: 1px;
 }
 
-#restart-btn:hover, #sound-btn:hover, #overlay-restart-btn:hover, #hack-btn:hover:not(:disabled) {
+#restart-btn:hover, #sound-btn:hover, #music-btn:hover, #overlay-restart-btn:hover, #hack-btn:hover:not(:disabled) {
   background: rgba(57, 255, 143, 0.15);
 }
 

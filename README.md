@@ -12,7 +12,9 @@ from *Arcade Paradise*. Mechanically it's a Drop7-style number puzzle:
 - Every 8 drops a row of firewalls (`[=]`) rises from the bottom. Clearing an
   adjacent packet breaks a firewall down to `[-]`, and a second hit reveals
   its number.
-- The run ends when a stack overflows the top.
+- Stacks can spill into an overflow row above the `=======` line. Clears
+  still resolve there (a lone `[1]` clears itself), but anything left above
+  the line afterwards ends the run.
 
 ## Hacks
 
@@ -39,3 +41,5 @@ next packet shown in the HUD. `H` uses a hack, `Esc` cancels targeting.
 - `script.js` — game state, rendering, chain resolution and hacks
 - `sfx.js` — synthesized sound effects ported from the ECHOES terminal audio
   compendium; toggle with the SOUND button
+- `music.js` — an original synthwave loop synthesized live with Web Audio;
+  starts on your first click or key press, toggle with the MUSIC button
