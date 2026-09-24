@@ -1,9 +1,10 @@
-// BLOCKCHAIN — fan recreation of the arcade minigame from Arcade Paradise.
-// Core mechanic is a Drop7-style puzzle: packets 1-N fall into an N-wide grid
-// and a packet clears when it sits in an unbroken row/column run whose length
-// equals its number. Clears break down adjacent firewalls, which rise in rows
-// every few drops, and a 5x combo unlocks a hack that is dropped like a packet.
-// Easy and Normal play 7x7; Hard plays a full byte, 8x8 with packets up to 8.
+// BYTEFALL — a decryption puzzle inspired by Blockchain from Arcade Paradise.
+// Core mechanic is Drop7-style: encrypted bits 1-N fall into an N-wide grid and
+// a bit decrypts (clears) when it sits in an unbroken row/column run whose
+// length equals its number. Clears peel adjacent encryption layers (the
+// 'firewall' cells, which rise in rows every few drops), and a 5x combo
+// unlocks an exploit (a 'hack' piece) that is dropped like a bit.
+// Easy and Normal play 7x7; Hard plays a full byte, 8x8 with bits up to 8.
 
 // Grid size comes from the difficulty and is set by initGame().
 let COLS = 7;
@@ -15,7 +16,7 @@ const HACK_COMBO = 5;
 const BASE_INTERVAL = 8; // drops between firewall rows
 const HARD_MIN_INTERVAL = 4;
 const HARD_POINTS_PER_STEP = 500; // hard mode loses one drop per this many points
-const BYTE_BITS = 8; // Hard: every 8 packets cleared by one drop is a byte...
+const BYTE_BITS = 8; // Hard: every 8 bits decrypted by one drop is a byte...
 const BYTE_BONUS = 256; // ...worth 2^8 points
 
 const DIFFICULTIES = {
@@ -33,7 +34,7 @@ const DIFFICULTIES = {
 // easyCombo: on Easy, the chain length that unlocks each hack (stronger hacks need longer chains)
 const HACKS = {
   worm: { name: 'WORM VIRUS', icon: '§', easyCombo: 5 },
-  overflow: { name: 'STACK OVERFLOW', icon: '+', easyCombo: 4 },
+  overflow: { name: 'BUFFER OVERFLOW', icon: '+', easyCombo: 4 },
   trojan: { name: 'TROJAN', icon: '◈', easyCombo: 4 },
   rng: { name: 'RNG', icon: '?', easyCombo: 3 },
   bitflip: { name: 'BITFLIP', icon: '↕', easyCombo: 3 },
@@ -121,8 +122,8 @@ function initGame() {
   });
   const easy = difficulty === 'easy';
   document.getElementById('hack-intro').textContent = easy
-    ? 'Chain combos unlock hacks: the longer the chain, the stronger the hack.'
-    : `Get a combo of ${HACK_COMBO} to unlock a random hack.`;
+    ? 'Chains unlock exploits: the longer the chain, the stronger the exploit.'
+    : `Chain ${HACK_COMBO} decrypts in one drop to unlock a random exploit.`;
   document.querySelectorAll('.hack-item').forEach((el) => {
     el.querySelector('.combo').textContent = `${easy ? HACKS[el.dataset.hack].easyCombo : HACK_COMBO}x`;
   });
@@ -302,7 +303,7 @@ function finishTurn() {
   if (overflowed()) endGame();
   // One drop until a firewall row: warn until the player drops (unless a hack message is showing)
   else if (pulseInterval - dropsSinceLastPulse === 1 && messageEl.classList.contains('hidden')) {
-    setMessage('FIREWALL // INCOMING NEXT DROP', 'warn');
+    setMessage('ENCRYPTION // NEW LAYER NEXT DROP', 'warn');
   }
 }
 
@@ -311,7 +312,7 @@ function overflowed() {
 }
 
 async function injectPulse() {
-  setMessage('FIREWALL // INCOMING ROW', 'alarm');
+  setMessage('ENCRYPTION // NEW LAYER', 'alarm');
   SFX.play('alert');
   await sleep(800);
   for (const col of columns) col.unshift(newFirewall());
@@ -370,11 +371,11 @@ function hackForChain(chain) {
   return ids[Math.floor(Math.random() * ids.length)];
 }
 
-// Hard: 8 packets (bits) cleared by one drop make a byte.
+// Hard: 8 bits decrypted by one drop make a byte.
 async function awardBytes(bytes) {
   score += bytes * BYTE_BONUS;
   updateHud();
-  setMessage(`${bytes > 1 ? `${bytes} BYTES` : 'BYTE'} CLEARED // +${bytes * BYTE_BONUS}`, 'byte');
+  setMessage(`${bytes > 1 ? `${bytes} BYTES` : 'BYTE'} DECRYPTED // +${bytes * BYTE_BONUS}`, 'byte');
   SFX.play('egg');
   await sleep(900);
   burstMessage('number');
@@ -384,7 +385,7 @@ async function awardBytes(bytes) {
 
 function awardHack(id) {
   queue.unshift({ type: 'hack', id });
-  setMessage(`HACK UNLOCKED // ${HACKS[id].name}`);
+  setMessage(`EXPLOIT READY // ${HACKS[id].name}`);
   SFX.play('egg');
   updateHud();
 }
@@ -523,7 +524,7 @@ async function runHack(id, row, col) {
 }
 
 // Game over: every piece shakes and heats up, bursts at its own random moment,
-// then CONNECTION LOST appears (~1.2s in total).
+// then TRACE COMPLETE appears (~1.2s in total).
 // Every piece on the board heats up, shakes and bursts into code over ~1s. Returns the piece count.
 function meltBoard(run) {
   const pieces = [...boardEl.querySelectorAll('.cell.disc, .cell.firewall, .cell.hack')];

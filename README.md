@@ -1,48 +1,50 @@
-# Blockchain — Arcade Recreation
+# ByteFall
 
-A browser recreation of **Blockchain**, the hacker-themed arcade cabinet game
-from *Arcade Paradise*. Mechanically it's a Drop7-style number puzzle:
+A browser number puzzle about cracking encrypted data, inspired by
+**Blockchain**, the hacker-themed arcade cabinet game in *Arcade Paradise*.
+Mechanically it's a Drop7-style puzzle:
 
-- Packets numbered 1-7 drop into a 7×7 grid, one stack (column) at a time
-  (Hard: 1-8 on an 8×8 grid).
-- A packet disappears when the width or height of the unbroken stack it sits
-  in matches its number (e.g. a `[5]` clears when it's part of an unbroken
-  run of exactly 5 filled cells in its row or column).
-- Clears chain: packets above collapse into the gap and may trigger more
-  clears. Chains multiply your score.
-- Every 8 drops a row of firewalls (`[=]`) rises from the bottom. Clearing an
-  adjacent packet breaks a firewall down to `[-]`, and a second hit reveals
-  its number.
-- Stacks can spill into an overflow row above the `=======` line. Clears
-  still resolve there (a lone `[1]` clears itself), but anything left above
-  the line afterwards ends the run.
+- Encrypted bits numbered 1-7 fall into a 7×7 terminal, one column at a time
+  (Hard: 1-8 on an 8×8 grid, a full byte).
+- A bit decrypts (clears) when its number matches the length of the unbroken
+  line it sits in, across or down (e.g. a `[5]` decrypts when it's part of an
+  unbroken run of exactly 5 filled cells in its row or column).
+- Decrypts chain: bits above fall into the gap and may make new matches.
+  Chains multiply your score.
+- Every 8 drops a row of encryption layers (`[=]`) rises from the bottom.
+  Decrypting a bit beside one peels it down to `[-]`, and a second peel
+  reveals the bit underneath.
+- Columns can spill into an overflow row above the `========` line. Decrypts
+  still resolve there (a lone `[1]` decrypts itself), but anything left above
+  the line afterwards completes the trace and ends the run.
 
-## Hacks
+## Exploits
 
-On Normal and Hard, a 5x combo unlocks a random hack. On Easy, each hack has
-its own combo, so shorter chains unlock the weaker ones. The hack becomes your
-next drop; drop it into a column like a packet and it goes off where it lands:
+On Normal and Hard, a 5x chain unlocks a random exploit. On Easy, each exploit
+has its own chain length, so shorter chains unlock the weaker ones. The exploit
+becomes your next drop; drop it into a column like a bit and it runs where it
+lands:
 
-| Hack | Easy combo | Effect |
+| Exploit | Easy chain | Effect |
 |---|---|---|
-| Worm Virus `[§]` | 5x | Destroys the entire stack it's dropped into |
-| Stack Overflow `[+]` | 4x | Adds 1 to every packet; the top number (7, or 8 on Hard) becomes a level 2 firewall |
-| Trojan `[◈]` | 4x | Destroys every packet around the spot where it lands |
-| RNG `[?]` | 3x | Randomizes every packet's value |
-| Bitflip `[↕]` | 3x | Flips every stack upside down |
+| Worm Virus `[§]` | 5x | Wipes out every block in the column it lands in |
+| Buffer Overflow `[+]` | 4x | Adds 1 to every bit; the top number (7, or 8 on Hard) is re-encrypted under two layers |
+| Trojan `[◈]` | 4x | Wipes out every block touching the spot where it lands |
+| RNG `[?]` | 3x | Scrambles every bit to a random number |
+| Bitflip `[↕]` | 3x | Turns every column upside down |
 
-A drop earns at most one hack, picked from the longest chain it set off.
+A drop earns at most one exploit, picked from the longest chain it set off.
 
 ## Difficulty
 
 | Setting | Effect |
 |---|---|
-| Easy | Shows the next packet, and hacks unlock at 3x–5x depending on the hack |
-| Normal | Firewall row every 8 drops |
-| Hard | A full byte: 8×8 grid with packets 1-8; firewall row every 8 drops, minus one per 500 points, down to every 4; BYTE bonus |
+| Easy | Shows the next bit, and exploits unlock at 3x–5x depending on the exploit |
+| Normal | New encryption layer every 8 drops |
+| Hard | A full byte: 8×8 grid with bits 1-8; new layer every 8 drops, minus one per 500 points, down to every 4; BYTE bonus |
 
-On Hard, every 8 packets (bits) a single drop clears, chains included, make a
-byte: **BYTE CLEARED** adds a 256-point (2^8) bonus per byte.
+On Hard, every 8 bits a single drop decrypts, chains included, make a byte:
+**BYTE DECRYPTED** adds a 256-point (2^8) bonus per byte.
 
 High scores are saved in your browser, one per difficulty (Hard's started
 fresh when it moved to 8×8).
@@ -50,14 +52,14 @@ fresh when it moved to 8×8).
 ## Playing
 
 Open `index.html` in a browser. Tap a numbered drop button (under the grid by
-default), or press `1`-`7` (`1`-`8` on Hard), to drop the current packet shown in the HUD.
+default), or press `1`-`7` (`1`-`8` on Hard), to drop the current bit shown in the HUD.
 
 The gear/speaker icon in the corner opens the settings: sound and music on or
 off, whether the drop buttons sit under or above the grid, and the playlist.
 
 RESTART and the difficulty buttons ask for a second press mid-run (CONFIRM
 RESTART? / CONFIRM?, which cancels itself after a few seconds), then the
-board melts down like a lost run before the new one starts. Once a run is
+board melts down like a traced run before the new one starts. Once a run is
 over, or before the first drop, they act straight away.
 
 ## Files
@@ -66,9 +68,9 @@ over, or before the first drop, they act straight away.
 tag. Bump `N` on all of those links whenever any of those files change, so browsers don't pair a fresh page
 with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
 
-- `index.html` — page structure, HUD, rules and hacks panels
+- `index.html` — page structure, HUD, rules and exploits panels
 - `style.css` — terminal/hacker visual theme
-- `script.js` — game state, rendering, chain resolution and hacks
+- `script.js` — game state, rendering, chain resolution and exploits
 - `fx.js` — particle overlay: cleared cells dissolve into pixel fragments and
   drifting hex/binary glyphs (skipped under reduced motion)
 - `viz.js` — the shared music visualizer (LED bars or auto-gained
@@ -90,7 +92,7 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
   BACKGROUND PLAY toggle (keep playing or pause when you switch tabs or
   apps). New tracks go in the `TRACKS` list here, with their engine in a
   `music-*.js` file
-- `music-theme.js` — track 01, BLOCKCHAIN THEME: an original synthwave loop
+- `music-theme.js` — track 01, BYTEFALL THEME: an original synthwave loop
   (intro, melody 1, section B with melody 2, octave-doubled climax)
 - `music-sleep-mode.js` — track 02, SLEEP MODE: original electronicore
   (music box, trance synths, chugging distorted guitars, double-kick) at

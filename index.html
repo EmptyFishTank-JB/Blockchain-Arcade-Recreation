@@ -4,19 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#020403">
-<title>BLOCKCHAIN // arcade recreation</title>
-<link rel="stylesheet" href="style.css?v=29">
+<title>BYTEFALL // decryption terminal</title>
+<link rel="stylesheet" href="style.css?v=30">
 </head>
 <body>
   <main class="cabinet">
     <aside class="panel panel-rules">
       <h2>RULES</h2>
-      <p>Drop packets onto the network stacks, one column at a time.</p>
-      <p>If the width or height of an unbroken stack matches a packet's number, that packet disappears.</p>
-      <p>Firewalls <b>[=]</b> / <b>[-]</b> slow your hacking down. Making adjacent packets disappear breaks them down and reveals their numbers.</p>
-      <p>A new row of firewalls rises <span id="rules-pulse">every 8 drops</span>. Anything left above the <b>=======</b> line after clears disconnects you.</p>
-      <p><b>Easy</b> also previews the next packet, and shorter chains unlock hacks.</p>
-      <p><b>Hard</b> plays a full byte: an 8&times;8 grid with packets up to 8, and fewer drops between firewalls the higher your score. Every 8 packets (bits) one drop clears is a <b>BYTE</b>, worth a 256-point bonus.</p>
+      <p>Encrypted bits fall into the terminal. Drop each one into a column.</p>
+      <p>A bit decrypts when its number matches the length of the unbroken line it sits in, across or down. Decrypting can bring more bits down into new matches for a chain.</p>
+      <p>Encryption layers <b>[=]</b> rise from below <span id="rules-pulse">every 8 drops</span>. Decrypt a bit beside one to peel a layer off; the second peel (<b>[-]</b>) reveals the bit hidden underneath.</p>
+      <p>Keep your columns below the <b>========</b> line. If anything is still above it once the decrypting stops, the trace completes and you're caught.</p>
+      <p><b>Easy</b> shows the next bit, and shorter chains unlock exploits.</p>
+      <p><b>Hard</b> is a full byte: an 8&times;8 terminal with bits up to 8, and new layers come faster as your score climbs. Every 8 bits a single drop decrypts make a <b>BYTE</b>, worth 256 bonus points.</p>
       <p class="keys" id="rules-keys">Click a column or press 1&ndash;7 to drop</p>
     </aside>
 
@@ -53,8 +53,8 @@
         </div>
       </div>
       <header>
-        <h1>BLOCK<span>CHAIN</span></h1>
-        <p class="tagline">// NEOXXX INFILTRATION TERMINAL</p>
+        <h1>BYTE<span>FALL</span></h1>
+        <p class="tagline">// DECRYPTION TERMINAL</p>
         <div class="difficulty" role="group" aria-label="Difficulty">
           <button data-difficulty="easy">EASY</button>
           <button data-difficulty="normal">NORMAL</button>
@@ -81,7 +81,7 @@
           <div class="next-disc" id="next-piece">[?]</div>
         </div>
         <div class="stat">
-          <span class="label">FIREWALL IN</span>
+          <span class="label">NEW LAYER IN</span>
           <span class="value" id="pulse-counter">8</span>
         </div>
       </div>
@@ -102,39 +102,39 @@
     </div>
 
     <aside class="panel panel-hacks">
-      <h2>HACKS</h2>
-      <p><span id="hack-intro">Get a combo of 5 to unlock a random hack.</span> It becomes your next drop and goes off where it lands.</p>
+      <h2>EXPLOITS</h2>
+      <p><span id="hack-intro">Chain 5 decrypts in one drop to unlock a random exploit.</span> It becomes your next drop and runs wherever it lands.</p>
       <div class="hack-item" data-hack="worm">
         <h3><span class="icon">§</span> WORM VIRUS<span class="combo"></span></h3>
-        <p>A self-replicating virus that destroys the entire stack it's dropped into.</p>
+        <p>Burrows down the column it lands in and wipes out every block there.</p>
       </div>
       <div class="hack-item" data-hack="overflow">
-        <h3><span class="icon">+</span> STACK OVERFLOW<span class="combo"></span></h3>
-        <p>A buffer overflow that adds 1 to each packet. Any packet showing a <span id="overflow-top">7</span> becomes a level 2 firewall.</p>
+        <h3><span class="icon">+</span> BUFFER OVERFLOW<span class="combo"></span></h3>
+        <p>Floods memory: every bit goes up by 1. A bit pushed past <span id="overflow-top">7</span> gets re-encrypted under two layers.</p>
       </div>
       <div class="hack-item" data-hack="trojan">
         <h3><span class="icon">◈</span> TROJAN<span class="combo"></span></h3>
-        <p>Destroys every packet around the spot where it lands.</p>
+        <p>Slips in quietly, then wipes out every block touching the spot where it lands.</p>
       </div>
       <div class="hack-item" data-hack="rng">
         <h3><span class="icon">?</span> RNG<span class="combo"></span></h3>
-        <p>Shifts the values of every packet at random.</p>
+        <p>Scrambles every bit to a new random number.</p>
       </div>
       <div class="hack-item" data-hack="bitflip">
         <h3><span class="icon">↕</span> BITFLIP<span class="combo"></span></h3>
-        <p>Flips every stack from top to bottom.</p>
+        <p>Turns every column upside down.</p>
       </div>
     </aside>
   </main>
 
   <footer>
     <div class="footer-text">
-      <p>BLOCKCHAIN · &copy; 2026 <span>EmptyFishTank-JB</span> &middot; Fan Recreation</p>
+      <p>BYTEFALL · &copy; 2026 <span>EmptyFishTank-JB</span></p>
       <p class="footer-meta">
         <span class="meta-item">Updated <span id="updatedInfo">&mdash;</span></span>
         <span class="meta-item">Commit <span id="commitInfo">&mdash;</span></span>
       </p>
-      <p class="accent">// Based on Blockchain from Arcade Paradise</p>
+      <p class="accent">// Inspired by Blockchain from Arcade Paradise</p>
     </div>
     <a class="dev-link" href="dev-tools/audio.html" aria-label="Dev tools: audio compendium" title="Dev tools: audio compendium">
       <svg viewBox="0 0 46 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -149,24 +149,25 @@
 
   <div id="game-over" class="overlay hidden">
     <div class="overlay-box">
-      <h2>CONNECTION LOST</h2>
+      <h2>TRACE COMPLETE</h2>
+      <p class="overlay-sub">They found you.</p>
       <p>Final score: <span id="final-score">0</span></p>
       <p id="new-best" class="new-best" hidden>NEW HIGH SCORE</p>
-      <button id="overlay-restart-btn">RECONNECT</button>
+      <button id="overlay-restart-btn">NEW SESSION</button>
     </div>
   </div>
 
-  <script src="sfx.js?v=29"></script>
-  <script src="music-theme.js?v=29"></script>
-  <script src="music-sleep-mode.js?v=29"></script>
-  <script src="music-brute-force.js?v=29"></script>
-  <script src="music-deep-web.js?v=29"></script>
-  <script src="music-zero-day.js?v=29"></script>
-  <script src="music-system-restore.js?v=29"></script>
-  <script src="music.js?v=29"></script>
-  <script src="fx.js?v=29"></script>
-  <script src="viz.js?v=29"></script>
-  <script src="script.js?v=29"></script>
-  <script src="grid-bg.js?v=29"></script>
+  <script src="sfx.js?v=30"></script>
+  <script src="music-theme.js?v=30"></script>
+  <script src="music-sleep-mode.js?v=30"></script>
+  <script src="music-brute-force.js?v=30"></script>
+  <script src="music-deep-web.js?v=30"></script>
+  <script src="music-zero-day.js?v=30"></script>
+  <script src="music-system-restore.js?v=30"></script>
+  <script src="music.js?v=30"></script>
+  <script src="fx.js?v=30"></script>
+  <script src="viz.js?v=30"></script>
+  <script src="script.js?v=30"></script>
+  <script src="grid-bg.js?v=30"></script>
 </body>
 </html>

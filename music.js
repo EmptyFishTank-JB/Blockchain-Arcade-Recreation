@@ -14,7 +14,7 @@ const Music = (() => {
   const INTENSITY_EASE = 0.06; // per 16th step, ~2.5s to settle
   // Add future tracks here: each entry's create(ctx, out) returns an engine like createSynthwave's.
   const TRACKS = [
-    { id: 'theme', title: 'BLOCKCHAIN THEME', create: createSynthwave },
+    { id: 'theme', title: 'BYTEFALL THEME', create: createSynthwave },
     { id: 'sleep-mode', title: 'SLEEP MODE', create: createSleepMode },
     { id: 'brute-force', title: 'BRUTE FORCE', create: createBruteForce },
     { id: 'deep-web', title: 'DEEP WEB', create: createDeepWeb },

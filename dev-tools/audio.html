@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#020403">
-<title>Audio Compendium // BLOCKCHAIN</title>
+<title>Audio Compendium // BYTEFALL</title>
 <style>
   :root {
     --bg: #020403;
@@ -194,7 +194,7 @@
   <a class="back" href="../index.html">&larr; BACK TO THE GAME</a>
 
   <div class="hero">
-    <div class="eyebrow"><span class="dot"></span>BLOCKCHAIN // DEV TOOLS</div>
+    <div class="eyebrow"><span class="dot"></span>BYTEFALL // DEV TOOLS</div>
     <h1>AUDIO <span>COMPENDIUM</span></h1>
     <p class="lede">Every sound in the game: the one-shot effects, both music tracks, and how the music intensifies near the red line. Nothing here is a recording. This page loads the game's own <code>sfx.js</code>, <code>music-theme.js</code> and <code>music-sleep-mode.js</code>, so every button plays exactly what the game plays.</p>
     <div class="wf-strip" title="Click to switch visualizer style"><canvas id="scope"></canvas></div>
@@ -212,7 +212,7 @@
 
   <section id="effects">
     <h2><span class="sec-num">01</span> One-Shot Effects</h2>
-    <p class="sec-desc">Nine short synthesized sounds defined in <code>sfx.js</code>: eight ported from the ECHOES terminal audio compendium, plus the data burst made for packet clears. They're turned on and off with the SOUND button in the game; the buttons here play them regardless.</p>
+    <p class="sec-desc">Nine short synthesized sounds defined in <code>sfx.js</code>: eight ported from the ECHOES terminal audio compendium, plus the data burst made for decrypting bits. They're turned on and off with the SOUND button in the game; the buttons here play them regardless.</p>
     <div id="sfx-list"></div>
   </section>
 
@@ -243,14 +243,14 @@
   <footer>GENERATED FROM SOURCE &mdash; NO AUDIO FILES, ALL SYNTHESIZED ON PLAY</footer>
 </div>
 
-<script src="../sfx.js?v=22"></script>
-<script src="../music-theme.js?v=22"></script>
-<script src="../music-sleep-mode.js?v=22"></script>
-<script src="../music-brute-force.js?v=22"></script>
-<script src="../music-deep-web.js?v=22"></script>
-<script src="../music-zero-day.js?v=22"></script>
-<script src="../music-system-restore.js?v=22"></script>
-<script src="../viz.js?v=22"></script>
+<script src="../sfx.js?v=30"></script>
+<script src="../music-theme.js?v=30"></script>
+<script src="../music-sleep-mode.js?v=30"></script>
+<script src="../music-brute-force.js?v=30"></script>
+<script src="../music-deep-web.js?v=30"></script>
+<script src="../music-zero-day.js?v=30"></script>
+<script src="../music-system-restore.js?v=30"></script>
+<script src="../viz.js?v=30"></script>
 <script>
 (() => {
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -261,49 +261,49 @@
       id: 'click', name: 'TYPING CLICK',
       desc: 'A 25 ms burst of noise through a bandpass filter. Short and dry, so it can repeat quickly.',
       params: ['dur 25ms', 'noise', 'bandpass 3000–4000Hz'],
-      uses: ['Every row a dropped packet or hack falls through', 'Every row packets drop after a clear (gravity)'],
+      uses: ['Every row a dropped bit or exploit falls through', 'Every row bits drop after a decrypt (gravity)'],
     },
     {
       id: 'enter', name: 'ENTER / SUBMIT',
       desc: 'A louder, low-passed thump.',
       params: ['dur 55ms', 'noise', 'lowpass 800Hz', '1.2× volume'],
-      uses: ['A packet or hack lands in its stack', 'Stack Overflow, RNG or Bitflip finishes changing the board'],
+      uses: ['A bit or exploit lands in its column', 'Buffer Overflow, RNG or Bitflip finishes changing the board'],
     },
     {
       id: 'burst', name: 'DATA BURST',
       desc: 'A quiet retro 8-bit explosion: grainy sample-and-hold noise under a falling lowpass, plus a quick square-wave pitch drop. The pitch varies slightly each time so chains don\'t repeat exactly.',
       params: ['dur 280ms', 'S&H noise', 'lowpass 3200 → 260Hz', 'square 520–660 → 70Hz', '0.2× volume'],
-      uses: ['Each step of a chain when packets clear', 'Worm Virus or Trojan destroys its cells'],
+      uses: ['Each step of a chain when bits decrypt', 'Worm Virus or Trojan wipes out its blocks'],
     },
     {
       id: 'egg', name: 'EASTER EGG TONE',
       desc: 'Two rising sine pings (660Hz then 880Hz), a bright "found something" chime.',
       params: ['660 → 880Hz sine', 'stagger 90ms'],
-      uses: ['Every chain step from 2x upward, on top of the burst', 'A hack is unlocked'],
+      uses: ['Every chain step from 2x upward, on top of the burst', 'An exploit is unlocked', 'BYTE DECRYPTED on Hard'],
     },
     {
       id: 'backspace', name: 'BACKSPACE',
       desc: 'A duller, double-filtered noise tick.',
       params: ['dur 32ms', 'bandpass 900–1200Hz', 'lowpass 1800Hz'],
-      uses: ['A clear cracks a neighbouring firewall from [=] to [-]'],
+      uses: ['A decrypt peels a neighbouring encryption layer from [=] to [-]'],
     },
     {
       id: 'punct', name: 'PUNCTUATION CLICK',
       desc: 'A soft triangle-wave blip at 200Hz.',
       params: ['200Hz triangle', 'dur 40ms', '0.55× volume'],
-      uses: ['A firewall breaks open and reveals a packet (plays instead of the backspace tick)', 'Turning SOUND on, as confirmation'],
+      uses: ['The last layer peels off and reveals the bit underneath (plays instead of the backspace tick)', 'Turning SOUND on, as confirmation'],
     },
     {
       id: 'alert', name: 'ALERT (TWO-TONE)',
       desc: 'Two falling sawtooth tones, a classic warning beep.',
       params: ['440 → 330Hz saw', 'stagger 120ms'],
-      uses: ['FIREWALL // INCOMING ROW, just before a firewall row rises'],
+      uses: ['ENCRYPTION // NEW LAYER, just before a row of layers rises'],
     },
     {
       id: 'static', name: 'LINE STATIC',
       desc: 'A brief high-passed noise pop.',
       params: ['dur 35ms', 'highpass 2000Hz', '0.75× volume'],
-      uses: ['A dropped hack starts executing', 'RESTART or RECONNECT starts a new run'],
+      uses: ['A dropped exploit starts executing', 'RESTART or NEW SESSION starts a new run'],
     },
     {
       id: 'denied', name: 'ACCESS DENIED',
@@ -334,7 +334,7 @@
   // ── Music tracks ───────────────────────────────────────────────────
   const TRACKS = [
     {
-      id: 'theme', num: '01', title: 'BLOCKCHAIN THEME', create: createSynthwave, file: 'music-theme.js',
+      id: 'theme', num: '01', title: 'BYTEFALL THEME', create: createSynthwave, file: 'music-theme.js',
       meta: ['synthwave', '108 BPM', 'A minor', '32 bars', '~71s loop'],
       desc: 'An original 80s-style synthwave loop: gated-reverb snare, octave-pulsing bass, detuned saw pads, an echoing 16th-note arpeggio and a square/saw lead.',
       sections: [
