@@ -1,24 +1,30 @@
 // BLOCKCHAIN — fan recreation of the arcade minigame from Arcade Paradise.
-// Core mechanic is a Drop7-style puzzle: packets 1-7 fall into a 7-wide grid
+// Core mechanic is a Drop7-style puzzle: packets 1-N fall into an N-wide grid
 // and a packet clears when it sits in an unbroken row/column run whose length
 // equals its number. Clears break down adjacent firewalls, which rise in rows
 // every few drops, and a 5x combo unlocks a hack that is dropped like a packet.
+// Easy and Normal play 7x7; Hard plays a full byte, 8x8 with packets up to 8.
 
-const COLS = 7;
-const ROWS = 7;
-const MAX_ROWS = ROWS + 1; // top row holds overflow; anything left there after clears ends the run
+// Grid size comes from the difficulty and is set by initGame().
+let COLS = 7;
+let ROWS = 7;
+let MAX_ROWS = ROWS + 1; // top row holds overflow; anything left there after clears ends the run
 const STEP_MS = 35; // per-row fall speed
 const HACK_COMBO = 5;
 
 const BASE_INTERVAL = 8; // drops between firewall rows
 const HARD_MIN_INTERVAL = 4;
 const HARD_POINTS_PER_STEP = 500; // hard mode loses one drop per this many points
+const BYTE_BITS = 8; // Hard: every 8 packets cleared by one drop is a byte...
+const BYTE_BONUS = 256; // ...worth 2^8 points
 
 const DIFFICULTIES = {
-  easy: { label: 'EASY', showNext: true, interval: () => BASE_INTERVAL },
-  normal: { label: 'NORMAL', showNext: false, interval: () => BASE_INTERVAL },
+  easy: { label: 'EASY', size: 7, showNext: true, interval: () => BASE_INTERVAL },
+  normal: { label: 'NORMAL', size: 7, showNext: false, interval: () => BASE_INTERVAL },
   hard: {
     label: 'HARD',
+    size: 8,
+    byteBonus: true,
     showNext: false,
     interval: (pts) => Math.max(HARD_MIN_INTERVAL, BASE_INTERVAL - Math.floor(pts / HARD_POINTS_PER_STEP)),
   },
@@ -56,6 +62,7 @@ const storage = {
 let difficulty = DIFFICULTIES[storage.get('blockchain-difficulty')] ? storage.get('blockchain-difficulty') : 'normal';
 
 const boardEl = document.getElementById('board');
+const boardWrapEl = document.querySelector('.board-wrap');
 const columnButtonsEl = document.getElementById('column-buttons');
 const scoreEl = document.getElementById('score');
 const bestEl = document.getElementById('best');
@@ -74,15 +81,16 @@ function sleep(ms) {
 }
 
 function newPacket() {
-  return { type: 'number', val: 1 + Math.floor(Math.random() * 7) };
+  return { type: 'number', val: 1 + Math.floor(Math.random() * COLS) };
 }
 
 function newFirewall(level = 2) {
   return { type: 'firewall', level };
 }
 
+// Hard moved to 8x8, so it keeps a fresh best apart from old 7x7 Hard scores.
 function bestKey() {
-  return `blockchain-best-${difficulty}`;
+  return difficulty === 'hard' ? 'blockchain-best-hard-8x8' : `blockchain-best-${difficulty}`;
 }
 
 function refillQueue() {
@@ -91,6 +99,10 @@ function refillQueue() {
 
 function initGame() {
   runId++;
+  COLS = ROWS = DIFFICULTIES[difficulty].size;
+  MAX_ROWS = ROWS + 1;
+  boardWrapEl.style.setProperty('--cols', COLS);
+  boardWrapEl.classList.toggle('byte-grid', COLS === 8);
   boardEl.classList.remove('meltdown');
   columns = Array.from({ length: COLS }, () => []);
   queue = [];
@@ -114,6 +126,8 @@ function initGame() {
   document.querySelectorAll('.hack-item').forEach((el) => {
     el.querySelector('.combo').textContent = `${easy ? HACKS[el.dataset.hack].easyCombo : HACK_COMBO}x`;
   });
+  document.getElementById('overflow-top').textContent = COLS;
+  document.getElementById('rules-keys').textContent = `Click a column or press 1\u2013${COLS} to drop`;
   document.getElementById('rules-pulse').textContent = difficulty === 'hard'
     ? `every ${BASE_INTERVAL} drops, tightening to every ${HARD_MIN_INTERVAL} as your score climbs`
     : `every ${BASE_INTERVAL} drops`;
@@ -203,10 +217,11 @@ function render(popped = [], falling = null) {
   Music.setIntensity(dangerLevel());
 }
 
-// 0 up to a tallest stack of 3, then 33% at 4, 67% at 5 and full from 6.
+// The last three stack heights under the line: on 7x7, 33% at 4, 67% at 5 and full from 6
+// (one higher each on Hard's 8x8).
 function dangerLevel() {
   const tallest = Math.max(...columns.map((c) => c.length));
-  return (tallest - 3) / 3;
+  return (tallest - (ROWS - 4)) / 3;
 }
 
 function updateHud() {
@@ -229,7 +244,7 @@ function updateHud() {
 function setMessage(text, tone = '') {
   messageEl.textContent = text;
   messageEl.classList.toggle('hidden', !text);
-  messageEl.classList.remove('warn', 'alarm');
+  messageEl.classList.remove('warn', 'alarm', 'byte');
   if (tone) messageEl.classList.add(tone);
 }
 
@@ -355,6 +370,18 @@ function hackForChain(chain) {
   return ids[Math.floor(Math.random() * ids.length)];
 }
 
+// Hard: 8 packets (bits) cleared by one drop make a byte.
+async function awardBytes(bytes) {
+  score += bytes * BYTE_BONUS;
+  updateHud();
+  setMessage(`${bytes > 1 ? `${bytes} BYTES` : 'BYTE'} CLEARED // +${bytes * BYTE_BONUS}`, 'byte');
+  SFX.play('egg');
+  await sleep(900);
+  burstMessage('number');
+  setMessage('');
+  await sleep(150);
+}
+
 function awardHack(id) {
   queue.unshift({ type: 'hack', id });
   setMessage(`HACK UNLOCKED // ${HACKS[id].name}`);
@@ -364,6 +391,7 @@ function awardHack(id) {
 
 async function resolveChains() {
   let chain = 0;
+  let cleared = 0;
 
   while (true) {
     const grid = buildGrid();
@@ -384,6 +412,7 @@ async function resolveChains() {
     if (pops.length === 0) break;
 
     chain++;
+    cleared += pops.length;
     score += pops.length * 10 * chain;
     chainEl.textContent = `${chain}x`;
 
@@ -428,6 +457,8 @@ async function resolveChains() {
 
   if (chain > 0) {
     await sleep(300);
+    const bytes = DIFFICULTIES[difficulty].byteBonus ? Math.floor(cleared / BYTE_BITS) : 0;
+    if (bytes) await awardBytes(bytes);
     const hack = hackForChain(chain);
     if (hack) awardHack(hack);
     else setMessage('');
@@ -476,7 +507,7 @@ async function runHack(id, row, col) {
       stack.forEach((cell, r) => {
         if (cell.type !== 'number') return;
         if (id === 'overflow') {
-          stack[r] = cell.val === 7 ? newFirewall(2) : { type: 'number', val: cell.val + 1 };
+          stack[r] = cell.val === COLS ? newFirewall(2) : { type: 'number', val: cell.val + 1 };
         } else if (id === 'rng') {
           stack[r] = newPacket();
         }
@@ -532,7 +563,7 @@ function endGame() {
 
 document.addEventListener('keydown', (e) => {
   const num = parseInt(e.key, 10);
-  if (num >= 1 && num <= 7) attemptDrop(num - 1);
+  if (num >= 1 && num <= COLS) attemptDrop(num - 1);
 });
 
 // Ignored mid-animation: the in-flight drop would keep mutating the fresh board.
@@ -639,7 +670,6 @@ musicBtn.addEventListener('click', () => {
 updateMusicBtn();
 
 // Drop buttons under the grid (default, easier to reach on phones) or above it.
-const boardWrapEl = document.querySelector('.board-wrap');
 const buttonsPosBtn = document.getElementById('buttons-pos-btn');
 let buttonsOnTop = storage.get('blockchain-buttons') === 'top';
 function updateButtonsPos() {

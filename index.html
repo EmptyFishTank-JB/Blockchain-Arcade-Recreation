@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#020403">
 <title>BLOCKCHAIN // arcade recreation</title>
-<link rel="stylesheet" href="style.css?v=28">
+<link rel="stylesheet" href="style.css?v=29">
 </head>
 <body>
   <main class="cabinet">
@@ -15,8 +15,9 @@
       <p>If the width or height of an unbroken stack matches a packet's number, that packet disappears.</p>
       <p>Firewalls <b>[=]</b> / <b>[-]</b> slow your hacking down. Making adjacent packets disappear breaks them down and reveals their numbers.</p>
       <p>A new row of firewalls rises <span id="rules-pulse">every 8 drops</span>. Anything left above the <b>=======</b> line after clears disconnects you.</p>
-      <p><b>Easy</b> also previews the next packet, and shorter chains unlock hacks. <b>Hard</b> gives you fewer drops between firewalls the higher your score.</p>
-      <p class="keys">Click a column or press 1&ndash;7 to drop</p>
+      <p><b>Easy</b> also previews the next packet, and shorter chains unlock hacks.</p>
+      <p><b>Hard</b> plays a full byte: an 8&times;8 grid with packets up to 8, and fewer drops between firewalls the higher your score. Every 8 packets (bits) one drop clears is a <b>BYTE</b>, worth a 256-point bonus.</p>
+      <p class="keys" id="rules-keys">Click a column or press 1&ndash;7 to drop</p>
     </aside>
 
     <div class="crt">
@@ -109,7 +110,7 @@
       </div>
       <div class="hack-item" data-hack="overflow">
         <h3><span class="icon">+</span> STACK OVERFLOW<span class="combo"></span></h3>
-        <p>A buffer overflow that adds 1 to each packet. Any packet showing a 7 becomes a level 2 firewall.</p>
+        <p>A buffer overflow that adds 1 to each packet. Any packet showing a <span id="overflow-top">7</span> becomes a level 2 firewall.</p>
       </div>
       <div class="hack-item" data-hack="trojan">
         <h3><span class="icon">◈</span> TROJAN<span class="combo"></span></h3>
@@ -155,17 +156,17 @@
     </div>
   </div>
 
-  <script src="sfx.js?v=28"></script>
-  <script src="music-theme.js?v=28"></script>
-  <script src="music-sleep-mode.js?v=28"></script>
-  <script src="music-brute-force.js?v=28"></script>
-  <script src="music-deep-web.js?v=28"></script>
-  <script src="music-zero-day.js?v=28"></script>
-  <script src="music-system-restore.js?v=28"></script>
-  <script src="music.js?v=28"></script>
-  <script src="fx.js?v=28"></script>
-  <script src="viz.js?v=28"></script>
-  <script src="script.js?v=28"></script>
-  <script src="grid-bg.js?v=28"></script>
+  <script src="sfx.js?v=29"></script>
+  <script src="music-theme.js?v=29"></script>
+  <script src="music-sleep-mode.js?v=29"></script>
+  <script src="music-brute-force.js?v=29"></script>
+  <script src="music-deep-web.js?v=29"></script>
+  <script src="music-zero-day.js?v=29"></script>
+  <script src="music-system-restore.js?v=29"></script>
+  <script src="music.js?v=29"></script>
+  <script src="fx.js?v=29"></script>
+  <script src="viz.js?v=29"></script>
+  <script src="script.js?v=29"></script>
+  <script src="grid-bg.js?v=29"></script>
 </body>
 </html>

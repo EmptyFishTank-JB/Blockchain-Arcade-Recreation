@@ -116,7 +116,7 @@ h1 span { color: var(--amber); text-shadow: 0 0 8px var(--amber); }
 
 .column-buttons {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(var(--cols, 7), 1fr);
   gap: 3px;
   padding: 0 7px;
   margin-top: 4px;
@@ -146,7 +146,7 @@ h1 span { color: var(--amber); text-shadow: 0 0 8px var(--amber); }
 
 .board {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(var(--cols, 7), 1fr);
   gap: 3px;
   position: relative;
   padding: 6px;
@@ -193,6 +193,8 @@ h1 span { color: var(--amber); text-shadow: 0 0 8px var(--amber); }
   border: 1px solid var(--grid-line);
   transition: transform 0.12s ease, opacity 0.2s ease;
 }
+
+.byte-grid .cell { font-size: clamp(10px, 3.2vw, 17px); }
 
 .cell.disc {
   background: #06140d;
@@ -280,6 +282,19 @@ h1 span { color: var(--amber); text-shadow: 0 0 8px var(--amber); }
 }
 
 @keyframes alarm-in { from { opacity: 0.4; } to { opacity: 1; } }
+
+/* Hard: BYTE CLEARED bonus */
+.message.byte {
+  color: #d9ffe9;
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px var(--green), 0 0 22px rgba(57, 255, 143, 0.8);
+  animation: byte-in 0.35s ease-out;
+}
+
+@keyframes byte-in {
+  from { opacity: 0.3; transform: scale(1.25); }
+  to { opacity: 1; transform: scale(1); }
+}
 
 .stat.danger {
   border-color: var(--amber);

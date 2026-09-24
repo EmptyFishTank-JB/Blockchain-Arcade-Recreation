@@ -3,7 +3,8 @@
 A browser recreation of **Blockchain**, the hacker-themed arcade cabinet game
 from *Arcade Paradise*. Mechanically it's a Drop7-style number puzzle:
 
-- Packets numbered 1-7 drop into a 7×7 grid, one stack (column) at a time.
+- Packets numbered 1-7 drop into a 7×7 grid, one stack (column) at a time
+  (Hard: 1-8 on an 8×8 grid).
 - A packet disappears when the width or height of the unbroken stack it sits
   in matches its number (e.g. a `[5]` clears when it's part of an unbroken
   run of exactly 5 filled cells in its row or column).
@@ -25,7 +26,7 @@ next drop; drop it into a column like a packet and it goes off where it lands:
 | Hack | Easy combo | Effect |
 |---|---|---|
 | Worm Virus `[§]` | 5x | Destroys the entire stack it's dropped into |
-| Stack Overflow `[+]` | 4x | Adds 1 to every packet; 7s become level 2 firewalls |
+| Stack Overflow `[+]` | 4x | Adds 1 to every packet; the top number (7, or 8 on Hard) becomes a level 2 firewall |
 | Trojan `[◈]` | 4x | Destroys every packet around the spot where it lands |
 | RNG `[?]` | 3x | Randomizes every packet's value |
 | Bitflip `[↕]` | 3x | Flips every stack upside down |
@@ -38,14 +39,18 @@ A drop earns at most one hack, picked from the longest chain it set off.
 |---|---|
 | Easy | Shows the next packet, and hacks unlock at 3x–5x depending on the hack |
 | Normal | Firewall row every 8 drops |
-| Hard | Firewall row every 8 drops, minus one per 500 points, down to every 4 |
+| Hard | A full byte: 8×8 grid with packets 1-8; firewall row every 8 drops, minus one per 500 points, down to every 4; BYTE bonus |
 
-High scores are saved in your browser, one per difficulty.
+On Hard, every 8 packets (bits) a single drop clears, chains included, make a
+byte: **BYTE CLEARED** adds a 256-point (2^8) bonus per byte.
+
+High scores are saved in your browser, one per difficulty (Hard's started
+fresh when it moved to 8×8).
 
 ## Playing
 
 Open `index.html` in a browser. Tap a numbered drop button (under the grid by
-default), or press `1`-`7`, to drop the current packet shown in the HUD.
+default), or press `1`-`7` (`1`-`8` on Hard), to drop the current packet shown in the HUD.
 
 The gear/speaker icon in the corner opens the settings: sound and music on or
 off, whether the drop buttons sit under or above the grid, and the playlist.
@@ -77,7 +82,7 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
 - `music.js` — the music player: scheduler, playlist and intensity input.
   Music starts on your first click or key press on track 01 (toggle with the
   MUSIC button in settings) and intensifies as your tallest stack nears the
-  red line (from height 4, full at 6). The settings panel holds the playlist,
+  red line (from height 4, full at 6; one higher on Hard's 8×8). The settings panel holds the playlist,
   which also has
   a small visualizer of the live music (click it to switch between LED bars
   and an oscilloscope wave), a MODE button (REPEAT, or SEQUENCE / SHUFFLE,
