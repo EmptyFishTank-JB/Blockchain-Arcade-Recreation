@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#020403">
 <title>BLOCKCHAIN // arcade recreation</title>
-<link rel="stylesheet" href="style.css?v=23">
+<link rel="stylesheet" href="style.css?v=24">
 </head>
 <body>
   <main class="cabinet">
@@ -35,8 +35,8 @@
         </button>
         <ol id="playlist-tracks"></ol>
         <div class="playlist-options">
-          <button type="button" id="play-mode-btn" class="bg-play-btn">MODE: REPEAT ONE</button>
-          <p class="playlist-note">REPEAT ONE loops the track. SEQUENCE and SHUFFLE play each track 4 times, then fade into the next (in order, or at random).</p>
+          <button type="button" id="play-mode-btn" class="bg-play-btn">MODE: REPEAT</button>
+          <p class="playlist-note">REPEAT loops the track. SEQUENCE and SHUFFLE play each track 4 times, then fade into the next (in order, or at random).</p>
           <button type="button" id="bg-play-btn" class="bg-play-btn">BACKGROUND PLAY: OFF</button>
           <p class="playlist-note">ON keeps the music going when you switch tabs or apps. OFF pauses it until you come back.</p>
         </div>
@@ -80,7 +80,6 @@
         <div class="board-frame">
           <canvas id="board-bg" aria-hidden="true"></canvas>
           <div id="board" class="board"></div>
-          <canvas id="board-fx" aria-hidden="true"></canvas>
         </div>
       </div>
 
@@ -137,6 +136,8 @@
     </a>
   </footer>
 
+  <canvas id="board-fx" aria-hidden="true"></canvas>
+
   <div id="game-over" class="overlay hidden">
     <div class="overlay-box">
       <h2>CONNECTION LOST</h2>
@@ -146,17 +147,17 @@
     </div>
   </div>
 
-  <script src="sfx.js?v=23"></script>
-  <script src="music-theme.js?v=23"></script>
-  <script src="music-sleep-mode.js?v=23"></script>
-  <script src="music-brute-force.js?v=23"></script>
-  <script src="music-deep-web.js?v=23"></script>
-  <script src="music-zero-day.js?v=23"></script>
-  <script src="music-system-restore.js?v=23"></script>
-  <script src="music.js?v=23"></script>
-  <script src="fx.js?v=23"></script>
-  <script src="viz.js?v=23"></script>
-  <script src="script.js?v=23"></script>
-  <script src="grid-bg.js?v=23"></script>
+  <script src="sfx.js?v=24"></script>
+  <script src="music-theme.js?v=24"></script>
+  <script src="music-sleep-mode.js?v=24"></script>
+  <script src="music-brute-force.js?v=24"></script>
+  <script src="music-deep-web.js?v=24"></script>
+  <script src="music-zero-day.js?v=24"></script>
+  <script src="music-system-restore.js?v=24"></script>
+  <script src="music.js?v=24"></script>
+  <script src="fx.js?v=24"></script>
+  <script src="viz.js?v=24"></script>
+  <script src="script.js?v=24"></script>
+  <script src="grid-bg.js?v=24"></script>
 </body>
 </html>

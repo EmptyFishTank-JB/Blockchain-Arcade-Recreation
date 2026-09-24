@@ -155,12 +155,13 @@ h1 span { color: var(--amber); text-shadow: 0 0 8px var(--amber); }
   overflow: hidden;
 }
 
+/* Page-wide particle layer so bursts aren't clipped (board cells, the warning text) */
 #board-fx {
-  position: absolute;
+  position: fixed;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 2;
+  width: 100vw;
+  height: 100vh;
+  z-index: 30;
   pointer-events: none;
 }
 
@@ -258,6 +259,76 @@ h1 span { color: var(--amber); text-shadow: 0 0 8px var(--amber); }
 }
 
 .message.hidden { visibility: hidden; }
+
+.message.warn { animation: warn-pulse 1s ease-in-out infinite; }
+
+@keyframes warn-pulse {
+  0%, 100% { opacity: 0.35; text-shadow: 0 0 2px rgba(255, 209, 102, 0.4); }
+  50% { opacity: 1; text-shadow: 0 0 12px var(--amber); }
+}
+
+.message.alarm {
+  color: #fff4cf;
+  letter-spacing: 1px;
+  text-shadow: 0 0 10px var(--amber), 0 0 22px rgba(255, 209, 102, 0.8);
+  animation: alarm-in 0.25s ease-out;
+}
+
+@keyframes alarm-in { from { opacity: 0.4; } to { opacity: 1; } }
+
+.stat.danger {
+  border-color: var(--amber);
+  animation: stat-danger 1s ease-in-out infinite;
+}
+
+.stat.danger .value { color: var(--amber); }
+
+@keyframes stat-danger {
+  0%, 100% { box-shadow: none; }
+  50% { box-shadow: 0 0 12px rgba(255, 209, 102, 0.55); }
+}
+
+.overflow-line.hot { animation: line-hot 0.9s ease-in-out infinite; }
+
+@keyframes line-hot {
+  0%, 100% { opacity: 0.6; text-shadow: 0 0 2px rgba(255, 77, 94, 0.5); }
+  50% { opacity: 1; text-shadow: 0 0 6px var(--red), 0 0 14px rgba(255, 77, 94, 0.9); }
+}
+
+/* Game-over meltdown: pieces shake and glow hotter and hotter green before bursting */
+.board.meltdown .cell.disc,
+.board.meltdown .cell.firewall,
+.board.meltdown .cell.hack {
+  animation: jitter 0.08s steps(2) infinite, heat 0.9s ease-in forwards;
+}
+
+@keyframes jitter {
+  0% { transform: translate(-1px, 0.5px); }
+  50% { transform: translate(1px, -0.5px); }
+  100% { transform: translate(-0.5px, -1px); }
+}
+
+@keyframes heat {
+  35% {
+    border-color: var(--green);
+    color: #9dffc6;
+    background-color: #0c2a1b;
+    box-shadow: 0 0 6px rgba(57, 255, 143, 0.5);
+  }
+  100% {
+    border-color: #d9ffe9;
+    color: #f0fff6;
+    background-color: #14482d;
+    text-shadow: 0 0 8px var(--green);
+    box-shadow: 0 0 14px rgba(57, 255, 143, 0.95), inset 0 0 10px rgba(120, 255, 180, 0.6);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .board.meltdown .cell.disc,
+  .board.meltdown .cell.firewall,
+  .board.meltdown .cell.hack { animation: heat 0.9s ease-in forwards; }
+}
 
 .controls { text-align: center; margin-top: 14px; }
 
@@ -582,6 +653,7 @@ footer p.accent { color: var(--amber); }
 
 .overlay {
   position: fixed;
+  z-index: 100;
   inset: 0;
   background: rgba(0, 0, 0, 0.85);
   display: flex;

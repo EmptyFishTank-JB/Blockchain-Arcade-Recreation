@@ -42,6 +42,7 @@ let dropsSinceLastPulse = 0;
 let pulseInterval = BASE_INTERVAL;
 let gameOver = false;
 let busy = false; // true while animating/resolving, blocks input
+let runId = 0; // bumped on every new game so a pending game-over sequence can tell it's stale
 
 const storage = {
   get(key) {
@@ -89,6 +90,8 @@ function refillQueue() {
 }
 
 function initGame() {
+  runId++;
+  boardEl.classList.remove('meltdown');
   columns = Array.from({ length: COLS }, () => []);
   queue = [];
   refillQueue();
@@ -190,7 +193,8 @@ function render(popped = [], falling = null) {
     }
     if (r === ROWS) {
       const line = document.createElement('div');
-      line.className = 'overflow-line';
+      // Glows red while any stack is right under the line
+      line.className = columns.some((c) => c.length >= ROWS) ? 'overflow-line hot' : 'overflow-line';
       line.textContent = '='.repeat(80);
       boardEl.appendChild(line);
     }
@@ -215,15 +219,25 @@ function updateHud() {
   showPiece(currentEl, queue[0]);
   showPiece(nextEl, queue[1]);
   pulseCounterEl.textContent = pulseInterval - dropsSinceLastPulse;
+  pulseCounterEl.closest('.stat').classList.toggle('danger', !gameOver && pulseInterval - dropsSinceLastPulse === 1);
   const heldHack = queue[0].type === 'hack' ? queue[0].id : null;
   document.querySelectorAll('.hack-item').forEach((el) => {
     el.classList.toggle('held', el.dataset.hack === heldHack);
   });
 }
 
-function setMessage(text) {
+function setMessage(text, tone = '') {
   messageEl.textContent = text;
   messageEl.classList.toggle('hidden', !text);
+  messageEl.classList.remove('warn', 'alarm');
+  if (tone) messageEl.classList.add(tone);
+}
+
+// Burst the message's text into particles (the text itself, not the full-width box)
+function burstMessage(type) {
+  const range = document.createRange();
+  range.selectNodeContents(messageEl);
+  FX.burst([{ rect: range.getBoundingClientRect(), type }]);
 }
 
 async function attemptDrop(col) {
@@ -271,6 +285,10 @@ function finishTurn() {
   busy = false;
   render();
   if (overflowed()) endGame();
+  // One drop until a firewall row: warn until the player drops (unless a hack message is showing)
+  else if (pulseInterval - dropsSinceLastPulse === 1 && messageEl.classList.contains('hidden')) {
+    setMessage('FIREWALL // INCOMING NEXT DROP', 'warn');
+  }
 }
 
 function overflowed() {
@@ -278,13 +296,15 @@ function overflowed() {
 }
 
 async function injectPulse() {
-  setMessage('FIREWALL // INCOMING ROW');
+  setMessage('FIREWALL // INCOMING ROW', 'alarm');
   SFX.play('alert');
-  await sleep(250);
+  await sleep(800);
   for (const col of columns) col.unshift(newFirewall());
   render();
   await sleep(200);
+  burstMessage('warning');
   setMessage('');
+  await sleep(150);
 }
 
 // Drops everything above each gap by one row per frame so falls read block by block.
@@ -471,15 +491,37 @@ async function runHack(id, row, col) {
   setMessage('');
 }
 
+// Game over: every piece shakes and heats up, bursts at its own random moment,
+// then CONNECTION LOST appears (~1.2s in total).
 function endGame() {
   gameOver = true;
   busy = true;
   SFX.play('denied');
   render();
   Music.setIntensity(0);
+  setMessage('');
   finalScoreEl.textContent = score;
   newBestEl.hidden = !(score > bestAtStart);
-  overlayEl.classList.remove('hidden');
+
+  const run = runId;
+  const pieces = [...boardEl.querySelectorAll('.cell.disc, .cell.firewall, .cell.hack')];
+  boardEl.classList.add('meltdown');
+  let sounds = 0;
+  for (const el of pieces) {
+    el.style.animationDelay = `${-Math.random() * 0.08}s, 0s`; // out-of-step shaking
+    setTimeout(() => {
+      if (run !== runId) return;
+      FX.burst([{ el, type: 'hot' }]);
+      el.style.opacity = '0';
+      if (sounds < 6 && Math.random() < 0.5) {
+        sounds++;
+        SFX.play('burst');
+      }
+    }, 450 + Math.random() * 600);
+  }
+  setTimeout(() => {
+    if (run === runId) overlayEl.classList.remove('hidden');
+  }, 1200);
 }
 
 document.addEventListener('keydown', (e) => {
@@ -580,11 +622,11 @@ function visualizerLoop() {
   requestAnimationFrame(visualizerLoop);
 }
 
-const MODE_LABELS = { repeat: 'MODE: REPEAT ONE', sequence: 'MODE: SEQUENCE', shuffle: 'MODE: SHUFFLE' };
+const MODE_LABELS = { repeat: 'MODE: REPEAT', sequence: 'MODE: SEQUENCE', shuffle: 'MODE: SHUFFLE' };
 const modeBtn = document.getElementById('play-mode-btn');
 function updateModeBtn() {
   modeBtn.textContent = MODE_LABELS[Music.getMode()];
-  modeBtn.classList.toggle('on', Music.getMode() !== 'repeat');
+  modeBtn.classList.add('on'); // same brightness in every mode
 }
 modeBtn.addEventListener('click', () => {
   Music.cycleMode();
