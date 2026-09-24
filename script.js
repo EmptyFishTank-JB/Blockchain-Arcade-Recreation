@@ -92,11 +92,11 @@ function render(popped = []) {
       if (cell) {
         if (cell.type === 'number') {
           div.classList.add('disc');
-          div.textContent = cell.val;
+          div.textContent = `[${cell.val}]`;
         } else {
           div.classList.add('blank');
           if (cell.cracks > 0) div.classList.add('cracked');
-          div.textContent = cell.cracks > 0 ? '!' : '';
+          div.textContent = cell.cracks > 0 ? '[!]' : '[ ]';
         }
       }
       if (popped.some((p) => p.row === r && p.col === c)) {
@@ -110,7 +110,7 @@ function render(popped = []) {
 
 function updateHud() {
   scoreEl.textContent = score;
-  nextDiscEl.textContent = currentDisc ? currentDisc.val : '?';
+  nextDiscEl.textContent = currentDisc ? `[${currentDisc.val}]` : '[?]';
   pulseCounterEl.textContent = PULSE_INTERVAL - dropsSinceLastPulse;
 }
 
@@ -141,8 +141,8 @@ async function attemptDrop(col) {
 
   currentDisc = newNumberDisc();
   updateHud();
-  render();
   busy = false;
+  render();
 
   if (columns.every((c) => c.length >= ROWS)) {
     endGame();
