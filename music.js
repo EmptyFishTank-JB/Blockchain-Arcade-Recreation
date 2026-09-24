@@ -16,6 +16,7 @@ const Music = (() => {
     { id: 'brute-force', title: 'BRUTE FORCE', create: createBruteForce },
     { id: 'deep-web', title: 'DEEP WEB', create: createDeepWeb },
     { id: 'zero-day', title: 'ZERO DAY', create: createZeroDay },
+    { id: 'system-restore', title: 'SYSTEM RESTORE', create: createSystemRestore },
   ];
   let enabled = true;
   let backgroundPlay = false;
