@@ -82,6 +82,9 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
 - `music-brute-force.js` — track 03, BRUTE FORCE: original NES-style
   chiptune at 140 BPM (pulse-wave leads, stepped triangle bass, noise drums,
   arpeggiated chords; boot, level 1, level 2, boss duet).
+- `music-deep-web.js` — track 04, DEEP WEB: original dark ambient techno at
+  124 BPM (muffled kick, rolling bass, drone, modem bleeps; connect, tunnel,
+  deep, surface).
   Each track lists its intensity layers (`LAYERS`) with the level each fades
   in at: hi-hats from 5% (stack 4), heavier drums/guitars from 40% (stack 5),
   the alarm layer from 72% (stack 6+); the brightening grows the whole way

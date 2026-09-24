@@ -14,6 +14,7 @@ const Music = (() => {
     { id: 'theme', title: 'BLOCKCHAIN THEME', create: createSynthwave },
     { id: 'sleep-mode', title: 'SLEEP MODE', create: createSleepMode },
     { id: 'brute-force', title: 'BRUTE FORCE', create: createBruteForce },
+    { id: 'deep-web', title: 'DEEP WEB', create: createDeepWeb },
   ];
   let enabled = true;
   let backgroundPlay = false;

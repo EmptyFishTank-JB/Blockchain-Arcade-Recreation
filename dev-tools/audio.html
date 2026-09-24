@@ -243,11 +243,12 @@
   <footer>GENERATED FROM SOURCE &mdash; NO AUDIO FILES, ALL SYNTHESIZED ON PLAY</footer>
 </div>
 
-<script src="../sfx.js?v=19"></script>
-<script src="../music-theme.js?v=19"></script>
-<script src="../music-sleep-mode.js?v=19"></script>
-<script src="../music-brute-force.js?v=19"></script>
-<script src="../viz.js?v=19"></script>
+<script src="../sfx.js?v=20"></script>
+<script src="../music-theme.js?v=20"></script>
+<script src="../music-sleep-mode.js?v=20"></script>
+<script src="../music-brute-force.js?v=20"></script>
+<script src="../music-deep-web.js?v=20"></script>
+<script src="../viz.js?v=20"></script>
 <script>
 (() => {
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -361,6 +362,17 @@
         ['0:13', 'Level 1', 'Melody A on a thin 12.5% pulse over kick, snare and 8th-note hats.'],
         ['0:27', 'Level 2', 'New chords (C–D–Em–Em–C–D–B–B), melody B on a 25% pulse, a syncopated kick.'],
         ['0:41', 'Boss', 'Melody A as a duet (a third below), four-on-the-floor kick and 16th hats, then back to boot.'],
+      ],
+    },
+    {
+      id: 'deep-web', num: '04', title: 'DEEP WEB', create: createDeepWeb, file: 'music-deep-web.js',
+      meta: ['dark techno', '124 BPM', 'F minor', '32 bars', '~62s loop'],
+      desc: 'Original dark ambient techno: a muffled four-on-the-floor kick and rolling 16th-note bass under a detuned drone, with modem bleeps and data chirps drifting through a dotted-8th echo.',
+      sections: [
+        ['0:00', 'Connect', 'Fm–Db–Eb. Drone and bleeps; the muffled kick and rolling bass join at bar 5.'],
+        ['0:15', 'Tunnel', 'The full groove: kick, rolling bass, off-beat hats and a clap on 2 and 4.'],
+        ['0:31', 'Deep', 'New chords (Bbm–Fm–Db–C) and a "data stream" square pluck on a 3-against-4 cross-rhythm.'],
+        ['0:46', 'Surface', 'The kick drops out for 4 bars under the drone, then the groove returns into the loop.'],
       ],
     },
   ];
