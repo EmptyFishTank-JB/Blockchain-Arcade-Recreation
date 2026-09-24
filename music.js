@@ -15,6 +15,7 @@ const Music = (() => {
     { id: 'sleep-mode', title: 'SLEEP MODE', create: createSleepMode },
     { id: 'brute-force', title: 'BRUTE FORCE', create: createBruteForce },
     { id: 'deep-web', title: 'DEEP WEB', create: createDeepWeb },
+    { id: 'zero-day', title: 'ZERO DAY', create: createZeroDay },
   ];
   let enabled = true;
   let backgroundPlay = false;

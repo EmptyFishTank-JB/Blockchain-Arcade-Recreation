@@ -85,6 +85,9 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
 - `music-deep-web.js` — track 04, DEEP WEB: original dark ambient techno at
   124 BPM (muffled kick, rolling bass, drone, modem bleeps; connect, tunnel,
   deep, surface).
+- `music-zero-day.js` — track 05, ZERO DAY: original drum & bass at 172 BPM
+  (two-step break, reese bass, saw pad; infiltrate, payload, exploit,
+  escape).
   Each track lists its intensity layers (`LAYERS`) with the level each fades
   in at: hi-hats from 5% (stack 4), heavier drums/guitars from 40% (stack 5),
   the alarm layer from 72% (stack 6+); the brightening grows the whole way

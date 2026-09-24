@@ -243,12 +243,13 @@
   <footer>GENERATED FROM SOURCE &mdash; NO AUDIO FILES, ALL SYNTHESIZED ON PLAY</footer>
 </div>
 
-<script src="../sfx.js?v=20"></script>
-<script src="../music-theme.js?v=20"></script>
-<script src="../music-sleep-mode.js?v=20"></script>
-<script src="../music-brute-force.js?v=20"></script>
-<script src="../music-deep-web.js?v=20"></script>
-<script src="../viz.js?v=20"></script>
+<script src="../sfx.js?v=21"></script>
+<script src="../music-theme.js?v=21"></script>
+<script src="../music-sleep-mode.js?v=21"></script>
+<script src="../music-brute-force.js?v=21"></script>
+<script src="../music-deep-web.js?v=21"></script>
+<script src="../music-zero-day.js?v=21"></script>
+<script src="../viz.js?v=21"></script>
 <script>
 (() => {
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -373,6 +374,17 @@
         ['0:15', 'Tunnel', 'The full groove: kick, rolling bass, off-beat hats and a clap on 2 and 4.'],
         ['0:31', 'Deep', 'New chords (Bbm–Fm–Db–C) and a "data stream" square pluck on a 3-against-4 cross-rhythm.'],
         ['0:46', 'Surface', 'The kick drops out for 4 bars under the drone, then the groove returns into the loop.'],
+      ],
+    },
+    {
+      id: 'zero-day', num: '05', title: 'ZERO DAY', create: createZeroDay, file: 'music-zero-day.js',
+      meta: ['drum & bass', '172 BPM', 'D minor', '32 bars', '~45s loop'],
+      desc: 'Original drum & bass: a two-step breakbeat with ghost snares, a detuned "reese" bass with a wobbling filter and sine sub, an urgent saw pad and square-wave lead stabs.',
+      sections: [
+        ['0:00', 'Infiltrate', 'Dm–Bb–C–Dm–Gm–A. Pad and hats with the reese entering; the break drops in at bar 5, ending in a snare roll.'],
+        ['0:11', 'Payload', 'The full roller: two-step break with ghost snares, reese bassline and pad.'],
+        ['0:22', 'Exploit', 'New chords (Bb–C–Dm–A) and a square-wave lead stab riff over the break.'],
+        ['0:33', 'Escape', 'Drumless breakdown for 4 bars (pad and reese), then the break returns with a snare-roll build.'],
       ],
     },
   ];
@@ -545,7 +557,7 @@
       </div>
       <div class="uses"><h4>// INTENSITY LAYERS &mdash; WHEN EACH COMES IN</h4><ul class="layers">${track.layers.map((l) => `
         <li><span class="at">${esc(layerWhen(l))}</span><span>${esc(l.label)}</span><span class="lvl"><span></span></span><button type="button" class="solo" data-layer="${esc(l.id)}">SOLO</button></li>`).join('')}</ul>
-        <p class="layers-note">SOLO mutes the rest of the track and plays just what that layer adds, at full strength. Layers that fill gaps go quiet where the track already plays that part: the theme's extra hi-hats and kick in section B and the climax; SLEEP MODE's extra chugs in the drop and breakdown, and its double-kick fills in the drop; BRUTE FORCE's octave double in the boot (no melody yet) and its hi-hats in the boss.</p></div>`;
+        <p class="layers-note">SOLO mutes the rest of the track and plays just what that layer adds, at full strength. Layers that fill gaps go quiet where the track already plays that part: the theme's extra hi-hats and kick in section B and the climax; SLEEP MODE's extra chugs in the drop and breakdown, and its double-kick fills in the drop; BRUTE FORCE's octave double in the boot (no melody yet) and its hi-hats in the boss; ZERO DAY's extra break hits wherever its drums drop out (first half of the intro, and the breakdown).</p></div>`;
     const ui = {
       btn: card.querySelector('button.play'),
       rows: [...card.querySelectorAll('.sec-row')],
