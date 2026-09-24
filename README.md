@@ -18,21 +18,31 @@ from *Arcade Paradise*. Mechanically it's a Drop7-style number puzzle:
 
 ## Hacks
 
-A 5x combo unlocks a random hack into your hack slot (a combo while the slot is
-full is worth +500 instead). Press **USE** or `H` to run it:
+A 5x combo unlocks a random hack, which becomes your next drop. Drop it into a
+column like a packet and it goes off where it lands:
 
 | Hack | Effect |
 |---|---|
-| Worm Virus | Destroys an entire stack — pick the column |
-| Stack Overflow | Adds 1 to every packet; 7s become level 2 firewalls |
-| Trojan | Destroys a packet and everything around it — pick the packet |
-| RNG | Randomizes every packet's value |
-| Bitflip | Flips every stack upside down |
+| Worm Virus `[§]` | Destroys the entire stack it's dropped into |
+| Stack Overflow `[+]` | Adds 1 to every packet; 7s become level 2 firewalls |
+| Trojan `[◈]` | Destroys every packet around the spot where it lands |
+| RNG `[?]` | Randomizes every packet's value |
+| Bitflip `[↕]` | Flips every stack upside down |
+
+## Difficulty
+
+| Setting | Effect |
+|---|---|
+| Easy | Shows the next packet as well as the current one |
+| Normal | Firewall row every 8 drops |
+| Hard | Firewall row every 8 drops, minus one per 500 points, down to every 4 |
+
+High scores are saved in your browser, one per difficulty.
 
 ## Playing
 
 Open `index.html` in a browser. Click a column, or press `1`-`7`, to drop the
-next packet shown in the HUD. `H` uses a hack, `Esc` cancels targeting.
+current packet shown in the HUD.
 
 ## Files
 

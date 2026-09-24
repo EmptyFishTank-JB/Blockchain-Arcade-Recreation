@@ -13,28 +13,39 @@
       <p>Drop packets onto the network stacks, one column at a time.</p>
       <p>If the width or height of an unbroken stack matches a packet's number, that packet disappears.</p>
       <p>Firewalls <b>[=]</b> / <b>[-]</b> slow your hacking down. Making adjacent packets disappear breaks them down and reveals their numbers.</p>
-      <p>A new row of firewalls rises every <span id="rules-pulse">8</span> drops. Anything left above the <b>=======</b> line after clears disconnects you.</p>
-      <p class="keys">1&ndash;7 drop &middot; H hack &middot; Esc cancel</p>
+      <p>A new row of firewalls rises <span id="rules-pulse">every 8 drops</span>. Anything left above the <b>=======</b> line after clears disconnects you.</p>
+      <p><b>Easy</b> also previews the next packet. <b>Hard</b> gives you fewer drops between firewalls the higher your score.</p>
+      <p class="keys">Click a column or press 1&ndash;7 to drop</p>
     </aside>
 
     <div class="crt">
       <header>
         <h1>BLOCK<span>CHAIN</span></h1>
         <p class="tagline">// NEOXXX INFILTRATION TERMINAL</p>
+        <div class="difficulty" role="group" aria-label="Difficulty">
+          <button data-difficulty="easy">EASY</button>
+          <button data-difficulty="normal">NORMAL</button>
+          <button data-difficulty="hard">HARD</button>
+        </div>
       </header>
 
       <div class="hud">
         <div class="stat">
           <span class="label">SCORE</span>
           <span class="value" id="score">0</span>
+          <span class="sub">BEST <span id="best">0</span></span>
         </div>
         <div class="stat">
           <span class="label">CHAIN</span>
           <span class="value" id="chain">0x</span>
         </div>
         <div class="stat">
+          <span class="label">CURRENT</span>
+          <div class="next-disc" id="current-piece">[?]</div>
+        </div>
+        <div class="stat" id="next-stat" hidden>
           <span class="label">NEXT</span>
-          <div class="next-disc" id="next-disc">?</div>
+          <div class="next-disc" id="next-piece">[?]</div>
         </div>
         <div class="stat">
           <span class="label">FIREWALL IN</span>
@@ -45,12 +56,6 @@
       <div class="board-wrap">
         <div id="column-buttons" class="column-buttons"></div>
         <div id="board" class="board"></div>
-      </div>
-
-      <div id="hack-slot" class="hack-slot">
-        <span class="label">HACK</span>
-        <span id="hack-name" class="hack-name">&mdash;</span>
-        <button id="hack-btn" disabled>USE</button>
       </div>
 
       <div id="message" class="message hidden"></div>
@@ -64,18 +69,18 @@
 
     <aside class="panel panel-hacks">
       <h2>HACKS</h2>
-      <p>Get a combo of <span id="hack-combo">5</span> to unlock a hack.</p>
+      <p>Get a combo of <span id="hack-combo">5</span> to unlock a hack. It becomes your next drop and goes off where it lands.</p>
       <div class="hack-item" data-hack="worm">
         <h3><span class="icon">§</span> WORM VIRUS</h3>
-        <p>A self-replicating virus that destroys an entire vertical packet-stack. Pick the stack.</p>
+        <p>A self-replicating virus that destroys the entire stack it's dropped into.</p>
       </div>
       <div class="hack-item" data-hack="overflow">
-        <h3><span class="icon">≡</span> STACK OVERFLOW</h3>
+        <h3><span class="icon">+</span> STACK OVERFLOW</h3>
         <p>A buffer overflow that adds 1 to each packet. Any packet showing a 7 becomes a level 2 firewall.</p>
       </div>
       <div class="hack-item" data-hack="trojan">
         <h3><span class="icon">◈</span> TROJAN</h3>
-        <p>Destroys a packet and everything adjacent to it. Pick the packet.</p>
+        <p>Destroys every packet around the spot where it lands.</p>
       </div>
       <div class="hack-item" data-hack="rng">
         <h3><span class="icon">?</span> RNG</h3>
@@ -101,6 +106,7 @@
     <div class="overlay-box">
       <h2>CONNECTION LOST</h2>
       <p>Final score: <span id="final-score">0</span></p>
+      <p id="new-best" class="new-best" hidden>NEW HIGH SCORE</p>
       <button id="overlay-restart-btn">RECONNECT</button>
     </div>
   </div>

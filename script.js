@@ -2,44 +2,70 @@
 // Core mechanic is a Drop7-style puzzle: packets 1-7 fall into a 7-wide grid
 // and a packet clears when it sits in an unbroken row/column run whose length
 // equals its number. Clears break down adjacent firewalls, which rise in rows
-// every few drops, and a 5x combo unlocks a one-shot hack.
+// every few drops, and a 5x combo unlocks a hack that is dropped like a packet.
 
 const COLS = 7;
 const ROWS = 7;
 const MAX_ROWS = ROWS + 1; // top row holds overflow; anything left there after clears ends the run
-const PULSE_INTERVAL = 8; // drops between firewall-row injections
 const STEP_MS = 35; // per-row fall speed
 const HACK_COMBO = 5;
 
+const BASE_INTERVAL = 8; // drops between firewall rows
+const HARD_MIN_INTERVAL = 4;
+const HARD_POINTS_PER_STEP = 500; // hard mode loses one drop per this many points
+
+const DIFFICULTIES = {
+  easy: { label: 'EASY', showNext: true, interval: () => BASE_INTERVAL },
+  normal: { label: 'NORMAL', showNext: false, interval: () => BASE_INTERVAL },
+  hard: {
+    label: 'HARD',
+    showNext: false,
+    interval: (pts) => Math.max(HARD_MIN_INTERVAL, BASE_INTERVAL - Math.floor(pts / HARD_POINTS_PER_STEP)),
+  },
+};
+
 const HACKS = {
-  worm: { name: 'WORM VIRUS', icon: '§', target: 'column' },
-  overflow: { name: 'STACK OVERFLOW', icon: '≡', target: null },
-  trojan: { name: 'TROJAN', icon: '◈', target: 'cell' },
-  rng: { name: 'RNG', icon: '?', target: null },
-  bitflip: { name: 'BITFLIP', icon: '↕', target: null },
+  worm: { name: 'WORM VIRUS', icon: '§' },
+  overflow: { name: 'STACK OVERFLOW', icon: '+' },
+  trojan: { name: 'TROJAN', icon: '◈' },
+  rng: { name: 'RNG', icon: '?' },
+  bitflip: { name: 'BITFLIP', icon: '↕' },
 };
 
 let columns = []; // columns[c] = array of cells, index 0 = bottom
+let queue = []; // upcoming pieces; queue[0] is the one being dropped
 let score = 0;
+let best = 0;
+let bestAtStart = 0;
 let dropsSinceLastPulse = 0;
-let currentDisc = null;
+let pulseInterval = BASE_INTERVAL;
 let gameOver = false;
 let busy = false; // true while animating/resolving, blocks input
-let heldHack = null;
-let targeting = null; // hack id awaiting a target
+
+const storage = {
+  get(key) {
+    try { return localStorage.getItem(key); } catch (e) { return null; }
+  },
+  set(key, value) {
+    try { localStorage.setItem(key, value); } catch (e) {}
+  },
+};
+
+let difficulty = DIFFICULTIES[storage.get('blockchain-difficulty')] ? storage.get('blockchain-difficulty') : 'normal';
 
 const boardEl = document.getElementById('board');
 const columnButtonsEl = document.getElementById('column-buttons');
 const scoreEl = document.getElementById('score');
+const bestEl = document.getElementById('best');
 const chainEl = document.getElementById('chain');
-const nextDiscEl = document.getElementById('next-disc');
+const currentEl = document.getElementById('current-piece');
+const nextEl = document.getElementById('next-piece');
+const nextStatEl = document.getElementById('next-stat');
 const pulseCounterEl = document.getElementById('pulse-counter');
 const messageEl = document.getElementById('message');
 const overlayEl = document.getElementById('game-over');
 const finalScoreEl = document.getElementById('final-score');
-const hackSlotEl = document.getElementById('hack-slot');
-const hackNameEl = document.getElementById('hack-name');
-const hackBtn = document.getElementById('hack-btn');
+const newBestEl = document.getElementById('new-best');
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -53,16 +79,33 @@ function newFirewall(level = 2) {
   return { type: 'firewall', level };
 }
 
+function bestKey() {
+  return `blockchain-best-${difficulty}`;
+}
+
+function refillQueue() {
+  while (queue.length < 2) queue.push(newPacket());
+}
+
 function initGame() {
   columns = Array.from({ length: COLS }, () => []);
+  queue = [];
+  refillQueue();
   score = 0;
+  best = Number(storage.get(bestKey())) || 0;
+  bestAtStart = best;
   dropsSinceLastPulse = 0;
+  pulseInterval = DIFFICULTIES[difficulty].interval(0);
   gameOver = false;
   busy = false;
-  heldHack = null;
-  targeting = null;
-  currentDisc = newPacket();
   chainEl.textContent = '0x';
+  nextStatEl.hidden = !DIFFICULTIES[difficulty].showNext;
+  document.querySelectorAll('.difficulty button').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.difficulty === difficulty);
+  });
+  document.getElementById('rules-pulse').textContent = difficulty === 'hard'
+    ? `every ${BASE_INTERVAL} drops, tightening to every ${HARD_MIN_INTERVAL} as your score climbs`
+    : `every ${BASE_INTERVAL} drops`;
   updateHud();
   buildColumnButtons();
   render();
@@ -75,40 +118,26 @@ function buildColumnButtons() {
   for (let c = 0; c < COLS; c++) {
     const btn = document.createElement('button');
     btn.textContent = c + 1;
-    btn.addEventListener('click', () => onColumn(c));
+    btn.addEventListener('click', () => attemptDrop(c));
     columnButtonsEl.appendChild(btn);
   }
-}
-
-function onColumn(col) {
-  if (targeting === 'worm') {
-    if (columns[col].length && !busy) runHack('worm', { col });
-    return;
-  }
-  if (!targeting) attemptDrop(col);
 }
 
 function updateColumnButtons() {
   const buttons = columnButtonsEl.querySelectorAll('button');
   buttons.forEach((btn, c) => {
-    let disabled = gameOver || busy;
-    if (targeting === 'worm') disabled = disabled || columns[c].length === 0;
-    else if (targeting) disabled = true;
-    else disabled = disabled || columns[c].length >= MAX_ROWS;
-    btn.disabled = disabled;
+    btn.disabled = gameOver || busy || columns[c].length >= MAX_ROWS;
   });
 }
 
-function updateHackUi() {
-  const hack = heldHack && HACKS[heldHack];
-  hackSlotEl.classList.toggle('armed', !!hack);
-  hackNameEl.textContent = hack ? `${hack.icon} ${hack.name}` : `— ${HACK_COMBO}x COMBO TO UNLOCK`;
-  hackBtn.textContent = targeting ? 'CANCEL' : 'USE';
-  hackBtn.disabled = !hack || busy || gameOver;
-  document.querySelectorAll('.hack-item').forEach((el) => {
-    el.classList.toggle('held', el.dataset.hack === heldHack);
-  });
-  boardEl.classList.toggle('targeting', !!targeting);
+function pieceLabel(piece) {
+  return piece.type === 'hack' ? `[${HACKS[piece.id].icon}]` : `[${piece.val}]`;
+}
+
+function showPiece(el, piece) {
+  el.textContent = pieceLabel(piece);
+  el.classList.toggle('hack', piece.type === 'hack');
+  el.title = piece.type === 'hack' ? HACKS[piece.id].name : '';
 }
 
 function buildGrid() {
@@ -131,13 +160,14 @@ function render(popped = [], falling = null) {
       const cell = grid[r][c];
       const div = document.createElement('div');
       div.className = 'cell';
-      div.dataset.row = r;
-      div.dataset.col = c;
       if (r >= ROWS) div.classList.add('overflow');
       if (cell) {
         if (cell.type === 'number') {
           div.classList.add('disc');
           div.textContent = `[${cell.val}]`;
+        } else if (cell.type === 'hack') {
+          div.classList.add('hack');
+          div.textContent = pieceLabel(cell);
         } else {
           div.classList.add('firewall');
           if (cell.level < 2) div.classList.add('cracked');
@@ -157,13 +187,22 @@ function render(popped = [], falling = null) {
     }
   }
   updateColumnButtons();
-  updateHackUi();
 }
 
 function updateHud() {
+  if (score > best) {
+    best = score;
+    storage.set(bestKey(), String(best));
+  }
   scoreEl.textContent = score;
-  nextDiscEl.textContent = currentDisc ? `[${currentDisc.val}]` : '[?]';
-  pulseCounterEl.textContent = PULSE_INTERVAL - dropsSinceLastPulse;
+  bestEl.textContent = best;
+  showPiece(currentEl, queue[0]);
+  showPiece(nextEl, queue[1]);
+  pulseCounterEl.textContent = pulseInterval - dropsSinceLastPulse;
+  const heldHack = queue[0].type === 'hack' ? queue[0].id : null;
+  document.querySelectorAll('.hack-item').forEach((el) => {
+    el.classList.toggle('held', el.dataset.hack === heldHack);
+  });
 }
 
 function setMessage(text) {
@@ -172,7 +211,7 @@ function setMessage(text) {
 }
 
 async function attemptDrop(col) {
-  if (gameOver || busy || targeting) return;
+  if (gameOver || busy) return;
   if (columns[col].length >= MAX_ROWS) {
     SFX.play('denied');
     return;
@@ -180,29 +219,34 @@ async function attemptDrop(col) {
 
   busy = true;
   chainEl.textContent = '0x';
+  setMessage('');
+  const piece = queue.shift();
+  refillQueue();
+  updateHud();
   const landing = columns[col].length;
   for (let r = MAX_ROWS - 1; r > landing; r--) {
-    render([], { row: r, col, cell: currentDisc });
+    render([], { row: r, col, cell: piece });
     SFX.play('click');
     await sleep(STEP_MS);
   }
-  columns[col].push(currentDisc);
+  columns[col].push(piece);
   render();
   SFX.play('enter');
   await sleep(60);
 
+  if (piece.type === 'hack') await runHack(piece.id, landing, col);
   await resolveChains();
 
   if (!overflowed()) {
     dropsSinceLastPulse++;
-    if (dropsSinceLastPulse >= PULSE_INTERVAL) {
+    if (dropsSinceLastPulse >= pulseInterval) {
       dropsSinceLastPulse = 0;
       await injectPulse();
       await resolveChains();
+      pulseInterval = DIFFICULTIES[difficulty].interval(score);
     }
   }
 
-  currentDisc = newPacket();
   finishTurn();
 }
 
@@ -263,16 +307,12 @@ function computeRunLength(grid, row, col, dRow, dCol) {
 }
 
 function awardHack() {
-  if (heldHack) {
-    score += 500;
-    setMessage('HACK SLOT FULL // +500');
-  } else {
-    const ids = Object.keys(HACKS);
-    heldHack = ids[Math.floor(Math.random() * ids.length)];
-    setMessage(`HACK UNLOCKED // ${HACKS[heldHack].name}`);
-  }
+  const ids = Object.keys(HACKS);
+  const id = ids[Math.floor(Math.random() * ids.length)];
+  queue.unshift({ type: 'hack', id });
+  setMessage(`HACK UNLOCKED // ${HACKS[id].name}`);
   SFX.play('egg');
-  updateHackUi();
+  updateHud();
 }
 
 async function resolveChains() {
@@ -345,51 +385,23 @@ async function resolveChains() {
   }
 }
 
-function activateHack() {
-  if (!heldHack || busy || gameOver) return;
-  if (targeting) {
-    cancelTargeting();
-    return;
-  }
-  const hack = HACKS[heldHack];
-  if (!hack.target) {
-    runHack(heldHack);
-    return;
-  }
-  targeting = heldHack;
-  setMessage(hack.target === 'column' ? 'WORM VIRUS // SELECT A STACK' : 'TROJAN // SELECT A PACKET');
-  SFX.play('punct');
-  render();
-}
-
-function cancelTargeting() {
-  targeting = null;
-  setMessage('');
-  render();
-}
-
 function occupied(row, col) {
   return row >= 0 && row < MAX_ROWS && col >= 0 && col < COLS && !!columns[col][row];
 }
 
-async function runHack(id, target = {}) {
-  busy = true;
-  targeting = null;
-  heldHack = null;
-  chainEl.textContent = '0x';
+// The hack piece has just landed at (row, col) on top of its stack.
+async function runHack(id, row, col) {
   setMessage(`${HACKS[id].name} // EXECUTING`);
   SFX.play('static');
 
   if (id === 'worm' || id === 'trojan') {
     const hits = [];
     if (id === 'worm') {
-      columns[target.col].forEach((_, row) => hits.push({ row, col: target.col }));
+      columns[col].forEach((_, r) => hits.push({ row: r, col }));
     } else {
       for (let dr = -1; dr <= 1; dr++) {
         for (let dc = -1; dc <= 1; dc++) {
-          const row = target.row + dr;
-          const col = target.col + dc;
-          if (occupied(row, col)) hits.push({ row, col });
+          if (occupied(row + dr, col + dc)) hits.push({ row: row + dr, col: col + dc });
         }
       }
     }
@@ -397,17 +409,18 @@ async function runHack(id, target = {}) {
     SFX.play('pop');
     await sleep(220);
     for (const h of hits) columns[h.col][h.row] = null;
-    score += hits.length * 10;
+    score += (hits.length - 1) * 10;
     await collapse();
   } else {
-    for (const col of columns) {
-      if (id === 'bitflip') col.reverse();
-      col.forEach((cell, row) => {
+    columns[col].pop();
+    for (const stack of columns) {
+      if (id === 'bitflip') stack.reverse();
+      stack.forEach((cell, r) => {
         if (cell.type !== 'number') return;
         if (id === 'overflow') {
-          col[row] = cell.val === 7 ? newFirewall(2) : { type: 'number', val: cell.val + 1 };
+          stack[r] = cell.val === 7 ? newFirewall(2) : { type: 'number', val: cell.val + 1 };
         } else if (id === 'rng') {
-          col[row] = newPacket();
+          stack[r] = newPacket();
         }
       });
     }
@@ -418,49 +431,42 @@ async function runHack(id, target = {}) {
 
   updateHud();
   setMessage('');
-  await resolveChains();
-  finishTurn();
 }
-
-boardEl.addEventListener('click', (e) => {
-  const cellEl = e.target.closest('.cell');
-  if (!cellEl || !targeting || busy) return;
-  const row = Number(cellEl.dataset.row);
-  const col = Number(cellEl.dataset.col);
-  if (targeting === 'worm') onColumn(col);
-  else if (targeting === 'trojan' && occupied(row, col)) runHack('trojan', { row, col });
-});
 
 function endGame() {
   gameOver = true;
   busy = true;
-  targeting = null;
   SFX.play('denied');
   render();
   finalScoreEl.textContent = score;
+  newBestEl.hidden = !(score > bestAtStart);
   overlayEl.classList.remove('hidden');
 }
 
 document.addEventListener('keydown', (e) => {
   const num = parseInt(e.key, 10);
-  if (num >= 1 && num <= 7) {
-    onColumn(num - 1);
-  } else if (e.key === 'h' || e.key === 'H') {
-    activateHack();
-  } else if (e.key === 'Escape' && targeting) {
-    cancelTargeting();
-  }
+  if (num >= 1 && num <= 7) attemptDrop(num - 1);
 });
 
+// Ignored mid-animation: the in-flight drop would keep mutating the fresh board.
 function restart() {
+  if (busy && !gameOver) return;
   SFX.play('static');
   initGame();
 }
 
+function setDifficulty(next) {
+  if (next === difficulty || (busy && !gameOver)) return;
+  difficulty = next;
+  storage.set('blockchain-difficulty', next);
+  restart();
+}
+
 document.getElementById('restart-btn').addEventListener('click', restart);
 document.getElementById('overlay-restart-btn').addEventListener('click', restart);
-hackBtn.addEventListener('click', activateHack);
-document.getElementById('rules-pulse').textContent = PULSE_INTERVAL;
+document.querySelectorAll('.difficulty button').forEach((btn) => {
+  btn.addEventListener('click', () => setDifficulty(btn.dataset.difficulty));
+});
 document.getElementById('hack-combo').textContent = HACK_COMBO;
 
 const soundBtn = document.getElementById('sound-btn');
