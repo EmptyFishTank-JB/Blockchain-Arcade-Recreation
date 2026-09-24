@@ -69,7 +69,7 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
 - `music.js` — the music player: scheduler, playlist and intensity input.
   Music starts on your first click or key press (toggle with the MUSIC
   button) and intensifies as your tallest stack nears the red line (from
-  height 5, full at 7). The speaker icon opens the playlist, which also has
+  height 4, full at 6). The speaker icon opens the playlist, which also has
   a small visualizer of the live music (click it to switch between LED bars
   and an oscilloscope wave) and the BACKGROUND PLAY toggle (keep playing or pause when you switch tabs or
   apps). New tracks go in the `TRACKS` list here, with their engine in a
@@ -80,8 +80,8 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
   (music box, trance synths, chugging distorted guitars, double-kick) at
   150 BPM, built on the public-domain lullaby "Schlaf, Kindlein, schlaf".
   Each track lists its intensity layers (`LAYERS`) with the level each fades
-  in at: hi-hats from 5% (stack 5), heavier drums/guitars from 40% (stack 6),
-  the alarm layer from 72% (stack 7+); the brightening grows the whole way
+  in at: hi-hats from 5% (stack 4), heavier drums/guitars from 40% (stack 5),
+  the alarm layer from 72% (stack 6+); the brightening grows the whole way
 - `dev-tools/audio.html` — the audio compendium, opened by the `</>` icon in
   the footer: every sound effect and track with a play button, where each is
   used in the game, a seekable progress line and a live intensity slider for

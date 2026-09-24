@@ -39,7 +39,7 @@ function createSynthwave(ctx, out) {
   ];
 
   // Intensity layers: each fades in over `span` starting at `from` (0–1).
-  // The game's stack heights settle at 33% (5), 67% (6) and 100% (7+).
+  // The game's stack heights settle at 33% (4), 67% (5) and 100% (6+).
   const LAYERS = [
     { id: 'bright', label: 'Bass filter opens (900 → 2000Hz) and the arpeggio gets brighter and louder', from: 0, span: 1 },
     { id: 'hats', label: '16th-note hi-hats', from: 0.05, span: 0.25 },

@@ -199,10 +199,10 @@ function render(popped = [], falling = null) {
   Music.setIntensity(dangerLevel());
 }
 
-// 0 until the tallest stack reaches 5, full at 7 (the last row under the line).
+// 0 up to a tallest stack of 3, then 33% at 4, 67% at 5 and full from 6.
 function dangerLevel() {
   const tallest = Math.max(...columns.map((c) => c.length));
-  return (tallest - 4) / 3;
+  return (tallest - 3) / 3;
 }
 
 function updateHud() {

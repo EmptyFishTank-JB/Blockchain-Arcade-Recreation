@@ -229,10 +229,10 @@
       <table>
         <thead><tr><th>TALLEST STACK</th><th>INTENSITY</th><th>WHAT YOU HEAR</th></tr></thead>
         <tbody>
-          <tr><td>0&ndash;4 rows</td><td>0%</td><td>The track as written.</td></tr>
-          <tr><td>5 rows</td><td>33%</td><td>16th-note hi-hats come in and the tone starts brightening (layers from 5%).</td></tr>
-          <tr><td>6 rows</td><td>67%</td><td>The low end thickens: a kick on every beat in the theme, extra chugs and double-kick fills in SLEEP MODE (layers from 40%).</td></tr>
-          <tr><td>7+ rows</td><td>100%</td><td>The alarm layer: the tension saw in the theme, the square-wave alarm in SLEEP MODE (layers from 72%). One row from the line, or already in the overflow row.</td></tr>
+          <tr><td>0&ndash;3 rows</td><td>0%</td><td>The track as written.</td></tr>
+          <tr><td>4 rows</td><td>33%</td><td>16th-note hi-hats come in and the tone starts brightening (layers from 5%).</td></tr>
+          <tr><td>5 rows</td><td>67%</td><td>The low end thickens: a kick on every beat in the theme, extra chugs and double-kick fills in SLEEP MODE (layers from 40%).</td></tr>
+          <tr><td>6+ rows</td><td>100%</td><td>The alarm layer: the tension saw in the theme, the square-wave alarm in SLEEP MODE (layers from 72%). Two rows from the line or closer.</td></tr>
           <tr><td>Game over</td><td>0%</td><td>Eases back to calm behind the CONNECTION LOST screen.</td></tr>
         </tbody>
       </table>
@@ -243,10 +243,10 @@
   <footer>GENERATED FROM SOURCE &mdash; NO AUDIO FILES, ALL SYNTHESIZED ON PLAY</footer>
 </div>
 
-<script src="../sfx.js?v=16"></script>
-<script src="../music-theme.js?v=16"></script>
-<script src="../music-sleep-mode.js?v=16"></script>
-<script src="../viz.js?v=16"></script>
+<script src="../sfx.js?v=17"></script>
+<script src="../music-theme.js?v=17"></script>
+<script src="../music-sleep-mode.js?v=17"></script>
+<script src="../viz.js?v=17"></script>
 <script>
 (() => {
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -430,13 +430,13 @@
   }
 
   // Game stack heights settle at these intensities (see dangerLevel in script.js).
-  const STACK_LEVELS = [[5, 1 / 3], [6, 2 / 3], [7, 1]];
+  const STACK_LEVELS = [[4, 1 / 3], [5, 2 / 3], [6, 1]];
 
   function layerWhen({ from, span }) {
     if (from === 0) return 'FROM 0% · GROWS TO 100%';
     const stack = STACK_LEVELS.find(([, level]) => level > from)[0];
     const full = Math.min(100, Math.round((from + span) * 100));
-    return `IN AT ${Math.round(from * 100)}% · STACK ${stack}${stack === 7 ? '+' : ''} · FULL ${full}%`;
+    return `IN AT ${Math.round(from * 100)}% · STACK ${stack}${stack === 6 ? '+' : ''} · FULL ${full}%`;
   }
 
   function showLayers(ui, track, intensity, solo = null) {
@@ -512,10 +512,10 @@
         <div class="intensity-head"><span>// INTENSITY TARGET</span><span class="val">0%</span></div>
         <input type="range" min="0" max="100" step="1" value="0" aria-label="${esc(track.title)} intensity">
         <div class="presets">
-          <button type="button" data-v="0">STACK ≤4 · 0%</button>
-          <button type="button" data-v="33">STACK 5 · 33%</button>
-          <button type="button" data-v="67">STACK 6 · 67%</button>
-          <button type="button" data-v="100">STACK 7+ · 100%</button>
+          <button type="button" data-v="0">STACK ≤3 · 0%</button>
+          <button type="button" data-v="33">STACK 4 · 33%</button>
+          <button type="button" data-v="67">STACK 5 · 67%</button>
+          <button type="button" data-v="100">STACK 6+ · 100%</button>
         </div>
         <div class="meter"><div></div>${[...new Set(track.layers.map((l) => l.from).filter((f) => f > 0))].map((f) => `<span class="mark" style="left:${f * 100}%"></span>`).join('')}</div>
       </div>
