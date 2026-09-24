@@ -67,8 +67,8 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
   Music starts on your first click or key press (toggle with the MUSIC
   button) and intensifies as your tallest stack nears the red line (from
   height 5, full at 7). The speaker icon opens the playlist, which also has
-  a progress line for the playing track (click to seek) and the BACKGROUND
-  PLAY toggle (keep playing or pause when you switch tabs or
+  a small LED spectrum visualizer of the live music and the BACKGROUND PLAY
+  toggle (keep playing or pause when you switch tabs or
   apps). New tracks go in the `TRACKS` list here, with their engine in a
   `music-*.js` file
 - `music-theme.js` — track 01, BLOCKCHAIN THEME: an original synthwave loop

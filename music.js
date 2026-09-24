@@ -26,6 +26,8 @@ const Music = (() => {
   let intensity = 0;
   let targetIntensity = 0;
   let ctx = null;
+  let analyser = null;
+  let spectrum = null;
   let session = null; // per-play gain so stopped notes can't bleed into the next start
   let engine = null;
   let timer = null;
@@ -46,12 +48,21 @@ const Music = (() => {
   function start() {
     if (timer) return;
     try {
-      if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+      if (!ctx) {
+        ctx = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = ctx.createAnalyser();
+        analyser.fftSize = 1024;
+        analyser.smoothingTimeConstant = 0.72;
+        analyser.minDecibels = -90;
+        analyser.maxDecibels = -34;
+        analyser.connect(ctx.destination);
+        spectrum = new Uint8Array(analyser.frequencyBinCount);
+      }
       ctx.resume();
       session = ctx.createGain();
       session.gain.setValueAtTime(0, ctx.currentTime);
       session.gain.linearRampToValueAtTime(1, ctx.currentTime + 1.5);
-      session.connect(ctx.destination);
+      session.connect(analyser);
       engine = TRACKS.find((t) => t.id === trackId).create(ctx, session);
       step = 0;
       nextTime = ctx.currentTime + 0.05;
@@ -96,18 +107,11 @@ const Music = (() => {
     },
     tracks: () => TRACKS.map(({ id, title }) => ({ id, title })),
     currentTrack: () => trackId,
-    // Where playback is in the loop, based on what's audible now rather than what's queued ahead.
-    position() {
+    // Live spectrum of the music (0–255 per bin) for the playlist visualizer; null when silent.
+    spectrum() {
       if (!timer) return null;
-      const audible = step - (nextTime - ctx.currentTime) / engine.step;
-      const loop = engine.loopSteps;
-      const at = ((audible % loop) + loop) % loop;
-      return { current: at * engine.step, total: loop * engine.step };
-    },
-    seek(fraction) {
-      if (!timer) return;
-      step = Math.floor(Math.max(0, Math.min(0.999, fraction)) * engine.loopSteps);
-      nextTime = ctx.currentTime + 0.05;
+      analyser.getByteFrequencyData(spectrum);
+      return { data: spectrum, hzPerBin: ctx.sampleRate / analyser.fftSize };
     },
     // Selecting a track always starts it, restarting playback if another was playing.
     play(id) {

@@ -556,62 +556,76 @@ function renderPlaylist() {
     }
     const li = document.createElement('li');
     li.appendChild(btn);
-    if (track && track.id === Music.currentTrack() && Music.isEnabled()) li.appendChild(buildPlaylistMedia());
     playlistTracksEl.appendChild(li);
   }
 }
 
-function formatTime(sec) {
-  const s = Math.floor(sec);
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+// Retro LED spectrum under the playlist title: log-spaced bars built from
+// short segments, with peak caps that fall back slowly.
+const vizCanvas = document.getElementById('playlist-viz');
+const vizCtx = vizCanvas.getContext('2d');
+const VIZ_BARS = 28;
+const VIZ_SEGMENT = 3; // css px per LED segment, plus a 1px gap
+const vizPeaks = new Float32Array(VIZ_BARS);
+
+function drawVisualizer() {
+  const dpr = window.devicePixelRatio || 1;
+  const w = vizCanvas.clientWidth;
+  const h = vizCanvas.clientHeight;
+  if (vizCanvas.width !== Math.round(w * dpr) || vizCanvas.height !== Math.round(h * dpr)) {
+    vizCanvas.width = Math.round(w * dpr);
+    vizCanvas.height = Math.round(h * dpr);
+  }
+  vizCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  vizCtx.clearRect(0, 0, w, h);
+
+  const spec = Music.spectrum();
+  const segments = Math.floor((h + 1) / (VIZ_SEGMENT + 1));
+  const gap = 2;
+  const barW = (w - gap * (VIZ_BARS - 1)) / VIZ_BARS;
+  for (let b = 0; b < VIZ_BARS; b++) {
+    let level = 0;
+    if (spec) {
+      // 40Hz–14kHz, log-spaced so the kick and bass get their own bars
+      const lo = 40 * Math.pow(14000 / 40, b / VIZ_BARS);
+      const hi = 40 * Math.pow(14000 / 40, (b + 1) / VIZ_BARS);
+      const from = Math.max(1, Math.floor(lo / spec.hzPerBin));
+      const to = Math.max(from + 1, Math.ceil(hi / spec.hzPerBin));
+      let peak = 0;
+      for (let i = from; i < to && i < spec.data.length; i++) peak = Math.max(peak, spec.data[i]);
+      level = Math.min(1, (peak / 255) * (1 + 0.7 * (b / VIZ_BARS))); // lift the quieter treble end
+    }
+    vizPeaks[b] = Math.max(level, vizPeaks[b] - 0.025);
+    const lit = Math.round(level * segments);
+    const cap = Math.min(segments - 1, Math.round(vizPeaks[b] * segments));
+    const x = b * (barW + gap);
+    for (let seg = 0; seg < segments; seg++) {
+      const y = h - (seg + 1) * (VIZ_SEGMENT + 1) + 1;
+      if (seg < lit) {
+        const hot = seg / segments;
+        vizCtx.fillStyle = hot > 0.8 ? 'rgba(255, 209, 102, 0.9)' : `rgba(57, 255, 143, ${(0.55 + hot * 0.45).toFixed(2)})`;
+      } else if (spec && seg === cap && cap > 0) {
+        vizCtx.fillStyle = 'rgba(255, 209, 102, 0.75)';
+      } else {
+        vizCtx.fillStyle = 'rgba(57, 255, 143, 0.08)';
+      }
+      vizCtx.fillRect(x, y, barW, VIZ_SEGMENT);
+    }
+  }
 }
 
-// Media-player line for the playing track: elapsed, progress bar (click to seek), loop length.
-function buildPlaylistMedia() {
-  const wrap = document.createElement('div');
-  wrap.className = 'pl-media';
-  wrap.innerHTML = '<span class="cur">0:00</span><div class="bar"><div class="fill"></div></div><span class="tot">0:00</span>';
-  const bar = wrap.querySelector('.bar');
-  bar.addEventListener('click', (e) => {
-    const r = bar.getBoundingClientRect();
-    Music.seek((e.clientX - r.left) / r.width);
-    updatePlaylistMedia();
-  });
-  return wrap;
-}
-
-function updatePlaylistMedia() {
-  const media = playlistTracksEl.querySelector('.pl-media');
-  const pos = Music.position();
-  if (!media || !pos) return;
-  media.querySelector('.cur').textContent = formatTime(pos.current);
-  media.querySelector('.tot').textContent = formatTime(pos.total);
-  media.querySelector('.fill').style.width = `${(pos.current / pos.total) * 100}%`;
-}
-
-function playlistMediaLoop() {
+function visualizerLoop() {
   if (playlistEl.hidden) return;
-  updatePlaylistMedia();
-  requestAnimationFrame(playlistMediaLoop);
+  drawVisualizer();
+  requestAnimationFrame(visualizerLoop);
 }
-
-const bgPlayBtn = document.getElementById('bg-play-btn');
-function updateBgPlayBtn() {
-  bgPlayBtn.textContent = `BACKGROUND PLAY: ${Music.isBackgroundPlay() ? 'ON' : 'OFF'}`;
-  bgPlayBtn.classList.toggle('on', Music.isBackgroundPlay());
-}
-bgPlayBtn.addEventListener('click', () => {
-  Music.setBackgroundPlay(!Music.isBackgroundPlay());
-  updateBgPlayBtn();
-});
-updateBgPlayBtn();
 
 function setPlaylistOpen(open) {
   playlistEl.hidden = !open;
   playlistBtn.setAttribute('aria-expanded', String(open));
   if (open) {
     renderPlaylist();
-    requestAnimationFrame(playlistMediaLoop);
+    requestAnimationFrame(visualizerLoop);
   }
 }
 
