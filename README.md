@@ -56,6 +56,8 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
 - `index.html` — page structure, HUD, rules and hacks panels
 - `style.css` — terminal/hacker visual theme
 - `script.js` — game state, rendering, chain resolution and hacks
+- `fx.js` — particle overlay: cleared cells dissolve into pixel fragments and
+  drifting hex/binary glyphs (skipped under reduced motion)
 - `grid-bg.js` — the dim "defragmenting" micro-grid animated behind the board
   (static when the OS asks for reduced motion)
 - `sfx.js` — synthesized sound effects ported from the ECHOES terminal audio
@@ -67,6 +69,11 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
   16th hats, brighter bass/arp and a tension pulse blend in from height 5,
   full at 7). The speaker icon opens the playlist; new tracks go in the
   `TRACKS` list in `music.js`
+- `music-sleep-mode.js` — track 02, SLEEP MODE: original electronicore
+  (music box, trance synths, chugging distorted guitars, double-kick) at
+  150 BPM, built on the public-domain lullaby "Schlaf, Kindlein, schlaf";
+  same intensity layers as the theme
 - `audio/` — offline WAV renders of the music for reference (not loaded by
   the game): `blockchain-theme-v1.wav` is the original 16-bar loop,
-  `blockchain-theme-v2.wav` the current 32-bar version
+  `blockchain-theme-v2.wav` the current 32-bar version,
+  `sleep-mode-v1.wav` track 02

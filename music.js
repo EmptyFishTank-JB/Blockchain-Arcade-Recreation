@@ -256,6 +256,7 @@ const Music = (() => {
   // Add future tracks here: each entry's create(ctx, out) returns an engine like createSynthwave's.
   const TRACKS = [
     { id: 'theme', title: 'BLOCKCHAIN THEME', create: createSynthwave },
+    { id: 'sleep-mode', title: 'SLEEP MODE', create: createSleepMode },
   ];
   let enabled = true;
   let trackId = TRACKS[0].id;

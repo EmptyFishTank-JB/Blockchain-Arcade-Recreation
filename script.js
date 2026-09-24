@@ -168,6 +168,7 @@ function render(popped = [], falling = null) {
       const cell = grid[r][c];
       const div = document.createElement('div');
       div.className = 'cell';
+      div.dataset.pos = `${r},${c}`;
       if (r >= ROWS) div.classList.add('overflow');
       if (cell) {
         if (cell.type === 'number') {
@@ -366,6 +367,7 @@ async function resolveChains() {
     score += pops.length * 10 * chain;
     chainEl.textContent = `${chain}x`;
 
+    FX.burst(cellsAt(pops));
     render(pops);
     updateHud();
     SFX.play('pop');
@@ -412,6 +414,14 @@ async function resolveChains() {
   }
 }
 
+// DOM cells for board positions, captured before a re-render replaces them.
+function cellsAt(positions) {
+  return positions.map(({ row, col }) => ({
+    el: boardEl.querySelector(`[data-pos="${row},${col}"]`),
+    type: columns[col][row] && columns[col][row].type,
+  }));
+}
+
 function occupied(row, col) {
   return row >= 0 && row < MAX_ROWS && col >= 0 && col < COLS && !!columns[col][row];
 }
@@ -432,6 +442,7 @@ async function runHack(id, row, col) {
         }
       }
     }
+    FX.burst(cellsAt(hits));
     render(hits);
     SFX.play('pop');
     await sleep(220);
