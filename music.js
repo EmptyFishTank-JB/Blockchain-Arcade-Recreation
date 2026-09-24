@@ -13,6 +13,7 @@ const Music = (() => {
   const TRACKS = [
     { id: 'theme', title: 'BLOCKCHAIN THEME', create: createSynthwave },
     { id: 'sleep-mode', title: 'SLEEP MODE', create: createSleepMode },
+    { id: 'brute-force', title: 'BRUTE FORCE', create: createBruteForce },
   ];
   let enabled = true;
   let backgroundPlay = false;

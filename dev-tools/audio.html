@@ -243,10 +243,11 @@
   <footer>GENERATED FROM SOURCE &mdash; NO AUDIO FILES, ALL SYNTHESIZED ON PLAY</footer>
 </div>
 
-<script src="../sfx.js?v=17"></script>
-<script src="../music-theme.js?v=17"></script>
-<script src="../music-sleep-mode.js?v=17"></script>
-<script src="../viz.js?v=17"></script>
+<script src="../sfx.js?v=19"></script>
+<script src="../music-theme.js?v=19"></script>
+<script src="../music-sleep-mode.js?v=19"></script>
+<script src="../music-brute-force.js?v=19"></script>
+<script src="../viz.js?v=19"></script>
 <script>
 (() => {
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -349,6 +350,17 @@
         ['0:13', 'Trance build', 'Four-on-the-floor kick, supersaw arpeggio, the lullaby on a supersaw lead, a noise riser and a snare roll.'],
         ['0:26', 'Drop', 'Chugging palm-muted guitars, double-kick, crashes, the lullaby on the trance lead.'],
         ['0:38', 'Breakdown', 'Half-time: syncopated chugs locked to the kick, the music box tinkling the lullaby above.'],
+      ],
+    },
+    {
+      id: 'brute-force', num: '03', title: 'BRUTE FORCE', create: createBruteForce, file: 'music-brute-force.js',
+      meta: ['chiptune', '140 BPM', 'E minor', '32 bars', '~55s loop'],
+      desc: 'Original 8-bit game music in the NES style: pulse-wave leads at 12.5/25/50% duty, a stepped 4-bit triangle bass, sample-and-hold noise drums and fast arpeggios that fake the chords.',
+      sections: [
+        ['0:00', 'Boot', 'Em–C–D–B–Em–C–Am–B. Arpeggio and triangle bass; drums join halfway, ending in a snare fill.'],
+        ['0:13', 'Level 1', 'Melody A on a thin 12.5% pulse over kick, snare and 8th-note hats.'],
+        ['0:27', 'Level 2', 'New chords (C–D–Em–Em–C–D–B–B), melody B on a 25% pulse, a syncopated kick.'],
+        ['0:41', 'Boss', 'Melody A as a duet (a third below), four-on-the-floor kick and 16th hats, then back to boot.'],
       ],
     },
   ];
@@ -521,7 +533,7 @@
       </div>
       <div class="uses"><h4>// INTENSITY LAYERS &mdash; WHEN EACH COMES IN</h4><ul class="layers">${track.layers.map((l) => `
         <li><span class="at">${esc(layerWhen(l))}</span><span>${esc(l.label)}</span><span class="lvl"><span></span></span><button type="button" class="solo" data-layer="${esc(l.id)}">SOLO</button></li>`).join('')}</ul>
-        <p class="layers-note">SOLO mutes the rest of the track and plays just what that layer adds, at full strength. Layers that fill gaps go quiet where the track already plays that part: the theme's extra hi-hats and kick in section B and the climax; SLEEP MODE's extra chugs in the drop and breakdown, and its double-kick fills in the drop.</p></div>`;
+        <p class="layers-note">SOLO mutes the rest of the track and plays just what that layer adds, at full strength. Layers that fill gaps go quiet where the track already plays that part: the theme's extra hi-hats and kick in section B and the climax; SLEEP MODE's extra chugs in the drop and breakdown, and its double-kick fills in the drop; BRUTE FORCE's octave double in the boot (no melody yet) and its hi-hats in the boss.</p></div>`;
     const ui = {
       btn: card.querySelector('button.play'),
       rows: [...card.querySelectorAll('.sec-row')],
