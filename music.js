@@ -1,20 +1,21 @@
-// Original synthwave loop, synthesized live with Web Audio in the same spirit
+// Original synthwave track, synthesized live with Web Audio in the same spirit
 // as sfx.js: no audio files, every note is built from oscillators and noise.
+// 32-bar loop in four 8-bar sections: intro, melody 1, section B with
+// melody 2, then melody 1 doubled an octave up over the driving groove.
 
 function createSynthwave(ctx, out) {
   const BPM = 108;
   const STEP = 60 / BPM / 4; // one 16th note
   const freq = (m) => 440 * Math.pow(2, (m - 69) / 12);
 
-  // Am F C G Am F C E, voiced for smooth movement between chords
-  const CHORDS = [
-    [57, 60, 64], [57, 60, 65], [55, 60, 64], [55, 59, 62],
-    [57, 60, 64], [57, 60, 65], [55, 60, 64], [56, 59, 64],
-  ];
-  const ROOTS = [45, 41, 48, 43, 45, 41, 48, 40];
+  // Chord tones voiced for smooth movement between chords
+  const Am = [57, 60, 64], F = [57, 60, 65], C = [55, 60, 64], G = [55, 59, 62];
+  const Em = [55, 59, 64], E = [56, 59, 64];
+  const SECTION_A = { chords: [Am, F, C, G, Am, F, C, E], roots: [45, 41, 48, 43, 45, 41, 48, 40] };
+  const SECTION_B = { chords: [F, G, Em, Am, F, G, E, E], roots: [41, 43, 40, 45, 41, 43, 40, 40] };
   const ARP = [0, 1, 2, 3, 2, 1, 2, 3];
-  // [step, midi note, length in steps] per bar; plays on the second half of the loop
-  const MELODY = [
+  // [step, midi note, length in steps] per bar
+  const MELODY_1 = [
     [[0, 76, 4], [4, 72, 2], [6, 74, 2], [8, 76, 8]],
     [[0, 77, 4], [4, 76, 2], [6, 74, 2], [8, 72, 8]],
     [[0, 72, 4], [4, 74, 2], [6, 76, 2], [8, 79, 4], [12, 76, 4]],
@@ -23,6 +24,16 @@ function createSynthwave(ctx, out) {
     [[0, 79, 4], [4, 77, 2], [6, 76, 2], [8, 77, 4], [12, 72, 4]],
     [[0, 76, 4], [4, 74, 2], [6, 72, 2], [8, 74, 4], [12, 76, 4]],
     [[0, 71, 8], [8, 68, 2], [10, 71, 2], [12, 76, 4]],
+  ];
+  const MELODY_2 = [
+    [[0, 81, 8], [8, 79, 4], [12, 77, 4]],
+    [[0, 79, 6], [6, 74, 2], [8, 71, 4], [12, 74, 4]],
+    [[0, 76, 8], [8, 79, 4], [12, 83, 4]],
+    [[0, 81, 12], [12, 76, 4]],
+    [[0, 77, 4], [4, 81, 4], [8, 84, 8]],
+    [[0, 83, 6], [6, 81, 2], [8, 79, 8]],
+    [[0, 80, 8], [8, 76, 4], [12, 71, 4]],
+    [[0, 76, 12], [12, 80, 4]],
   ];
 
   const bus = ctx.createGain();
@@ -79,12 +90,12 @@ function createSynthwave(ctx, out) {
   }
 
   // Gated reverb: a long noise tail that gets chopped off abruptly
-  function snare(t) {
+  function snare(t, level = 1) {
     const src = noiseSource();
     const bp = filter('bandpass', 1800, 0.7);
     const g = ctx.createGain();
-    g.gain.setValueAtTime(0.32, t);
-    g.gain.linearRampToValueAtTime(0.2, t + 0.14);
+    g.gain.setValueAtTime(0.32 * level, t);
+    g.gain.linearRampToValueAtTime(0.2 * level, t + 0.14);
     g.gain.linearRampToValueAtTime(0, t + 0.16);
     src.connect(bp); bp.connect(g); g.connect(bus);
     src.start(t); src.stop(t + 0.17);
@@ -92,7 +103,7 @@ function createSynthwave(ctx, out) {
     body.type = 'triangle';
     body.frequency.value = 190;
     const bg = ctx.createGain();
-    bg.gain.setValueAtTime(0.25, t);
+    bg.gain.setValueAtTime(0.25 * level, t);
     bg.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
     body.connect(bg); bg.connect(bus);
     body.start(t); body.stop(t + 0.11);
@@ -156,12 +167,12 @@ function createSynthwave(ctx, out) {
     osc.start(t); osc.stop(t + 0.13);
   }
 
-  function lead(t, m, dur) {
+  function lead(t, m, dur, level = 0.06) {
     const lp = filter('lowpass', 2400);
     const g = ctx.createGain();
     g.gain.setValueAtTime(0, t);
-    g.gain.linearRampToValueAtTime(0.06, t + 0.02);
-    g.gain.setValueAtTime(0.06, t + dur - 0.05);
+    g.gain.linearRampToValueAtTime(level, t + 0.02);
+    g.gain.setValueAtTime(level, t + dur - 0.05);
     g.gain.linearRampToValueAtTime(0, t + dur + 0.08);
     lp.connect(g); g.connect(bus); g.connect(delay);
     const vib = ctx.createOscillator();
@@ -186,19 +197,32 @@ function createSynthwave(ctx, out) {
     step: STEP,
     output: bus,
     schedule(step, t) {
-      const bar = Math.floor(step / 16) % 16;
-      const s = step % 16;
+      const bar = Math.floor(step / 16) % 32;
+      const section = Math.floor(bar / 8);
       const i = bar % 8;
-      if (s === 0 || s === 8 || (s === 10 && bar % 2 === 1)) kick(t);
-      if (s === 4 || s === 12) snare(t);
-      if (s % 2 === 0) hat(t, s % 4 === 2);
-      if (s % 2 === 0) bass(t, ROOTS[i] + (s % 4 === 2 ? 12 : 0), STEP * 1.8);
-      if (s === 0) pad(t, CHORDS[i], STEP * 16);
-      const tones = [...CHORDS[i], CHORDS[i][0] + 12];
+      const s = step % 16;
+      const { chords, roots } = section === 2 ? SECTION_B : SECTION_A;
+      const drive = section >= 2;
+      const sparse = section === 0 && i < 4;
+
+      if (!sparse) {
+        const kickHit = drive ? s % 4 === 0 : s === 0 || s === 8 || (s === 10 && bar % 2 === 1);
+        if (kickHit) kick(t);
+        if (s === 4 || s === 12) snare(t);
+        if (i === 7 && (section === 0 || section === 2) && s > 12) snare(t, 0.4 + (s - 12) * 0.2);
+      }
+      if (drive || s % 2 === 0) hat(t, s % 4 === 2);
+      if (s % 2 === 0) bass(t, roots[i] + (s % 4 === 2 ? 12 : 0), STEP * 1.8);
+      if (s === 0) pad(t, chords[i], STEP * 16);
+      const tones = [...chords[i], chords[i][0] + 12];
       arp(t, tones[ARP[s % 8]] + 12);
-      if (bar >= 8) {
-        for (const [start, m, len] of MELODY[i]) {
-          if (start === s) lead(t, m, len * STEP);
+
+      const melody = section === 1 || section === 3 ? MELODY_1 : section === 2 ? MELODY_2 : null;
+      if (melody) {
+        for (const [start, m, len] of melody[i]) {
+          if (start !== s) continue;
+          lead(t, m, len * STEP);
+          if (section === 3) lead(t, m + 12, len * STEP, 0.025);
         }
       }
     },

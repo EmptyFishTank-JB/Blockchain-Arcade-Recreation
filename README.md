@@ -41,5 +41,10 @@ next packet shown in the HUD. `H` uses a hack, `Esc` cancels targeting.
 - `script.js` — game state, rendering, chain resolution and hacks
 - `sfx.js` — synthesized sound effects ported from the ECHOES terminal audio
   compendium; toggle with the SOUND button
-- `music.js` — an original synthwave loop synthesized live with Web Audio;
-  starts on your first click or key press, toggle with the MUSIC button
+- `music.js` — an original synthwave track synthesized live with Web Audio
+  (32-bar loop: intro, melody 1, section B with melody 2, octave-doubled
+  climax); starts on your first click or key press, toggle with the MUSIC
+  button
+- `audio/` — offline WAV renders of the music for reference (not loaded by
+  the game): `blockchain-theme-v1.wav` is the original 16-bar loop,
+  `blockchain-theme-v2.wav` the current 32-bar version
