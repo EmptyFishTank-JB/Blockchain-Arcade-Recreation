@@ -32,20 +32,21 @@ const DIFFICULTIES = {
 };
 
 // easyCombo: on Easy, the chain length that unlocks each hack (stronger hacks need longer chains).
-// full: a bonus exploit, only awarded with Full Access (see unlocks.js).
+// unlock: a bonus exploit, only awarded once that progress.js unlock is earned.
 const HACKS = {
   worm: { name: 'WORM VIRUS', icon: '§', easyCombo: 5 },
   overflow: { name: 'BUFFER OVERFLOW', icon: '+', easyCombo: 4 },
   trojan: { name: 'TROJAN', icon: '◈', easyCombo: 4 },
   rng: { name: 'RNG', icon: '?', easyCombo: 3 },
   bitflip: { name: 'BITFLIP', icon: '↕', easyCombo: 3 },
-  dictionary: { name: 'DICTIONARY ATTACK', icon: '#', easyCombo: 4, full: true },
-  keylogger: { name: 'KEYLOGGER', icon: '@', easyCombo: 3, full: true },
+  dictionary: { name: 'DICTIONARY ATTACK', icon: '#', easyCombo: 4, unlock: 'exploit-dictionary' },
+  keylogger: { name: 'KEYLOGGER', icon: '@', easyCombo: 3, unlock: 'exploit-keylogger' },
 };
 const KEYLOGGER_DROPS = 10; // drops the keylogger keeps showing the next bits for
 const KEYLOGGER_PREVIEW = 3;
 
-const hackAvailable = (id) => !HACKS[id].full || Unlocks.hasFullAccess();
+const hackAvailable = (id) => !HACKS[id].unlock || Progress.isUnlocked(HACKS[id].unlock);
+Progress.setExploitCount(Object.keys(HACKS).length);
 
 let columns = []; // columns[c] = array of cells, index 0 = bottom
 let queue = []; // upcoming pieces; queue[0] is the one being dropped
@@ -69,6 +70,7 @@ const storage = {
 };
 
 let difficulty = DIFFICULTIES[storage.get('blockchain-difficulty')] ? storage.get('blockchain-difficulty') : 'normal';
+if (difficulty === 'hard' && !Progress.isUnlocked('mode-hard')) difficulty = 'normal';
 
 const boardEl = document.getElementById('board');
 const boardWrapEl = document.querySelector('.board-wrap');
@@ -110,6 +112,7 @@ function refillQueue() {
 
 function initGame() {
   runId++;
+  Progress.startRun(difficulty);
   COLS = ROWS = DIFFICULTIES[difficulty].size;
   MAX_ROWS = ROWS + 1;
   boardWrapEl.style.setProperty('--cols', COLS);
@@ -286,6 +289,7 @@ async function attemptDrop(col) {
   busy = true;
   chainEl.textContent = '0x';
   setMessage('');
+  const piecesBefore = columns.reduce((n, c) => n + c.length, 0);
   const piece = queue.shift();
   refillQueue();
   if (keyloggerDrops > 0) keyloggerDrops--;
@@ -297,6 +301,8 @@ async function attemptDrop(col) {
     await sleep(STEP_MS);
   }
   columns[col].push(piece);
+  Progress.drop();
+  let wentOver = overflowed();
   render();
   SFX.play('enter');
   await sleep(60);
@@ -309,11 +315,16 @@ async function attemptDrop(col) {
     if (dropsSinceLastPulse >= pulseInterval) {
       dropsSinceLastPulse = 0;
       await injectPulse();
+      wentOver = wentOver || overflowed();
       await resolveChains();
       pulseInterval = DIFFICULTIES[difficulty].interval(score);
     }
   }
 
+  if (!overflowed()) {
+    if (wentOver) Progress.closeCall();
+    if (piecesBefore >= 5 && Progress.runDrops() >= 10 && columns.every((c) => c.length === 0)) Progress.sweep();
+  }
   finishTurn();
 }
 
@@ -321,6 +332,8 @@ function finishTurn() {
   updateHud();
   busy = false;
   render();
+  Progress.score(score);
+  announce(Progress.check());
   if (overflowed()) endGame();
   // One drop until a firewall row: warn until the player drops (unless a hack message is showing)
   else if (pulseInterval - dropsSinceLastPulse === 1 && messageEl.classList.contains('hidden')) {
@@ -395,6 +408,7 @@ function hackForChain(chain) {
 // Hard: 8 bits decrypted by one drop make a byte.
 async function awardBytes(bytes) {
   score += bytes * BYTE_BONUS;
+  Progress.bytes(bytes);
   updateHud();
   setMessage(`${bytes > 1 ? `${bytes} BYTES` : 'BYTE'} DECRYPTED // +${bytes * BYTE_BONUS}`, 'byte');
   SFX.play('egg');
@@ -435,6 +449,7 @@ async function resolveChains() {
 
     chain++;
     cleared += pops.length;
+    Progress.decrypted(pops.length, chain);
     score += pops.length * 10 * chain;
     chainEl.textContent = `${chain}x`;
 
@@ -459,6 +474,7 @@ async function resolveChains() {
         const neighborCell = columns[n.col][n.row];
         if (neighborCell && neighborCell.type === 'firewall') {
           neighborCell.level--;
+          Progress.peeled(neighborCell.level <= 0);
           cracked = true;
           if (neighborCell.level <= 0) {
             columns[n.col][n.row] = newPacket();
@@ -501,6 +517,7 @@ function occupied(row, col) {
 
 // The hack piece has just landed at (row, col) on top of its stack.
 async function runHack(id, row, col) {
+  Progress.exploit(id);
   setMessage(`${HACKS[id].name} // EXECUTING`);
   SFX.play('static');
 
@@ -534,6 +551,7 @@ async function runHack(id, row, col) {
     for (const { row: r, col: c } of peeled) {
       const cell = columns[c][r];
       cell.level--;
+      Progress.peeled(cell.level <= 0);
       if (cell.level <= 0) {
         columns[c][r] = newPacket();
         revealed = true;
@@ -684,6 +702,11 @@ document.querySelectorAll('.difficulty button').forEach((btn) => {
   btn.addEventListener('click', () => {
     const next = btn.dataset.difficulty;
     if (next === difficulty) return;
+    if (next === 'hard' && !Progress.isUnlocked('mode-hard')) {
+      SFX.play('denied');
+      showToast(`LOCKED // ${Progress.unlock('mode-hard').need.toUpperCase()}`);
+      return;
+    }
     requestReset(btn, 'CONFIRM?', () => {
       difficulty = next;
       storage.set('blockchain-difficulty', next);
@@ -732,7 +755,7 @@ buttonsPosBtn.addEventListener('click', () => {
 updateButtonsPos();
 
 // Color themes: each id matches a [data-theme] block in style.css ('terminal' is the default :root).
-// full: needs Full Access (see unlocks.js). Keep the head script in index.html in sync.
+// Every theme but TERMINAL is unlocked by progress.js (theme-<id>). Keep the head script in index.html in sync.
 const THEMES = [
   { id: 'terminal', label: 'TERMINAL', desc: 'green bits, grey layers, amber cracks and exploits.' },
   { id: 'cipher', label: 'CIPHER', desc: 'cyan bits, magenta layers, yellow cracks and exploits.', full: true },
@@ -741,11 +764,11 @@ const THEMES = [
   { id: 'redline', label: 'REDLINE', desc: 'red-alert intrusion: steel-blue layers, yellow cracks, a white trace.', full: true },
   { id: 'synthwave', label: 'SYNTHWAVE', desc: 'pink bits, purple layers, orange cracks and a cyan trace.', full: true },
 ];
-const themeAvailable = (t) => !t.full || Unlocks.hasFullAccess();
+const themeAvailable = (t) => t.id === 'terminal' || Progress.isUnlocked(`theme-${t.id}`);
 const themeListEl = document.getElementById('theme-list');
 const themeNoteEl = document.getElementById('theme-note');
 const themeMeta = document.querySelector('meta[name="theme-color"]');
-// The saved choice is kept even while locked, so it comes back once Full Access is owned.
+// The saved choice is kept even while locked, so it comes back once unlocked.
 let themeId = THEMES.some((t) => t.id === storage.get('blockchain-theme')) ? storage.get('blockchain-theme') : 'terminal';
 
 function applyTheme() {
@@ -754,8 +777,7 @@ function applyTheme() {
   if (shown.id === 'terminal') delete document.documentElement.dataset.theme;
   else document.documentElement.dataset.theme = shown.id;
   themeMeta.content = getComputedStyle(document.documentElement).getPropertyValue('--bg-solid').trim();
-  themeNoteEl.textContent = `${shown.label}: ${shown.desc}`
-    + (Unlocks.hasFullAccess() ? '' : ' More themes come with Full Access.');
+  themeNoteEl.textContent = `${shown.label}: ${shown.desc}`;
 
   themeListEl.innerHTML = '';
   for (const t of THEMES) {
@@ -771,8 +793,12 @@ function applyTheme() {
     swatches.innerHTML = '<i></i><i></i><i></i>';
     btn.appendChild(swatches);
     if (!themeAvailable(t)) {
-      btn.disabled = true;
+      // Locked: tapping shows what unlocks it
       btn.classList.add('locked');
+      btn.addEventListener('click', () => {
+        const u = Progress.unlock(`theme-${t.id}`);
+        themeNoteEl.textContent = `${t.label} is locked. ${u.need} to unlock it (${Math.min(u.value(), u.goal).toLocaleString('en-US')} / ${u.goal.toLocaleString('en-US')}).`;
+      });
     } else {
       btn.addEventListener('click', () => {
         themeId = t.id;
@@ -785,7 +811,7 @@ function applyTheme() {
 }
 applyTheme();
 
-const PLAYLIST_SLOTS = 3; // unmade tracks show as COMING SOON
+const PLAYLIST_SLOTS = 10; // unmade tracks show as COMING SOON
 const settingsBtn = document.getElementById('settings-btn');
 const settingsEl = document.getElementById('settings');
 const playlistTracksEl = document.getElementById('playlist-tracks');
@@ -801,6 +827,8 @@ function renderPlaylist() {
       btn.textContent = `${num}  ${track.title}`;
       btn.disabled = true;
       btn.classList.add('locked');
+      btn.dataset.need = `\u{1F512} ${Progress.unlock(`track-${n + 1}`).goal.toLocaleString('en-US')}`;
+      btn.title = `${track.need} to unlock`;
     } else if (track) {
       btn.textContent = `${num}  ${track.title}`;
       btn.classList.toggle('active', track.id === Music.currentTrack());
@@ -868,6 +896,7 @@ updateBgPlayBtn();
 
 function setSettingsOpen(open) {
   settingsEl.hidden = !open;
+  if (open && !recordsEl.hidden) setRecordsOpen(false);
   settingsBtn.setAttribute('aria-expanded', String(open));
   if (open) {
     renderPlaylist();
@@ -883,11 +912,166 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && !settingsEl.hidden) setSettingsOpen(false);
 });
 
-// Bonus exploits dim with a FULL ACCESS tag when locked.
-function applyUnlocks() {
-  document.querySelectorAll('.hack-item[data-full]').forEach((el) => {
-    el.classList.toggle('locked', !hackAvailable(el.dataset.hack));
+// UNLOCKED / ACHIEVEMENT pop-ups, shown one at a time
+const toastEl = document.getElementById('toast');
+const toastQueue = [];
+let toastShowing = false;
+function showToast(text) {
+  toastQueue.push(text);
+  if (!toastShowing) nextToast();
+}
+function nextToast() {
+  const text = toastQueue.shift();
+  toastShowing = !!text;
+  if (!text) return;
+  toastEl.textContent = text;
+  toastEl.hidden = false;
+  toastEl.classList.remove('show');
+  void toastEl.offsetWidth; // restart the pop-in animation
+  toastEl.classList.add('show');
+  setTimeout(() => {
+    FX.burst([{ el: toastEl, type: 'warning' }]);
+    toastEl.hidden = true;
+    setTimeout(nextToast, 250);
+  }, 2200);
+}
+
+// Track unlocks are named TRACK 03 etc.; add the title once the track exists.
+function unlockLabel(name) {
+  const m = name.match(/^TRACK (\d+)$/);
+  const track = m && Music.tracks()[Number(m[1]) - 1];
+  return track ? `${name} // ${track.title}` : name;
+}
+
+function announce(earned) {
+  if (!earned.length) return;
+  SFX.play('egg');
+  for (const e of earned) showToast(`${e.type} // ${unlockLabel(e.name)}`);
+  if (earned.some((e) => e.type === 'UNLOCKED')) applyUnlocks();
+  if (!recordsEl.hidden) renderRecords();
+}
+
+// RECORDS panel: unlocks and achievements with trackers, and lifetime stats
+const recordsBtn = document.getElementById('records-btn');
+const recordsEl = document.getElementById('records');
+const recordsBodyEl = document.getElementById('records-body');
+let recordsTab = 'unlocks';
+const fmt = (n) => Number(n).toLocaleString('en-US');
+
+function recordRow({ name, desc, current, goal, done }) {
+  const li = document.createElement('li');
+  li.className = done ? 'rec-row done' : 'rec-row';
+  const shown = Math.min(current, goal);
+  li.innerHTML = '<div class="rec-head"><span class="rec-name"></span><span class="rec-state"></span></div>'
+    + '<p class="rec-desc"></p><div class="rec-bar"><i></i></div>';
+  li.querySelector('.rec-name').textContent = name;
+  li.querySelector('.rec-state').textContent = done ? '✓' : `${fmt(shown)} / ${fmt(goal)}`;
+  li.querySelector('.rec-desc').textContent = desc;
+  li.querySelector('.rec-bar i').style.width = `${done ? 100 : (shown / goal) * 100}%`;
+  return li;
+}
+
+function renderRecords() {
+  recordsEl.querySelectorAll('.records-tabs button').forEach((b) => {
+    b.setAttribute('aria-selected', String(b.dataset.tab === recordsTab));
   });
+  recordsBodyEl.innerHTML = '';
+  if (recordsTab === 'unlocks') {
+    let group = '';
+    let list = null;
+    for (const u of Progress.unlocks()) {
+      if (u.group !== group) {
+        group = u.group;
+        const h = document.createElement('p');
+        h.className = 'rec-group';
+        h.textContent = `// ${group}`;
+        recordsBodyEl.appendChild(h);
+        list = document.createElement('ul');
+        list.className = 'rec-list';
+        recordsBodyEl.appendChild(list);
+      }
+      const m = u.name.match(/^TRACK (\d+)$/);
+      const track = m && Music.tracks()[Number(m[1]) - 1];
+      const name = m ? `${u.name} · ${track ? track.title : 'COMING SOON'}` : u.name;
+      list.appendChild(recordRow({ name, desc: u.need, current: u.current, goal: u.goal, done: u.done }));
+    }
+  } else if (recordsTab === 'achievements') {
+    const all = Progress.achievements();
+    const summary = document.createElement('p');
+    summary.className = 'rec-summary';
+    summary.textContent = `${all.filter((a) => a.done).length} / ${all.length} EARNED`;
+    recordsBodyEl.appendChild(summary);
+    const list = document.createElement('ul');
+    list.className = 'rec-list';
+    for (const a of all) list.appendChild(recordRow({ name: a.name, desc: a.desc, current: a.current, goal: a.goal, done: a.done }));
+    recordsBodyEl.appendChild(list);
+  } else {
+    const s = Progress.stats();
+    const favorite = Object.entries(s.exploitUses).sort((a, b) => b[1] - a[1])[0];
+    const rows = [
+      ['SESSIONS PLAYED', fmt(s.games)],
+      ['TOTAL DROPS', fmt(s.drops)],
+      ['BITS DECRYPTED', fmt(s.bits)],
+      ['BYTES DECRYPTED', fmt(s.bytes)],
+      ['LAYERS PEELED', fmt(s.peeled)],
+      ['BITS REVEALED', fmt(s.broken)],
+      ['EXPLOITS RUN', fmt(s.exploits)],
+      ['FAVORITE EXPLOIT', favorite ? `${HACKS[favorite[0]] ? HACKS[favorite[0]].name : favorite[0]} (${fmt(favorite[1])})` : '—'],
+      ['LONGEST CHAIN', `${s.bestChain}x`],
+      ['BEST SCORE // EASY', fmt(s.bestEasy)],
+      ['BEST SCORE // NORMAL', fmt(s.bestNormal)],
+      ['BEST SCORE // HARD', fmt(s.bestHard)],
+      ['LONGEST HARD SESSION', `${fmt(s.bestHardDrops)} drops`],
+      ['CLEAN SWEEPS', fmt(s.sweeps)],
+      ['CLOSE CALLS', fmt(s.closeCalls)],
+    ];
+    const dl = document.createElement('dl');
+    dl.className = 'rec-stats';
+    for (const [label, value] of rows) {
+      const dt = document.createElement('dt');
+      dt.textContent = label;
+      const dd = document.createElement('dd');
+      dd.textContent = value;
+      dl.append(dt, dd);
+    }
+    recordsBodyEl.appendChild(dl);
+  }
+}
+
+function setRecordsOpen(open) {
+  recordsEl.hidden = !open;
+  recordsBtn.setAttribute('aria-expanded', String(open));
+  if (open) {
+    setSettingsOpen(false);
+    renderRecords();
+  }
+}
+recordsBtn.addEventListener('click', () => setRecordsOpen(recordsEl.hidden));
+recordsEl.querySelectorAll('.records-tabs button').forEach((b) => {
+  b.addEventListener('click', () => {
+    recordsTab = b.dataset.tab;
+    renderRecords();
+  });
+});
+document.addEventListener('pointerdown', (e) => {
+  if (!recordsEl.hidden && !recordsEl.contains(e.target) && !recordsBtn.contains(e.target)) setRecordsOpen(false);
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !recordsEl.hidden) setRecordsOpen(false);
+});
+
+// Refreshes everything that can be locked, after progress or Full Access changes.
+function applyUnlocks() {
+  // Bonus exploits dim with their requirement and tracker until unlocked
+  document.querySelectorAll('.hack-item[data-unlock]').forEach((el) => {
+    const u = Progress.unlock(el.dataset.unlock);
+    el.classList.toggle('locked', !hackAvailable(el.dataset.hack));
+    el.querySelector('.lock-tag').textContent = `UNLOCK: ${u.need.toUpperCase()} (${Math.min(u.value(), u.goal)}/${u.goal})`;
+  });
+  const hardBtn = document.querySelector('.difficulty [data-difficulty="hard"]');
+  const hardLocked = !Progress.isUnlocked('mode-hard');
+  hardBtn.classList.toggle('locked', hardLocked);
+  hardBtn.title = hardLocked ? `${Progress.unlock('mode-hard').need} to unlock` : '';
   Music.refreshUnlocks();
   applyTheme();
   renderPlaylist();

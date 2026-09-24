@@ -13,7 +13,7 @@ const Music = (() => {
   const HIDDEN_LOOKAHEAD = 1.5;
   const INTENSITY_EASE = 0.06; // per 16th step, ~2.5s to settle
   // Add future tracks here: each entry's create(ctx, out) returns an engine like createSynthwave's.
-  // free: playable without Full Access (see unlocks.js); the rest need it.
+  // free: always playable; track N (from 03) is unlocked by progress.js's track-N.
   const TRACKS = [
     { id: 'theme', title: 'BYTEFALL THEME', create: createSynthwave, free: true },
     { id: 'sleep-mode', title: 'SLEEP MODE', create: createSleepMode, free: true },
@@ -55,7 +55,8 @@ const Music = (() => {
     fadeStarted = false;
   }
 
-  const isLocked = (track) => !track.free && !Unlocks.hasFullAccess();
+  const unlockId = (track) => `track-${TRACKS.indexOf(track) + 1}`;
+  const isLocked = (track) => !track.free && !Progress.isUnlocked(unlockId(track));
 
   // Sequence and shuffle only move between tracks the player can play.
   function nextTrackId() {
@@ -150,7 +151,12 @@ const Music = (() => {
       setEnabled(!enabled);
       return enabled;
     },
-    tracks: () => TRACKS.map((t) => ({ id: t.id, title: t.title, locked: isLocked(t) })),
+    tracks: () => TRACKS.map((t) => ({
+      id: t.id,
+      title: t.title,
+      locked: isLocked(t),
+      need: t.free ? '' : Progress.unlock(unlockId(t)).need,
+    })),
     currentTrack: () => trackId,
     // The music's output analyser for the playlist visualizer; null when nothing is playing.
     getAnalyser: () => (timer ? analyser : null),

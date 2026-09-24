@@ -729,11 +729,120 @@ h1 span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
   letter-spacing: 2px;
   color: var(--accent);
 }
-.settings button.locked::after { content: '\1F512'; margin-left: auto; font-size: 11px; }
+.settings button.locked::after { content: attr(data-need); margin-left: auto; font-size: 9px; letter-spacing: 0; color: var(--accent); }
+.settings .theme-option { position: relative; min-width: 0; }
+.settings .theme-option.locked::after {
+  content: '\1F512';
+  position: absolute;
+  right: 6px;
+  font-size: 10px;
+}
+.settings .theme-option.locked { cursor: help; }
+.difficulty button.locked { opacity: 0.45; }
+.difficulty button.locked::after { content: ' \1F512'; font-size: 10px; }
 
 .stat.keylogger { border-color: var(--accent); }
 .stat.keylogger .label { color: var(--accent); }
 .stat.keylogger .next-disc { font-size: 12px; white-space: nowrap; }
+
+/* Records: the trophy in the CRT's top-left corner, mirroring the settings icon */
+.records-btn {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  width: 32px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--fg);
+  opacity: 0.35;
+  cursor: pointer;
+  transition: opacity 0.25s ease, filter 0.25s ease;
+}
+.records-btn svg { width: 20px; height: 20px; display: block; }
+.records-btn:hover,
+.records-btn[aria-expanded="true"] {
+  opacity: 1;
+  filter: drop-shadow(0 0 4px rgba(var(--fg-rgb), 0.6));
+}
+
+.records {
+  position: absolute;
+  top: 44px;
+  left: 12px;
+  z-index: 20;
+  width: 290px;
+  max-width: calc(100% - 24px);
+  max-height: calc(100vh - 60px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 10px 12px;
+  text-align: left;
+  background: var(--popup-bg);
+  border: 1px dashed var(--fg-dim);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+.records[hidden] { display: none; }
+
+.records-tabs { display: flex; gap: 4px; margin-bottom: 10px; }
+.records-tabs button {
+  flex: 1;
+  padding: 5px 2px;
+  background: none;
+  border: 1px solid var(--grid-line);
+  border-radius: 4px;
+  color: var(--fg-dim);
+  font-family: inherit;
+  font-size: 9px;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+.records-tabs button[aria-selected="true"] { color: var(--fg); border-color: var(--fg); }
+
+.records-body { font-size: 11px; }
+.rec-group { margin: 10px 0 4px; font-size: 9px; letter-spacing: 2px; color: var(--fg-dim); }
+.rec-group:first-child { margin-top: 0; }
+.rec-summary { margin: 0 0 8px; color: var(--accent); letter-spacing: 1px; }
+.rec-list { list-style: none; margin: 0; padding: 0; }
+.rec-row { padding: 6px 0; border-bottom: 1px dashed var(--grid-line); }
+.rec-head { display: flex; gap: 8px; align-items: baseline; }
+.rec-name { color: var(--fg-dim); letter-spacing: 1px; }
+.rec-state { margin-left: auto; font-size: 10px; color: var(--fg-dim); white-space: nowrap; }
+.rec-row.done .rec-name { color: var(--fg); }
+.rec-row.done .rec-state { color: var(--accent); }
+.rec-desc { margin: 2px 0 0; font-size: 10px; color: var(--panel-text); opacity: 0.7; }
+.rec-bar { height: 3px; margin-top: 5px; background: rgba(var(--fg-rgb), 0.12); border-radius: 2px; overflow: hidden; }
+.rec-bar i { display: block; height: 100%; background: var(--fg); }
+.rec-stats { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; margin: 0; }
+.rec-stats dt { color: var(--fg-dim); }
+.rec-stats dd { margin: 0; text-align: right; color: var(--fg); }
+
+/* UNLOCKED / ACHIEVEMENT pop-ups, above the game-over overlay */
+.toast {
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  z-index: 110;
+  transform: translateX(-50%);
+  max-width: calc(100vw - 32px);
+  padding: 8px 14px;
+  background: var(--popup-bg);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  color: var(--accent);
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-align: center;
+  text-shadow: 0 0 6px rgba(var(--accent-rgb), 0.6);
+  box-shadow: 0 0 16px rgba(var(--accent-rgb), 0.35);
+}
+.toast[hidden] { display: none; }
+.toast.show { animation: byte-in 0.35s ease-out; }
 
 .settings-btn {
   position: absolute;
@@ -769,6 +878,7 @@ h1 span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
   width: 240px;
   max-width: calc(100% - 24px);
   max-height: calc(100vh - 60px);
+  overflow-x: hidden;
   overflow-y: auto;
   padding: 10px 12px;
   text-align: left;
@@ -836,7 +946,7 @@ h1 span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
 .swatches i:nth-child(2) { background: var(--layer-border); }
 .swatches i:nth-child(3) { background: var(--accent); }
 .settings .theme-option.locked .swatches { opacity: 0.4; }
-.settings .theme-option.locked::after { margin-left: 4px; font-size: 9px; }
+
 .settings-row .toggle-btn { justify-content: center; }
 
 .settings .viz-toggle {

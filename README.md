@@ -35,7 +35,7 @@ lands:
 | Dictionary Attack `[#]` * | 4x | Every encryption layer on the board loses one level at once |
 | Keylogger `[@]` * | 3x | Shows your next 3 bits for the next 10 drops |
 
-\* Bonus exploits, part of Full Access (see below).
+\* Bonus exploits, unlocked by playing (see below).
 
 A drop earns at most one exploit, picked from the longest chain it set off.
 
@@ -53,18 +53,41 @@ On Hard, every 8 bits a single drop decrypts, chains included, make a byte:
 High scores are saved in your browser, one per difficulty (Hard's started
 fresh when it moved to 8×8).
 
+## Unlocks, achievements and stats
+
+Easy, Normal, tracks 01-02, the TERMINAL theme and the five standard
+exploits are open from the start. Everything else is earned by playing:
+
+| Unlock | Requirement |
+|---|---|
+| Hard mode | Score 1,500 on Normal |
+| Tracks 03-10 | Decrypt 300 / 750 / 1,500 / 3,000 / 5,000 / 7,500 / 10,000 / 15,000 bits in total (07-10 are still to come) |
+| CIPHER | Decrypt a BYTE on Hard |
+| AMBER CRT | Play 25 sessions |
+| MONOCHROME | Get a 6x chain |
+| REDLINE | Last 100 drops in one Hard session |
+| SYNTHWAVE | Score 5,000 in one session |
+| Dictionary Attack | Peel 100 encryption layers |
+| Keylogger | Run 20 exploits |
+
+The trophy icon (top-left of the terminal) opens **RECORDS**: every unlock
+and all 25 achievements with progress trackers, plus lifetime stats. Newly
+earned unlocks and achievements pop up as UNLOCKED // … and ACHIEVEMENT // ….
+Locked items show their requirement where they appear (the Hard button, the
+theme grid, the playlist and the exploit cards). Progress is saved in the
+browser (`bytefall-progress`); players who already had a Hard score keep Hard.
+
+`progress.js` holds the stats, the unlock list (`UNLOCKS`) and the
+achievements (`ACHIEVEMENTS`); `script.js` reports each drop, decrypt,
+peel, byte and exploit to it.
+
 ## Full Access
 
 The Android app is planned as free with a banner ad, plus one purchase,
-**Full Access**: no ads, every theme, every track and the bonus exploits.
-The free tier keeps the whole game (all difficulties) with the TERMINAL
-theme, tracks 01-02 and the five standard exploits.
-
-This website is the free, fully unlocked version: `unlocks.js` always reports
-Full Access here, and the app will set it from the Google Play purchase. Add
-`?free` to the URL to preview what the free tier locks. Locked items are
-flagged in code with `full: true` (themes in `script.js`, exploits in
-`HACKS`) or without `free: true` (tracks in `music.js`).
+**Full Access**: no ads, and every unlock straight away. Nothing needs it;
+everything can also be earned. `unlocks.js` holds that check (never owned on
+the website; the app will set it from Google Play). Add `?unlockall` to the
+URL to preview everything unlocked.
 
 ## Playing
 
@@ -89,7 +112,7 @@ Themes (picked from the swatch grid in settings):
 Every color in `style.css` is a named role in `:root`; a theme is a
 `[data-theme="…"]` block that overrides those values, plus an entry in
 `THEMES` in `script.js` and in the small theme script in `index.html`'s
-head. All but TERMINAL are part of Full Access.
+head. All but TERMINAL are unlocked by playing (see below).
 
 RESTART and the difficulty buttons ask for a second press mid-run (CONFIRM
 RESTART? / CONFIRM?, which cancels itself after a few seconds), then the
@@ -105,7 +128,8 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
 - `index.html` — page structure, HUD, rules and exploits panels
 - `style.css` — terminal/hacker visual theme
 - `script.js` — game state, rendering, chain resolution and exploits
-- `unlocks.js` — the Full Access check (always unlocked on the website)
+- `unlocks.js` — the Full Access check (never owned on the website; `?unlockall` previews it)
+- `progress.js` — lifetime stats, earnable unlocks and achievements
 - `fx.js` — particle overlay: cleared cells dissolve into pixel fragments and
   drifting hex/binary glyphs (skipped under reduced motion)
 - `viz.js` — the shared music visualizer (LED bars or auto-gained

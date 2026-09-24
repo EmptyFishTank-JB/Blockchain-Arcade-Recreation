@@ -1,11 +1,12 @@
-// Full Access: the one-time purchase in the Android app (no ads, every theme and
-// track, the bonus exploits). The website is the free, fully unlocked version, so
-// this is always true here; the app will call Unlocks.set() with the Google Play
-// purchase state. Add ?free to the URL to preview what the free tier locks.
+// Full Access: the one-time purchase planned for the Android app (no ads, and
+// every unlock straight away). Without it, unlocks are earned by playing (see
+// progress.js), which is how the website works. The app will call Unlocks.set()
+// with the Google Play purchase state. Add ?unlockall to the URL to preview
+// everything unlocked.
 const Unlocks = (() => {
-  let full = true;
+  let full = false;
   try {
-    if (new URLSearchParams(location.search).has('free')) full = false;
+    if (new URLSearchParams(location.search).has('unlockall')) full = true;
   } catch (e) {}
   const listeners = [];
 
