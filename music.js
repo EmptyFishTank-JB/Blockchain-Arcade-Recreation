@@ -3,7 +3,6 @@
 
 const Music = (() => {
   const STORAGE_KEY = 'blockchain-music';
-  const TRACK_KEY = 'blockchain-track';
   const BG_KEY = 'blockchain-music-bg';
   const MODE_KEY = 'blockchain-music-mode';
   const MODES = ['repeat', 'sequence', 'shuffle'];
@@ -24,14 +23,12 @@ const Music = (() => {
   ];
   let enabled = true;
   let backgroundPlay = false;
-  let trackId = TRACKS[0].id;
+  let trackId = TRACKS[0].id; // every visit starts on track 01
   let mode = 'repeat';
   try {
     if (MODES.includes(localStorage.getItem(MODE_KEY))) mode = localStorage.getItem(MODE_KEY);
     enabled = localStorage.getItem(STORAGE_KEY) !== 'off';
     backgroundPlay = localStorage.getItem(BG_KEY) === 'on';
-    const saved = localStorage.getItem(TRACK_KEY);
-    if (TRACKS.some((t) => t.id === saved)) trackId = saved;
   } catch (e) {}
   let intensity = 0;
   let targetIntensity = 0;
@@ -45,10 +42,6 @@ const Music = (() => {
   let loopsToPlay = LOOPS_PER_TRACK;
   let fadeStarted = false;
   let onTrackChange = null;
-
-  function saveTrack() {
-    try { localStorage.setItem(TRACK_KEY, trackId); } catch (e) {}
-  }
 
   function openSession(fadeIn) {
     session = ctx.createGain();
@@ -82,7 +75,6 @@ const Music = (() => {
       const old = session;
       setTimeout(() => old.disconnect(), (nextTime - ctx.currentTime + 1) * 1000);
       trackId = nextTrackId();
-      saveTrack();
       openSession(0.8);
       if (onTrackChange) onTrackChange(trackId);
     }
@@ -162,7 +154,6 @@ const Music = (() => {
     play(id) {
       if (!TRACKS.some((t) => t.id === id)) return;
       trackId = id;
-      saveTrack();
       stop();
       setEnabled(true);
     },
