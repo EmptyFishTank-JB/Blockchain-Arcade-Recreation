@@ -6,6 +6,7 @@
 
 const COLS = 7;
 const ROWS = 7;
+const MAX_ROWS = ROWS + 1; // top row holds overflow; anything left there after clears ends the run
 const PULSE_INTERVAL = 8; // drops between firewall-row injections
 const STEP_MS = 35; // per-row fall speed
 const HACK_COMBO = 5;
@@ -93,7 +94,7 @@ function updateColumnButtons() {
     let disabled = gameOver || busy;
     if (targeting === 'worm') disabled = disabled || columns[c].length === 0;
     else if (targeting) disabled = true;
-    else disabled = disabled || columns[c].length >= ROWS;
+    else disabled = disabled || columns[c].length >= MAX_ROWS;
     btn.disabled = disabled;
   });
 }
@@ -111,8 +112,8 @@ function updateHackUi() {
 }
 
 function buildGrid() {
-  // grid[row][col], row 0 = bottom, ROWS-1 = top
-  const grid = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+  // grid[row][col], row 0 = bottom, MAX_ROWS-1 = overflow row
+  const grid = Array.from({ length: MAX_ROWS }, () => Array(COLS).fill(null));
   for (let c = 0; c < COLS; c++) {
     for (let r = 0; r < columns[c].length; r++) {
       grid[r][c] = columns[c][r];
@@ -125,15 +126,14 @@ function render(popped = [], falling = null) {
   boardEl.innerHTML = '';
   const grid = buildGrid();
   if (falling) grid[falling.row][falling.col] = falling.cell;
-  // Display top row first (visual row 0) down to bottom (visual row ROWS-1)
-  for (let visualRow = 0; visualRow < ROWS; visualRow++) {
-    const r = ROWS - 1 - visualRow;
+  for (let r = MAX_ROWS - 1; r >= 0; r--) {
     for (let c = 0; c < COLS; c++) {
       const cell = grid[r][c];
       const div = document.createElement('div');
       div.className = 'cell';
       div.dataset.row = r;
       div.dataset.col = c;
+      if (r >= ROWS) div.classList.add('overflow');
       if (cell) {
         if (cell.type === 'number') {
           div.classList.add('disc');
@@ -148,6 +148,12 @@ function render(popped = [], falling = null) {
         div.classList.add('pop');
       }
       boardEl.appendChild(div);
+    }
+    if (r === ROWS) {
+      const line = document.createElement('div');
+      line.className = 'overflow-line';
+      line.textContent = '='.repeat(80);
+      boardEl.appendChild(line);
     }
   }
   updateColumnButtons();
@@ -167,7 +173,7 @@ function setMessage(text) {
 
 async function attemptDrop(col) {
   if (gameOver || busy || targeting) return;
-  if (columns[col].length >= ROWS) {
+  if (columns[col].length >= MAX_ROWS) {
     SFX.play('denied');
     return;
   }
@@ -175,7 +181,7 @@ async function attemptDrop(col) {
   busy = true;
   chainEl.textContent = '0x';
   const landing = columns[col].length;
-  for (let r = ROWS - 1; r > landing; r--) {
+  for (let r = MAX_ROWS - 1; r > landing; r--) {
     render([], { row: r, col, cell: currentDisc });
     SFX.play('click');
     await sleep(STEP_MS);
@@ -187,12 +193,13 @@ async function attemptDrop(col) {
 
   await resolveChains();
 
-  dropsSinceLastPulse++;
-  if (dropsSinceLastPulse >= PULSE_INTERVAL) {
-    dropsSinceLastPulse = 0;
-    await injectPulse();
-    if (gameOver) return;
-    await resolveChains();
+  if (!overflowed()) {
+    dropsSinceLastPulse++;
+    if (dropsSinceLastPulse >= PULSE_INTERVAL) {
+      dropsSinceLastPulse = 0;
+      await injectPulse();
+      await resolveChains();
+    }
   }
 
   currentDisc = newPacket();
@@ -203,20 +210,18 @@ function finishTurn() {
   updateHud();
   busy = false;
   render();
-  if (columns.every((c) => c.length >= ROWS)) endGame();
+  if (overflowed()) endGame();
+}
+
+function overflowed() {
+  return columns.some((c) => c.length > ROWS);
 }
 
 async function injectPulse() {
   setMessage('FIREWALL // INCOMING ROW');
   SFX.play('alert');
   await sleep(250);
-  for (let c = 0; c < COLS; c++) {
-    if (columns[c].length >= ROWS) {
-      endGame();
-      return;
-    }
-    columns[c].unshift(newFirewall());
-  }
+  for (const col of columns) col.unshift(newFirewall());
   render();
   await sleep(200);
   setMessage('');
@@ -242,14 +247,14 @@ function computeRunLength(grid, row, col, dRow, dCol) {
   let count = 1;
   let r = row + dRow;
   let c = col + dCol;
-  while (r >= 0 && r < ROWS && c >= 0 && c < COLS && grid[r][c]) {
+  while (r >= 0 && r < MAX_ROWS && c >= 0 && c < COLS && grid[r][c]) {
     count++;
     r += dRow;
     c += dCol;
   }
   r = row - dRow;
   c = col - dCol;
-  while (r >= 0 && r < ROWS && c >= 0 && c < COLS && grid[r][c]) {
+  while (r >= 0 && r < MAX_ROWS && c >= 0 && c < COLS && grid[r][c]) {
     count++;
     r -= dRow;
     c -= dCol;
@@ -277,7 +282,7 @@ async function resolveChains() {
     const grid = buildGrid();
     const pops = [];
 
-    for (let r = 0; r < ROWS; r++) {
+    for (let r = 0; r < MAX_ROWS; r++) {
       for (let c = 0; c < COLS; c++) {
         const cell = grid[r][c];
         if (!cell || cell.type !== 'number') continue;
@@ -312,7 +317,7 @@ async function resolveChains() {
         { row: p.row, col: p.col - 1 },
       ];
       for (const n of neighbors) {
-        if (n.row < 0 || n.row >= ROWS || n.col < 0 || n.col >= COLS) continue;
+        if (n.row < 0 || n.row >= MAX_ROWS || n.col < 0 || n.col >= COLS) continue;
         const neighborCell = columns[n.col][n.row];
         if (neighborCell && neighborCell.type === 'firewall') {
           neighborCell.level--;
@@ -364,7 +369,7 @@ function cancelTargeting() {
 }
 
 function occupied(row, col) {
-  return row >= 0 && row < ROWS && col >= 0 && col < COLS && !!columns[col][row];
+  return row >= 0 && row < MAX_ROWS && col >= 0 && col < COLS && !!columns[col][row];
 }
 
 async function runHack(id, target = {}) {
