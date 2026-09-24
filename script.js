@@ -195,6 +195,13 @@ function render(popped = [], falling = null) {
     }
   }
   updateColumnButtons();
+  Music.setIntensity(dangerLevel());
+}
+
+// 0 until the tallest stack reaches 5, full at 7 (the last row under the line).
+function dangerLevel() {
+  const tallest = Math.max(...columns.map((c) => c.length));
+  return (tallest - 4) / 3;
 }
 
 function updateHud() {
@@ -458,6 +465,7 @@ function endGame() {
   busy = true;
   SFX.play('denied');
   render();
+  Music.setIntensity(0);
   finalScoreEl.textContent = score;
   newBestEl.hidden = !(score > bestAtStart);
   overlayEl.classList.remove('hidden');
@@ -506,8 +514,54 @@ function updateMusicBtn() {
 musicBtn.addEventListener('click', () => {
   Music.toggle();
   updateMusicBtn();
+  renderPlaylist();
 });
 updateMusicBtn();
+
+const PLAYLIST_SLOTS = 3; // unmade tracks show as COMING SOON
+const playlistBtn = document.getElementById('playlist-btn');
+const playlistEl = document.getElementById('playlist');
+const playlistTracksEl = document.getElementById('playlist-tracks');
+
+function renderPlaylist() {
+  playlistTracksEl.innerHTML = '';
+  const tracks = Music.tracks();
+  for (let n = 0; n < Math.max(PLAYLIST_SLOTS, tracks.length); n++) {
+    const track = tracks[n];
+    const btn = document.createElement('button');
+    const num = String(n + 1).padStart(2, '0');
+    if (track) {
+      btn.textContent = `${num}  ${track.title}`;
+      btn.classList.toggle('active', track.id === Music.currentTrack());
+      btn.classList.toggle('playing', track.id === Music.currentTrack() && Music.isEnabled());
+      btn.addEventListener('click', () => {
+        Music.play(track.id);
+        updateMusicBtn();
+        renderPlaylist();
+      });
+    } else {
+      btn.textContent = `${num}  COMING SOON`;
+      btn.disabled = true;
+    }
+    const li = document.createElement('li');
+    li.appendChild(btn);
+    playlistTracksEl.appendChild(li);
+  }
+}
+
+function setPlaylistOpen(open) {
+  playlistEl.hidden = !open;
+  playlistBtn.setAttribute('aria-expanded', String(open));
+  if (open) renderPlaylist();
+}
+
+playlistBtn.addEventListener('click', () => setPlaylistOpen(playlistEl.hidden));
+document.addEventListener('pointerdown', (e) => {
+  if (!playlistEl.hidden && !playlistEl.contains(e.target) && !playlistBtn.contains(e.target)) setPlaylistOpen(false);
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !playlistEl.hidden) setPlaylistOpen(false);
+});
 
 initGame();
 

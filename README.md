@@ -63,7 +63,10 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
 - `music.js` — an original synthwave track synthesized live with Web Audio
   (32-bar loop: intro, melody 1, section B with melody 2, octave-doubled
   climax); starts on your first click or key press, toggle with the MUSIC
-  button
+  button. It intensifies as your tallest stack nears the red line (kick,
+  16th hats, brighter bass/arp and a tension pulse blend in from height 5,
+  full at 7). The speaker icon opens the playlist; new tracks go in the
+  `TRACKS` list in `music.js`
 - `audio/` — offline WAV renders of the music for reference (not loaded by
   the game): `blockchain-theme-v1.wav` is the original 16-bar loop,
   `blockchain-theme-v2.wav` the current 32-bar version

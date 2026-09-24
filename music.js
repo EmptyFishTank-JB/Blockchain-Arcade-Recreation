@@ -2,6 +2,8 @@
 // as sfx.js: no audio files, every note is built from oscillators and noise.
 // 32-bar loop in four 8-bar sections: intro, melody 1, section B with
 // melody 2, then melody 1 doubled an octave up over the driving groove.
+// schedule() takes an intensity from 0 to 1 that blends in extra layers
+// (four-on-the-floor kick, 16th hats, brighter bass/arp, a tension pulse).
 
 function createSynthwave(ctx, out) {
   const BPM = 108;
@@ -78,12 +80,12 @@ function createSynthwave(ctx, out) {
     return node;
   }
 
-  function kick(t) {
+  function kick(t, level = 1) {
     const osc = ctx.createOscillator();
     osc.frequency.setValueAtTime(150, t);
     osc.frequency.exponentialRampToValueAtTime(45, t + 0.12);
     const g = ctx.createGain();
-    g.gain.setValueAtTime(0.9, t);
+    g.gain.setValueAtTime(0.9 * level, t);
     g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
     osc.connect(g); g.connect(bus);
     osc.start(t); osc.stop(t + 0.36);
@@ -109,23 +111,23 @@ function createSynthwave(ctx, out) {
     body.start(t); body.stop(t + 0.11);
   }
 
-  function hat(t, open) {
+  function hat(t, open, level = 1) {
     const src = noiseSource();
     const hp = filter('highpass', 7000);
     const g = ctx.createGain();
     const dur = open ? 0.18 : 0.04;
-    g.gain.setValueAtTime(open ? 0.05 : 0.035, t);
+    g.gain.setValueAtTime((open ? 0.05 : 0.035) * level, t);
     g.gain.exponentialRampToValueAtTime(0.001, t + dur);
     src.connect(hp); hp.connect(g); g.connect(bus);
     src.start(t, Math.random() * 0.5); src.stop(t + dur);
   }
 
-  function bass(t, m, dur) {
+  function bass(t, m, dur, bright = 0) {
     const osc = ctx.createOscillator();
     osc.type = 'sawtooth';
     osc.frequency.value = freq(m);
     const lp = filter('lowpass', 900, 4);
-    lp.frequency.setValueAtTime(900, t);
+    lp.frequency.setValueAtTime(900 + 1100 * bright, t);
     lp.frequency.exponentialRampToValueAtTime(260, t + dur);
     const g = ctx.createGain();
     g.gain.setValueAtTime(0.0001, t);
@@ -155,16 +157,29 @@ function createSynthwave(ctx, out) {
     }
   }
 
-  function arp(t, m) {
+  function arp(t, m, bright = 0) {
     const osc = ctx.createOscillator();
     osc.type = 'square';
     osc.frequency.value = freq(m);
-    const lp = filter('lowpass', 3000);
+    const lp = filter('lowpass', 3000 + 3500 * bright);
     const g = ctx.createGain();
-    g.gain.setValueAtTime(0.035, t);
+    g.gain.setValueAtTime(0.035 * (1 + 0.6 * bright), t);
     g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
     osc.connect(lp); lp.connect(g); g.connect(bus); g.connect(delay);
     osc.start(t); osc.stop(t + 0.13);
+  }
+
+  // Urgent high sawtooth pulse that only sounds as intensity rises
+  function tension(t, m, level) {
+    const osc = ctx.createOscillator();
+    osc.type = 'sawtooth';
+    osc.frequency.value = freq(m);
+    const lp = filter('lowpass', 2800);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.022 * level, t);
+    g.gain.exponentialRampToValueAtTime(0.0005, t + STEP * 0.9);
+    osc.connect(lp); lp.connect(g); g.connect(bus);
+    osc.start(t); osc.stop(t + STEP);
   }
 
   function lead(t, m, dur, level = 0.06) {
@@ -196,7 +211,8 @@ function createSynthwave(ctx, out) {
   return {
     step: STEP,
     output: bus,
-    schedule(step, t) {
+    schedule(step, t, intensity = 0) {
+      const I = intensity;
       const bar = Math.floor(step / 16) % 32;
       const section = Math.floor(bar / 8);
       const i = bar % 8;
@@ -205,17 +221,20 @@ function createSynthwave(ctx, out) {
       const drive = section >= 2;
       const sparse = section === 0 && i < 4;
 
+      const kickHit = !sparse && (drive ? s % 4 === 0 : s === 0 || s === 8 || (s === 10 && bar % 2 === 1));
+      if (kickHit) kick(t);
+      else if (s % 4 === 0 && I > 0.05) kick(t, 0.8 * I);
       if (!sparse) {
-        const kickHit = drive ? s % 4 === 0 : s === 0 || s === 8 || (s === 10 && bar % 2 === 1);
-        if (kickHit) kick(t);
         if (s === 4 || s === 12) snare(t);
         if (i === 7 && (section === 0 || section === 2) && s > 12) snare(t, 0.4 + (s - 12) * 0.2);
       }
       if (drive || s % 2 === 0) hat(t, s % 4 === 2);
-      if (s % 2 === 0) bass(t, roots[i] + (s % 4 === 2 ? 12 : 0), STEP * 1.8);
+      else if (I > 0.05) hat(t, false, I);
+      if (s % 2 === 0) bass(t, roots[i] + (s % 4 === 2 ? 12 : 0), STEP * 1.8, I);
       if (s === 0) pad(t, chords[i], STEP * 16);
       const tones = [...chords[i], chords[i][0] + 12];
-      arp(t, tones[ARP[s % 8]] + 12);
+      arp(t, tones[ARP[s % 8]] + 12, I);
+      if (I > 0.05) tension(t, (s % 2 ? chords[i][2] : chords[i][0]) + 24, I);
 
       const melody = section === 1 || section === 3 ? MELODY_1 : section === 2 ? MELODY_2 : null;
       if (melody) {
@@ -231,9 +250,22 @@ function createSynthwave(ctx, out) {
 
 const Music = (() => {
   const STORAGE_KEY = 'blockchain-music';
+  const TRACK_KEY = 'blockchain-track';
   const LOOKAHEAD = 0.12;
+  const INTENSITY_EASE = 0.06; // per 16th step, ~2.5s to settle
+  // Add future tracks here: each entry's create(ctx, out) returns an engine like createSynthwave's.
+  const TRACKS = [
+    { id: 'theme', title: 'BLOCKCHAIN THEME', create: createSynthwave },
+  ];
   let enabled = true;
-  try { enabled = localStorage.getItem(STORAGE_KEY) !== 'off'; } catch (e) {}
+  let trackId = TRACKS[0].id;
+  try {
+    enabled = localStorage.getItem(STORAGE_KEY) !== 'off';
+    const saved = localStorage.getItem(TRACK_KEY);
+    if (TRACKS.some((t) => t.id === saved)) trackId = saved;
+  } catch (e) {}
+  let intensity = 0;
+  let targetIntensity = 0;
   let ctx = null;
   let session = null; // per-play gain so stopped notes can't bleed into the next start
   let engine = null;
@@ -244,7 +276,8 @@ const Music = (() => {
   function tick() {
     if (nextTime < ctx.currentTime) nextTime = ctx.currentTime + 0.02;
     while (nextTime < ctx.currentTime + LOOKAHEAD) {
-      engine.schedule(step, nextTime);
+      intensity += (targetIntensity - intensity) * INTENSITY_EASE;
+      engine.schedule(step, nextTime, intensity);
       nextTime += engine.step;
       step++;
     }
@@ -259,7 +292,7 @@ const Music = (() => {
       session.gain.setValueAtTime(0, ctx.currentTime);
       session.gain.linearRampToValueAtTime(1, ctx.currentTime + 1.5);
       session.connect(ctx.destination);
-      engine = createSynthwave(ctx, session);
+      engine = TRACKS.find((t) => t.id === trackId).create(ctx, session);
       step = 0;
       nextTime = ctx.currentTime + 0.05;
       timer = setInterval(tick, 25);
@@ -288,14 +321,31 @@ const Music = (() => {
     else ctx.resume();
   });
 
+  function setEnabled(on) {
+    enabled = on;
+    try { localStorage.setItem(STORAGE_KEY, enabled ? 'on' : 'off'); } catch (e) {}
+    if (enabled) start();
+    else stop();
+  }
+
   return {
     isEnabled: () => enabled,
     toggle() {
-      enabled = !enabled;
-      try { localStorage.setItem(STORAGE_KEY, enabled ? 'on' : 'off'); } catch (e) {}
-      if (enabled) start();
-      else stop();
+      setEnabled(!enabled);
       return enabled;
+    },
+    tracks: () => TRACKS.map(({ id, title }) => ({ id, title })),
+    currentTrack: () => trackId,
+    // Selecting a track always starts it, restarting playback if another was playing.
+    play(id) {
+      if (!TRACKS.some((t) => t.id === id)) return;
+      trackId = id;
+      try { localStorage.setItem(TRACK_KEY, id); } catch (e) {}
+      stop();
+      setEnabled(true);
+    },
+    setIntensity(value) {
+      targetIntensity = Math.max(0, Math.min(1, value));
     },
   };
 })();
