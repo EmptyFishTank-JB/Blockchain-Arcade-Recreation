@@ -50,10 +50,10 @@ default), or press `1`-`7`, to drop the current packet shown in the HUD.
 The gear/speaker icon in the corner opens the settings: sound and music on or
 off, whether the drop buttons sit under or above the grid, and the playlist.
 
-RESTART mid-run asks for a second press (CONFIRM RESTART?, which cancels
-itself after a few seconds), then the board melts down like a lost run before
-the new one starts. Once a run is over, or before the first drop, it restarts
-straight away.
+RESTART and the difficulty buttons ask for a second press mid-run (CONFIRM
+RESTART? / CONFIRM?, which cancels itself after a few seconds), then the
+board melts down like a lost run before the new one starts. Once a run is
+over, or before the first drop, they act straight away.
 
 ## Files
 

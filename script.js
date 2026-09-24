@@ -542,35 +542,49 @@ function restart() {
 }
 
 function resetNow() {
-  disarmRestart();
+  disarmReset();
   SFX.play('static');
   initGame();
 }
 
-// RESTART mid-run takes two presses, like the ECHOES dice roller's reset: the first arms it
-// (CONFIRM RESTART?) for a few seconds, the second melts the board down and starts over.
-const RESTART_CONFIRM_MS = 3500;
-const restartBtn = document.getElementById('restart-btn');
-let restartArmed = false;
-let restartTimer = null;
+// Resetting a live run (RESTART or a new difficulty) takes two presses, like the ECHOES dice
+// roller's reset: the first arms that button for a few seconds, the second melts the board down
+// and starts over. Only one button is armed at a time.
+const RESET_CONFIRM_MS = 3500;
+let armed = null; // { btn, label, timer }
 
-function disarmRestart() {
-  restartArmed = false;
-  clearTimeout(restartTimer);
-  restartBtn.textContent = 'RESTART';
-  restartBtn.classList.remove('danger');
+function disarmReset() {
+  if (!armed) return;
+  clearTimeout(armed.timer);
+  armed.btn.textContent = armed.label;
+  armed.btn.classList.remove('danger');
+  armed = null;
 }
 
-function armRestart() {
-  restartArmed = true;
-  restartBtn.textContent = 'CONFIRM RESTART?';
-  restartBtn.classList.add('danger');
-  clearTimeout(restartTimer);
-  restartTimer = setTimeout(disarmRestart, RESTART_CONFIRM_MS);
+function armReset(btn, confirmText) {
+  disarmReset();
+  armed = { btn, label: btn.textContent, timer: setTimeout(disarmReset, RESET_CONFIRM_MS) };
+  btn.textContent = confirmText;
+  btn.classList.add('danger');
+  SFX.play('alert');
 }
 
-function wipeAndRestart() {
-  disarmRestart();
+// apply() runs just before the new run starts (e.g. switching the difficulty).
+function requestReset(btn, confirmText, apply = () => {}) {
+  // Nothing to lose once the run is over or before the first drop.
+  const fresh = score === 0 && columns.every((col) => col.length === 0);
+  if (gameOver || fresh) {
+    if (busy && !gameOver) return;
+    apply();
+    resetNow();
+    return;
+  }
+  if (!armed || armed.btn !== btn) {
+    armReset(btn, confirmText);
+    return;
+  }
+  if (busy) return; // stays armed; mid-drop the board can't be wiped yet
+  disarmReset();
   busy = true;
   updateColumnButtons();
   Music.setIntensity(0);
@@ -578,37 +592,27 @@ function wipeAndRestart() {
   const run = runId;
   const melting = meltBoard(run);
   setTimeout(() => {
-    if (run === runId) resetNow();
+    if (run !== runId) return;
+    apply();
+    resetNow();
   }, melting ? 1200 : 0);
 }
 
-restartBtn.addEventListener('click', () => {
-  // Nothing to lose once the run is over or before the first drop.
-  const fresh = score === 0 && columns.every((col) => col.length === 0);
-  if (gameOver || fresh) {
-    restart();
-    return;
-  }
-  if (!restartArmed) {
-    armRestart();
-    SFX.play('alert');
-    return;
-  }
-  if (busy) return; // stays armed; mid-drop the board can't be wiped yet
-  wipeAndRestart();
-});
+const restartBtn = document.getElementById('restart-btn');
+restartBtn.addEventListener('click', () => requestReset(restartBtn, 'CONFIRM RESTART?'));
 
-function setDifficulty(next) {
-  if (next === difficulty || (busy && !gameOver)) return;
-  difficulty = next;
-  storage.set('blockchain-difficulty', next);
-  restart();
-}
+document.querySelectorAll('.difficulty button').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const next = btn.dataset.difficulty;
+    if (next === difficulty) return;
+    requestReset(btn, 'CONFIRM?', () => {
+      difficulty = next;
+      storage.set('blockchain-difficulty', next);
+    });
+  });
+});
 
 document.getElementById('overlay-restart-btn').addEventListener('click', restart);
-document.querySelectorAll('.difficulty button').forEach((btn) => {
-  btn.addEventListener('click', () => setDifficulty(btn.dataset.difficulty));
-});
 
 const soundBtn = document.getElementById('sound-btn');
 function updateSoundBtn() {
