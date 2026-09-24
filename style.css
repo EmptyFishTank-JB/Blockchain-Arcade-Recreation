@@ -6,6 +6,7 @@
   --green-dim: #1f7a52;
   --amber: #ffd166;
   --red: #ff4d5e;
+  --bg-solid: #020403; /* flat match for the gradient's edge; also the meta theme-color */
 }
 
 * { box-sizing: border-box; }
@@ -19,6 +20,8 @@ body {
   justify-content: center;
   padding: 16px;
   background: radial-gradient(ellipse at center, #0d1b16 0%, #020403 100%);
+  /* Android Chrome samples the page's bottom edge for the system nav bar; a gradient reads as white */
+  background-color: var(--bg-solid);
   font-family: 'Courier New', Courier, monospace;
   color: var(--green);
 }
