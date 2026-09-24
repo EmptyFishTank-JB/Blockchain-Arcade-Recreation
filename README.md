@@ -67,7 +67,8 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
   Music starts on your first click or key press (toggle with the MUSIC
   button) and intensifies as your tallest stack nears the red line (from
   height 5, full at 7). The speaker icon opens the playlist, which also has
-  the BACKGROUND PLAY toggle (keep playing or pause when you switch tabs or
+  a progress line for the playing track (click to seek) and the BACKGROUND
+  PLAY toggle (keep playing or pause when you switch tabs or
   apps). New tracks go in the `TRACKS` list here, with their engine in a
   `music-*.js` file
 - `music-theme.js` — track 01, BLOCKCHAIN THEME: an original synthwave loop
@@ -78,7 +79,8 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
   same intensity layers as the theme
 - `dev-tools/audio.html` — the audio compendium, opened by the `</>` icon in
   the footer: every sound effect and track with a play button, where each is
-  used in the game, and a live intensity slider for each track
+  used in the game, a seekable progress line and a live intensity slider for
+  each track
 - `audio/` — offline WAV renders of the music for reference (not loaded by
   the game): `blockchain-theme-v1.wav` is the original 16-bar loop,
   `blockchain-theme-v2.wav` the current 32-bar version,

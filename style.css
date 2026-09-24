@@ -480,6 +480,43 @@ h1 span { color: var(--amber); text-shadow: 0 0 8px var(--amber); }
 .playlist button.playing::after { content: '\25B6'; margin-left: auto; }
 .playlist button:disabled { color: var(--green-dim); opacity: 0.55; cursor: default; }
 
+.pl-media {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 8px 6px;
+  font-size: 10px;
+  color: var(--amber);
+  font-variant-numeric: tabular-nums;
+}
+
+.pl-media .bar {
+  position: relative;
+  flex: 1;
+  height: 10px;
+  cursor: pointer;
+}
+
+.pl-media .bar::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 4px;
+  height: 2px;
+  background: var(--grid-line);
+}
+
+.pl-media .fill {
+  position: absolute;
+  left: 0;
+  top: 4px;
+  height: 2px;
+  width: 0;
+  background: var(--amber);
+  box-shadow: 0 0 6px rgba(255, 209, 102, 0.6);
+}
+
 .playlist-options {
   margin-top: 8px;
   padding-top: 8px;

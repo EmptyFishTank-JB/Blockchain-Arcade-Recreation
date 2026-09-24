@@ -120,6 +120,16 @@
   .sec-row b { color: var(--text); }
   .sec-row.active { background: rgba(57, 255, 143, 0.1); }
   .sec-row.active .time { color: var(--amber); }
+  .media { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 11px; color: var(--text-dim); }
+  .media .time { min-width: 34px; font-variant-numeric: tabular-nums; }
+  .media .time.total { text-align: right; }
+  .media .bar { position: relative; flex: 1; height: 16px; cursor: pointer; touch-action: none; outline: none; }
+  .media .bar::before { content: ''; position: absolute; left: 0; right: 0; top: 7px; height: 2px; background: var(--line); }
+  .media .bar:focus-visible::before { background: var(--green-dim); }
+  .media .fill { position: absolute; left: 0; top: 7px; height: 2px; width: 0; background: var(--green); box-shadow: 0 0 6px rgba(57, 255, 143, 0.6); }
+  .media .head { position: absolute; top: 3px; left: 0; width: 10px; height: 10px; margin-left: -5px; border: 1px solid var(--green); background: var(--panel); }
+  .media .bar:hover .head, .media.live .head { background: var(--green); box-shadow: 0 0 8px rgba(57, 255, 143, 0.6); }
+  .media .tick { position: absolute; top: 4px; width: 1px; height: 8px; background: var(--green-dim); }
   .now { font-size: 11px; color: var(--amber); letter-spacing: 0.1em; min-height: 16px; margin-top: 8px; }
 
   .intensity { margin-top: 14px; padding: 12px; border: 1px dashed var(--line); border-radius: 6px; }
@@ -203,9 +213,9 @@
   <footer>GENERATED FROM SOURCE &mdash; NO AUDIO FILES, ALL SYNTHESIZED ON PLAY</footer>
 </div>
 
-<script src="../sfx.js?v=9"></script>
-<script src="../music-theme.js?v=9"></script>
-<script src="../music-sleep-mode.js?v=9"></script>
+<script src="../sfx.js?v=10"></script>
+<script src="../music-theme.js?v=10"></script>
+<script src="../music-sleep-mode.js?v=10"></script>
 <script>
 (() => {
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -342,6 +352,8 @@
     ui.rows.forEach((r) => r.classList.remove('active'));
     ui.now.textContent = '';
     ui.meter.style.width = '0';
+    ui.media.classList.remove('live');
+    showPosition(ui, player.track, 0);
     player = null;
     document.getElementById('scope-label').textContent = '// SCOPE IDLE — PLAY A TRACK TO SEE ITS WAVEFORM';
   }
@@ -369,7 +381,9 @@
         p.nextTime += p.engine.step;
         p.step++;
       }
-      const bar = Math.floor(p.step / 16) % 32;
+      const frac = audibleFraction(p);
+      const bar = Math.floor(frac * 32);
+      if (!ui.dragging) showPosition(ui, track, frac);
       ui.rows.forEach((r, i) => r.classList.toggle('active', i === Math.floor(bar / 8)));
       ui.now.textContent = `// NOW PLAYING — BAR ${bar + 1} OF 32 — INTENSITY ${Math.round(p.intensity * 100)}%`;
       ui.meter.style.width = `${p.intensity * 100}%`;
@@ -377,7 +391,43 @@
     player = p;
     ui.btn.classList.add('playing');
     ui.btn.innerHTML = '&#9632; STOP';
+    ui.media.classList.add('live');
     document.getElementById('scope-label').textContent = `// SCOPE — ${track.title}`;
+  }
+
+  function fmtTime(sec) {
+    const s = Math.floor(sec);
+    return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  }
+
+  // Loop position of what's audible now (notes are queued slightly ahead of the speakers).
+  function audibleFraction(p) {
+    const audible = p.step - (p.nextTime - ctx.currentTime) / p.engine.step;
+    const loop = p.engine.loopSteps;
+    return (((audible % loop) + loop) % loop) / loop;
+  }
+
+  function showPosition(ui, track, frac) {
+    const pct = `${frac * 100}%`;
+    ui.fill.style.width = pct;
+    ui.head.style.left = pct;
+    ui.cur.textContent = fmtTime(frac * track.loopSteps * track.stepDur);
+    ui.bar.setAttribute('aria-valuenow', String(Math.round(frac * track.loopSteps * track.stepDur)));
+  }
+
+  function seekTo(track, ui, frac) {
+    if (!player || player.track !== track) startTrack(track, ui);
+    player.step = Math.floor(Math.min(frac, 0.999) * player.engine.loopSteps);
+    player.nextTime = ctx.currentTime + 0.05;
+    showPosition(ui, track, frac);
+  }
+
+  // Read each track's step length and loop size from a throwaway offline engine.
+  const probe = new OfflineAudioContext(1, 1, 44100);
+  for (const track of TRACKS) {
+    const eng = track.create(probe, probe.destination);
+    track.stepDur = eng.step;
+    track.loopSteps = eng.loopSteps;
   }
 
   const trackList = document.getElementById('track-list');
@@ -395,6 +445,14 @@
       </div>
       <div class="sections">${track.sections.map(([time, name, what]) => `
         <div class="sec-row"><span class="time">${esc(time)}</span><span><b>${esc(name)}</b> — ${esc(what)}</span></div>`).join('')}
+      </div>
+      <div class="media">
+        <span class="time cur">0:00</span>
+        <div class="bar" role="slider" tabindex="0" aria-label="${esc(track.title)} position" aria-valuemin="0" aria-valuenow="0">
+          <div class="tick" style="left:25%"></div><div class="tick" style="left:50%"></div><div class="tick" style="left:75%"></div>
+          <div class="fill"></div><div class="head"></div>
+        </div>
+        <span class="time total"></span>
       </div>
       <div class="now"></div>
       <div class="intensity">
@@ -417,7 +475,38 @@
       val: card.querySelector('.intensity-head .val'),
       presets: [...card.querySelectorAll('.presets button')],
       meter: card.querySelector('.meter > div'),
+      media: card.querySelector('.media'),
+      bar: card.querySelector('.media .bar'),
+      fill: card.querySelector('.media .fill'),
+      head: card.querySelector('.media .head'),
+      cur: card.querySelector('.media .cur'),
     };
+    card.querySelector('.media .total').textContent = fmtTime(track.loopSteps * track.stepDur);
+    ui.bar.setAttribute('aria-valuemax', String(Math.round(track.loopSteps * track.stepDur)));
+
+    // Seek: drag previews the playhead, release jumps there (starting the track if needed)
+    const fractionAt = (e) => {
+      const r = ui.bar.getBoundingClientRect();
+      return Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+    };
+    ui.bar.addEventListener('pointerdown', (e) => {
+      ui.dragging = true;
+      ui.bar.setPointerCapture(e.pointerId);
+      showPosition(ui, track, fractionAt(e));
+    });
+    ui.bar.addEventListener('pointermove', (e) => { if (ui.dragging) showPosition(ui, track, fractionAt(e)); });
+    ui.bar.addEventListener('pointerup', (e) => {
+      if (!ui.dragging) return;
+      ui.dragging = false;
+      seekTo(track, ui, fractionAt(e));
+    });
+    ui.bar.addEventListener('keydown', (e) => {
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      e.preventDefault();
+      const bar = 16 / track.loopSteps;
+      const now = player && player.track === track ? audibleFraction(player) : 0;
+      seekTo(track, ui, (now + (e.key === 'ArrowRight' ? bar : -bar) + 1) % 1);
+    });
     const setTarget = (v) => {
       ui.slider.value = v;
       ui.val.textContent = `${v}%`;

@@ -246,6 +246,7 @@ function createSleepMode(ctx, out) {
 
   return {
     step: STEP,
+    loopSteps: 32 * 16,
     output: bus,
     schedule(step, t, intensity = 0) {
       const I = intensity;

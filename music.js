@@ -96,6 +96,19 @@ const Music = (() => {
     },
     tracks: () => TRACKS.map(({ id, title }) => ({ id, title })),
     currentTrack: () => trackId,
+    // Where playback is in the loop, based on what's audible now rather than what's queued ahead.
+    position() {
+      if (!timer) return null;
+      const audible = step - (nextTime - ctx.currentTime) / engine.step;
+      const loop = engine.loopSteps;
+      const at = ((audible % loop) + loop) % loop;
+      return { current: at * engine.step, total: loop * engine.step };
+    },
+    seek(fraction) {
+      if (!timer) return;
+      step = Math.floor(Math.max(0, Math.min(0.999, fraction)) * engine.loopSteps);
+      nextTime = ctx.currentTime + 0.05;
+    },
     // Selecting a track always starts it, restarting playback if another was playing.
     play(id) {
       if (!TRACKS.some((t) => t.id === id)) return;
