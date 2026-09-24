@@ -6,7 +6,7 @@
 
 const COLS = 7;
 const ROWS = 7;
-const PULSE_INTERVAL = 5; // drops between blank-row injections
+const PULSE_INTERVAL = 8; // drops between blank-row injections
 const STEP_MS = 35; // per-row fall speed
 
 let columns = []; // columns[c] = array of cells, index 0 = bottom
