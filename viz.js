@@ -2,6 +2,11 @@
 // Two styles, switched by clicking: 'bars' (retro LED spectrum with falling
 // peak caps) and 'wave' (oscilloscope line with auto-gain and a CRT trail).
 // The chosen style is remembered for both pages.
+// Theme color as an 'r, g, b' triplet from style.css (falls back where the page has no theme vars).
+function vizRgb(name, fallback) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
+}
+
 function createVisualizer(canvas, getAnalyser, { bars = 28 } = {}) {
   const MODE_KEY = 'blockchain-viz-mode';
   const SEGMENT = 3; // css px per LED segment, plus a 1px gap
@@ -26,6 +31,8 @@ function createVisualizer(canvas, getAnalyser, { bars = 28 } = {}) {
   }
 
   function drawBars(an, w, h) {
+    const fg = vizRgb('--fg-rgb', '57, 255, 143');
+    const accent = vizRgb('--accent-rgb', '255, 209, 102');
     g.clearRect(0, 0, w, h);
     if (an && (!freq || freq.length !== an.frequencyBinCount)) freq = new Uint8Array(an.frequencyBinCount);
     if (an) an.getByteFrequencyData(freq);
@@ -53,11 +60,11 @@ function createVisualizer(canvas, getAnalyser, { bars = 28 } = {}) {
         const y = h - (seg + 1) * (SEGMENT + 1) + 1;
         if (seg < lit) {
           const hot = seg / segments;
-          g.fillStyle = hot > 0.8 ? 'rgba(255, 209, 102, 0.9)' : `rgba(57, 255, 143, ${(0.55 + hot * 0.45).toFixed(2)})`;
+          g.fillStyle = hot > 0.8 ? `rgba(${accent}, 0.9)` : `rgba(${fg}, ${(0.55 + hot * 0.45).toFixed(2)})`;
         } else if (an && seg === cap && cap > 0) {
-          g.fillStyle = 'rgba(255, 209, 102, 0.75)';
+          g.fillStyle = `rgba(${accent}, 0.75)`;
         } else {
-          g.fillStyle = 'rgba(57, 255, 143, 0.08)';
+          g.fillStyle = `rgba(${fg}, 0.08)`;
         }
         g.fillRect(x, y, barW, SEGMENT);
       }
@@ -65,6 +72,7 @@ function createVisualizer(canvas, getAnalyser, { bars = 28 } = {}) {
   }
 
   function drawWave(an, w, h, now) {
+    const fg = vizRgb('--fg-rgb', '57, 255, 143');
     // Fade the previous frame instead of clearing it: a short phosphor trail
     g.globalCompositeOperation = 'destination-out';
     g.fillStyle = an ? 'rgba(0, 0, 0, 0.4)' : 'rgba(0, 0, 0, 1)';
@@ -86,8 +94,8 @@ function createVisualizer(canvas, getAnalyser, { bars = 28 } = {}) {
         const y = mid - wave[i] * gain * mid;
         if (i) g.lineTo(x, y); else g.moveTo(x, y);
       }
-      g.strokeStyle = 'rgba(57, 255, 143, 0.95)';
-      g.shadowColor = 'rgba(57, 255, 143, 0.8)';
+      g.strokeStyle = `rgba(${fg}, 0.95)`;
+      g.shadowColor = `rgba(${fg}, 0.8)`;
       g.shadowBlur = 6;
     } else {
       const t = now / 1000;
@@ -96,7 +104,7 @@ function createVisualizer(canvas, getAnalyser, { bars = 28 } = {}) {
         const y = mid + Math.sin(p * 12 + t * 1.3) * h * 0.1 * Math.sin(p * 3 + 0.4) + Math.sin(p * 41 + t * 3) * h * 0.02;
         if (x) g.lineTo(x, y); else g.moveTo(x, y);
       }
-      g.strokeStyle = 'rgba(57, 255, 143, 0.3)';
+      g.strokeStyle = `rgba(${fg}, 0.3)`;
       g.shadowBlur = 0;
     }
     g.stroke();

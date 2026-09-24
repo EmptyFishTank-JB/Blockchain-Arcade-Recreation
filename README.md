@@ -55,7 +55,14 @@ Open `index.html` in a browser. Tap a numbered drop button (under the grid by
 default), or press `1`-`7` (`1`-`8` on Hard), to drop the current bit shown in the HUD.
 
 The gear/speaker icon in the corner opens the settings: sound and music on or
-off, whether the drop buttons sit under or above the grid, and the playlist.
+off, whether the drop buttons sit under or above the grid, the color theme
+and the playlist.
+
+Themes: **TERMINAL** (default: green bits, grey layers, amber for cracked
+layers and exploits) and **CIPHER** (cyan bits, magenta layers, yellow for
+cracked layers and exploits). Every color in `style.css` is a named role in
+`:root`; a theme is a `:root[data-theme="…"]` block that overrides those
+values, plus an entry in `THEMES` in `script.js`.
 
 RESTART and the difficulty buttons ask for a second press mid-run (CONFIRM
 RESTART? / CONFIRM?, which cancels itself after a few seconds), then the

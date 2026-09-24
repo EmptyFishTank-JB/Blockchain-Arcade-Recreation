@@ -684,6 +684,27 @@ buttonsPosBtn.addEventListener('click', () => {
 });
 updateButtonsPos();
 
+// Color themes: each id matches a :root[data-theme] block in style.css ('terminal' is the default :root).
+const THEMES = [
+  { id: 'terminal', label: 'TERMINAL' },
+  { id: 'cipher', label: 'CIPHER' },
+];
+const themeBtn = document.getElementById('theme-btn');
+const themeMeta = document.querySelector('meta[name="theme-color"]');
+let themeId = THEMES.some((t) => t.id === storage.get('blockchain-theme')) ? storage.get('blockchain-theme') : 'terminal';
+function applyTheme() {
+  if (themeId === 'terminal') delete document.documentElement.dataset.theme;
+  else document.documentElement.dataset.theme = themeId;
+  themeMeta.content = getComputedStyle(document.documentElement).getPropertyValue('--bg-solid').trim();
+  themeBtn.textContent = `THEME: ${THEMES.find((t) => t.id === themeId).label}`;
+}
+themeBtn.addEventListener('click', () => {
+  themeId = THEMES[(THEMES.findIndex((t) => t.id === themeId) + 1) % THEMES.length].id;
+  storage.set('blockchain-theme', themeId);
+  applyTheme();
+});
+applyTheme();
+
 const PLAYLIST_SLOTS = 3; // unmade tracks show as COMING SOON
 const settingsBtn = document.getElementById('settings-btn');
 const settingsEl = document.getElementById('settings');

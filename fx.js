@@ -1,11 +1,23 @@
 // Particle overlay for cleared cells: each one dissolves into pixel fragments
 // (left to right) that scatter and fade, with a few hex/binary glyphs drifting
 // up out of it. Only animates while particles are alive.
+// Theme color as an 'r, g, b' triplet from style.css (falls back where the page has no theme vars).
+function themeRgb(name, fallback) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
+}
+
 const FX = (() => {
   const canvas = document.getElementById('board-fx');
   const ctx = canvas.getContext('2d');
   const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const COLORS = { number: '57, 255, 143', hack: '255, 209, 102', firewall: '175, 175, 175', warning: '255, 209, 102', hot: '170, 255, 205' };
+  // Read at burst time so a theme switch applies straight away
+  const colors = () => ({
+    number: themeRgb('--fg-rgb', '57, 255, 143'),
+    hack: themeRgb('--accent-rgb', '255, 209, 102'),
+    firewall: themeRgb('--layer-rgb', '175, 175, 175'),
+    warning: themeRgb('--accent-rgb', '255, 209, 102'),
+    hot: themeRgb('--burst-hot-rgb', '170, 255, 205'),
+  });
   const GLYPHS = '0101010123456789ABCDEF';
   const SPLIT = 5; // fragments across the short side
   let particles = [];
@@ -40,7 +52,8 @@ const FX = (() => {
       const sweep = cols > SPLIT ? 0.3 : 0.15; // wide shapes dissolve left to right a bit slower
       const cx = x0 + r.width / 2;
       const cy = y0 + r.height / 2;
-      const color = COLORS[type] || COLORS.number;
+      const palette = colors();
+      const color = palette[type] || palette.number;
       for (let gx = 0; gx < cols; gx++) {
         for (let gy = 0; gy < rows; gy++) {
           const x = x0 + gx * piece + piece / 2;

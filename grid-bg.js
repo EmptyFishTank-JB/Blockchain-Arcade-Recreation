@@ -63,6 +63,7 @@ function startGridBackground(canvas) {
 
   function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const fg = getComputedStyle(document.documentElement).getPropertyValue('--fg-rgb').trim() || '57, 255, 143';
     const offX = (canvas.clientWidth - cols * PITCH + GAP) / 2;
     const offY = (canvas.clientHeight - rows * PITCH + GAP) / 2;
     for (let i = 0; i < size; i++) {
@@ -70,7 +71,7 @@ function startGridBackground(canvas) {
       for (const { pass, weight } of layers) {
         alpha += weight * ((pass.data[i] ? 0.06 : 0.018) + pass.glow[i] * 0.22);
       }
-      ctx.fillStyle = `rgba(57, 255, 143, ${alpha.toFixed(3)})`;
+      ctx.fillStyle = `rgba(${fg}, ${alpha.toFixed(3)})`;
       ctx.fillRect(offX + (i % cols) * PITCH, offY + Math.floor(i / cols) * PITCH, BLOCK, BLOCK);
     }
   }
