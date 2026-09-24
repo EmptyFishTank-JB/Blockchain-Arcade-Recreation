@@ -206,7 +206,7 @@ h1 span { color: var(--amber); text-shadow: 0 0 8px var(--amber); }
 
 .controls { text-align: center; margin-top: 14px; }
 
-#restart-btn, #overlay-restart-btn {
+#restart-btn, #sound-btn, #overlay-restart-btn {
   background: transparent;
   border: 1px solid var(--green);
   color: var(--green);
@@ -217,7 +217,7 @@ h1 span { color: var(--amber); text-shadow: 0 0 8px var(--amber); }
   letter-spacing: 1px;
 }
 
-#restart-btn:hover, #overlay-restart-btn:hover {
+#restart-btn:hover, #sound-btn:hover, #overlay-restart-btn:hover {
   background: rgba(57, 255, 143, 0.15);
 }
 

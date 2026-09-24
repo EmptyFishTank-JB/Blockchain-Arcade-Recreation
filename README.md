@@ -24,3 +24,5 @@ to drop the next disc shown in the HUD.
 - `index.html` — page structure and HUD
 - `style.css` — terminal/hacker visual theme
 - `script.js` — game state, rendering, and chain-resolution logic
+- `sfx.js` — synthesized sound effects ported from the ECHOES terminal audio
+  compendium; toggle with the SOUND button

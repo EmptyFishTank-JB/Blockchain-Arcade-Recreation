@@ -123,17 +123,22 @@ function setMessage(text) {
 
 async function attemptDrop(col) {
   if (gameOver || busy) return;
-  if (columns[col].length >= ROWS) return;
+  if (columns[col].length >= ROWS) {
+    SFX.play('denied');
+    return;
+  }
 
   busy = true;
   chainEl.textContent = '0x';
   const landing = columns[col].length;
   for (let r = ROWS - 1; r > landing; r--) {
     render([], { row: r, col, cell: currentDisc });
+    SFX.play('click');
     await sleep(STEP_MS);
   }
   columns[col].push(currentDisc);
   render();
+  SFX.play('enter');
   await sleep(60);
 
   await resolveChains();
@@ -158,6 +163,7 @@ async function attemptDrop(col) {
 
 async function injectPulse() {
   setMessage('PULSE // INCOMING PACKET ROW');
+  SFX.play('alert');
   await sleep(250);
   for (let c = 0; c < COLS; c++) {
     if (columns[c].length >= ROWS) {
@@ -185,6 +191,7 @@ async function collapse() {
     if (!gapped.length) break;
     for (const col of gapped) col.splice(col.indexOf(null), 1);
     render();
+    SFX.play('click');
     await sleep(STEP_MS);
   }
   render();
@@ -241,9 +248,12 @@ async function resolveChains() {
 
     render(pops);
     updateHud();
+    SFX.play('pop');
+    if (chain >= 2) SFX.play('egg');
     await sleep(220);
 
-    // Crack adjacent blanks
+    let cracked = false;
+    let revealed = false;
     for (const p of pops) {
       const neighbors = [
         { row: p.row + 1, col: p.col },
@@ -256,12 +266,17 @@ async function resolveChains() {
         const neighborCell = columns[n.col][n.row];
         if (neighborCell && neighborCell.type === 'blank') {
           neighborCell.cracks++;
+          cracked = true;
           if (neighborCell.cracks >= 2) {
             columns[n.col][n.row] = newNumberDisc();
+            revealed = true;
           }
         }
       }
     }
+
+    if (revealed) SFX.play('punct');
+    else if (cracked) SFX.play('backspace');
 
     for (const p of pops) columns[p.col][p.row] = null;
     await collapse();
@@ -278,6 +293,7 @@ async function resolveChains() {
 function endGame() {
   gameOver = true;
   busy = true;
+  SFX.play('denied');
   render();
   finalScoreEl.textContent = score;
   overlayEl.classList.remove('hidden');
@@ -290,8 +306,24 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-document.getElementById('restart-btn').addEventListener('click', initGame);
-document.getElementById('overlay-restart-btn').addEventListener('click', initGame);
+function restart() {
+  SFX.play('static');
+  initGame();
+}
+
+document.getElementById('restart-btn').addEventListener('click', restart);
+document.getElementById('overlay-restart-btn').addEventListener('click', restart);
+
+const soundBtn = document.getElementById('sound-btn');
+function updateSoundBtn() {
+  soundBtn.textContent = SFX.isMuted() ? 'SOUND: OFF' : 'SOUND: ON';
+}
+soundBtn.addEventListener('click', () => {
+  SFX.toggle();
+  updateSoundBtn();
+  SFX.play('punct');
+});
+updateSoundBtn();
 
 initGame();
 
