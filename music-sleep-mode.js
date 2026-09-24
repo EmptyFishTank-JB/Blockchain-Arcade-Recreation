@@ -250,7 +250,7 @@ function createSleepMode(ctx, out) {
     osc.type = 'square';
     osc.frequency.value = freq(m);
     const lp = filter('lowpass', 3000);
-    osc.connect(lp); lp.connect(envGain(t, 0.016 * level, STEP * 0.9, bus));
+    osc.connect(lp); lp.connect(envGain(t, 0.16 * level, STEP * 0.9, bus));
     osc.start(t); osc.stop(t + STEP);
   }
 

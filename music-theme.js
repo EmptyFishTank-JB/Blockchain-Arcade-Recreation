@@ -185,7 +185,7 @@ function createSynthwave(ctx, out) {
     osc.frequency.value = freq(m);
     const lp = filter('lowpass', 2800);
     const g = ctx.createGain();
-    g.gain.setValueAtTime(0.022 * level, t);
+    g.gain.setValueAtTime(0.18 * level, t);
     g.gain.exponentialRampToValueAtTime(0.0005, t + STEP * 0.9);
     osc.connect(lp); lp.connect(g); g.connect(bus);
     osc.start(t); osc.stop(t + STEP);

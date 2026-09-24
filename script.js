@@ -580,6 +580,17 @@ function visualizerLoop() {
   requestAnimationFrame(visualizerLoop);
 }
 
+const bgPlayBtn = document.getElementById('bg-play-btn');
+function updateBgPlayBtn() {
+  bgPlayBtn.textContent = `BACKGROUND PLAY: ${Music.isBackgroundPlay() ? 'ON' : 'OFF'}`;
+  bgPlayBtn.classList.toggle('on', Music.isBackgroundPlay());
+}
+bgPlayBtn.addEventListener('click', () => {
+  Music.setBackgroundPlay(!Music.isBackgroundPlay());
+  updateBgPlayBtn();
+});
+updateBgPlayBtn();
+
 function setPlaylistOpen(open) {
   playlistEl.hidden = !open;
   playlistBtn.setAttribute('aria-expanded', String(open));
