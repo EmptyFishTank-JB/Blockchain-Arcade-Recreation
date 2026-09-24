@@ -24,12 +24,13 @@ const DIFFICULTIES = {
   },
 };
 
+// easyCombo: on Easy, the chain length that unlocks each hack (stronger hacks need longer chains)
 const HACKS = {
-  worm: { name: 'WORM VIRUS', icon: '§' },
-  overflow: { name: 'STACK OVERFLOW', icon: '+' },
-  trojan: { name: 'TROJAN', icon: '◈' },
-  rng: { name: 'RNG', icon: '?' },
-  bitflip: { name: 'BITFLIP', icon: '↕' },
+  worm: { name: 'WORM VIRUS', icon: '§', easyCombo: 5 },
+  overflow: { name: 'STACK OVERFLOW', icon: '+', easyCombo: 4 },
+  trojan: { name: 'TROJAN', icon: '◈', easyCombo: 4 },
+  rng: { name: 'RNG', icon: '?', easyCombo: 3 },
+  bitflip: { name: 'BITFLIP', icon: '↕', easyCombo: 3 },
 };
 
 let columns = []; // columns[c] = array of cells, index 0 = bottom
@@ -102,6 +103,13 @@ function initGame() {
   nextStatEl.hidden = !DIFFICULTIES[difficulty].showNext;
   document.querySelectorAll('.difficulty button').forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.difficulty === difficulty);
+  });
+  const easy = difficulty === 'easy';
+  document.getElementById('hack-intro').textContent = easy
+    ? 'Chain combos unlock hacks: the longer the chain, the stronger the hack.'
+    : `Get a combo of ${HACK_COMBO} to unlock a random hack.`;
+  document.querySelectorAll('.hack-item').forEach((el) => {
+    el.querySelector('.combo').textContent = `${easy ? HACKS[el.dataset.hack].easyCombo : HACK_COMBO}x`;
   });
   document.getElementById('rules-pulse').textContent = difficulty === 'hard'
     ? `every ${BASE_INTERVAL} drops, tightening to every ${HARD_MIN_INTERVAL} as your score climbs`
@@ -306,9 +314,20 @@ function computeRunLength(grid, row, col, dRow, dCol) {
   return count;
 }
 
-function awardHack() {
-  const ids = Object.keys(HACKS);
-  const id = ids[Math.floor(Math.random() * ids.length)];
+function hackForChain(chain) {
+  let ids = Object.keys(HACKS);
+  if (difficulty === 'easy') {
+    const earned = ids.filter((id) => HACKS[id].easyCombo <= chain);
+    if (!earned.length) return null;
+    const tier = Math.max(...earned.map((id) => HACKS[id].easyCombo));
+    ids = earned.filter((id) => HACKS[id].easyCombo === tier);
+  } else if (chain < HACK_COMBO) {
+    return null;
+  }
+  return ids[Math.floor(Math.random() * ids.length)];
+}
+
+function awardHack(id) {
   queue.unshift({ type: 'hack', id });
   setMessage(`HACK UNLOCKED // ${HACKS[id].name}`);
   SFX.play('egg');
@@ -344,7 +363,6 @@ async function resolveChains() {
     updateHud();
     SFX.play('pop');
     if (chain >= 2) SFX.play('egg');
-    if (chain === HACK_COMBO) awardHack();
     await sleep(220);
 
     let cracked = false;
@@ -381,7 +399,9 @@ async function resolveChains() {
 
   if (chain > 0) {
     await sleep(300);
-    if (chain < HACK_COMBO) setMessage('');
+    const hack = hackForChain(chain);
+    if (hack) awardHack(hack);
+    else setMessage('');
   }
 }
 
@@ -467,7 +487,6 @@ document.getElementById('overlay-restart-btn').addEventListener('click', restart
 document.querySelectorAll('.difficulty button').forEach((btn) => {
   btn.addEventListener('click', () => setDifficulty(btn.dataset.difficulty));
 });
-document.getElementById('hack-combo').textContent = HACK_COMBO;
 
 const soundBtn = document.getElementById('sound-btn');
 function updateSoundBtn() {

@@ -18,22 +18,25 @@ from *Arcade Paradise*. Mechanically it's a Drop7-style number puzzle:
 
 ## Hacks
 
-A 5x combo unlocks a random hack, which becomes your next drop. Drop it into a
-column like a packet and it goes off where it lands:
+On Normal and Hard, a 5x combo unlocks a random hack. On Easy, each hack has
+its own combo, so shorter chains unlock the weaker ones. The hack becomes your
+next drop; drop it into a column like a packet and it goes off where it lands:
 
-| Hack | Effect |
-|---|---|
-| Worm Virus `[§]` | Destroys the entire stack it's dropped into |
-| Stack Overflow `[+]` | Adds 1 to every packet; 7s become level 2 firewalls |
-| Trojan `[◈]` | Destroys every packet around the spot where it lands |
-| RNG `[?]` | Randomizes every packet's value |
-| Bitflip `[↕]` | Flips every stack upside down |
+| Hack | Easy combo | Effect |
+|---|---|---|
+| Worm Virus `[§]` | 5x | Destroys the entire stack it's dropped into |
+| Stack Overflow `[+]` | 4x | Adds 1 to every packet; 7s become level 2 firewalls |
+| Trojan `[◈]` | 4x | Destroys every packet around the spot where it lands |
+| RNG `[?]` | 3x | Randomizes every packet's value |
+| Bitflip `[↕]` | 3x | Flips every stack upside down |
+
+A drop earns at most one hack, picked from the longest chain it set off.
 
 ## Difficulty
 
 | Setting | Effect |
 |---|---|
-| Easy | Shows the next packet as well as the current one |
+| Easy | Shows the next packet, and hacks unlock at 3x–5x depending on the hack |
 | Normal | Firewall row every 8 drops |
 | Hard | Firewall row every 8 drops, minus one per 500 points, down to every 4 |
 
@@ -46,13 +49,15 @@ current packet shown in the HUD.
 
 ## Files
 
-`index.html` loads its CSS and JS with a `?v=N` tag. Bump `N` on all four
+`index.html` loads its CSS and JS with a `?v=N` tag. Bump `N` on all of those
 links whenever any of those files change, so browsers don't pair a fresh page
 with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
 
 - `index.html` — page structure, HUD, rules and hacks panels
 - `style.css` — terminal/hacker visual theme
 - `script.js` — game state, rendering, chain resolution and hacks
+- `grid-bg.js` — the dim "defragmenting" micro-grid animated behind the board
+  (static when the OS asks for reduced motion)
 - `sfx.js` — synthesized sound effects ported from the ECHOES terminal audio
   compendium; toggle with the SOUND button
 - `music.js` — an original synthwave track synthesized live with Web Audio

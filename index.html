@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#020403">
 <title>BLOCKCHAIN // arcade recreation</title>
-<link rel="stylesheet" href="style.css?v=3">
+<link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
   <main class="cabinet">
@@ -15,7 +15,7 @@
       <p>If the width or height of an unbroken stack matches a packet's number, that packet disappears.</p>
       <p>Firewalls <b>[=]</b> / <b>[-]</b> slow your hacking down. Making adjacent packets disappear breaks them down and reveals their numbers.</p>
       <p>A new row of firewalls rises <span id="rules-pulse">every 8 drops</span>. Anything left above the <b>=======</b> line after clears disconnects you.</p>
-      <p><b>Easy</b> also previews the next packet. <b>Hard</b> gives you fewer drops between firewalls the higher your score.</p>
+      <p><b>Easy</b> also previews the next packet, and shorter chains unlock hacks. <b>Hard</b> gives you fewer drops between firewalls the higher your score.</p>
       <p class="keys">Click a column or press 1&ndash;7 to drop</p>
     </aside>
 
@@ -56,7 +56,10 @@
 
       <div class="board-wrap">
         <div id="column-buttons" class="column-buttons"></div>
-        <div id="board" class="board"></div>
+        <div class="board-frame">
+          <canvas id="board-bg" aria-hidden="true"></canvas>
+          <div id="board" class="board"></div>
+        </div>
       </div>
 
       <div id="message" class="message hidden"></div>
@@ -70,25 +73,25 @@
 
     <aside class="panel panel-hacks">
       <h2>HACKS</h2>
-      <p>Get a combo of <span id="hack-combo">5</span> to unlock a hack. It becomes your next drop and goes off where it lands.</p>
+      <p><span id="hack-intro">Get a combo of 5 to unlock a random hack.</span> It becomes your next drop and goes off where it lands.</p>
       <div class="hack-item" data-hack="worm">
-        <h3><span class="icon">§</span> WORM VIRUS</h3>
+        <h3><span class="icon">§</span> WORM VIRUS<span class="combo"></span></h3>
         <p>A self-replicating virus that destroys the entire stack it's dropped into.</p>
       </div>
       <div class="hack-item" data-hack="overflow">
-        <h3><span class="icon">+</span> STACK OVERFLOW</h3>
+        <h3><span class="icon">+</span> STACK OVERFLOW<span class="combo"></span></h3>
         <p>A buffer overflow that adds 1 to each packet. Any packet showing a 7 becomes a level 2 firewall.</p>
       </div>
       <div class="hack-item" data-hack="trojan">
-        <h3><span class="icon">◈</span> TROJAN</h3>
+        <h3><span class="icon">◈</span> TROJAN<span class="combo"></span></h3>
         <p>Destroys every packet around the spot where it lands.</p>
       </div>
       <div class="hack-item" data-hack="rng">
-        <h3><span class="icon">?</span> RNG</h3>
+        <h3><span class="icon">?</span> RNG<span class="combo"></span></h3>
         <p>Shifts the values of every packet at random.</p>
       </div>
       <div class="hack-item" data-hack="bitflip">
-        <h3><span class="icon">↕</span> BITFLIP</h3>
+        <h3><span class="icon">↕</span> BITFLIP<span class="combo"></span></h3>
         <p>Flips every stack from top to bottom.</p>
       </div>
     </aside>
@@ -112,8 +115,9 @@
     </div>
   </div>
 
-  <script src="sfx.js?v=3"></script>
-  <script src="music.js?v=3"></script>
-  <script src="script.js?v=3"></script>
+  <script src="sfx.js?v=4"></script>
+  <script src="music.js?v=4"></script>
+  <script src="script.js?v=4"></script>
+  <script src="grid-bg.js?v=4"></script>
 </body>
 </html>

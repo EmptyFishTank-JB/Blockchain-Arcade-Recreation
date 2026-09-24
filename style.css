@@ -142,10 +142,24 @@ h1 span { color: var(--amber); text-shadow: 0 0 8px var(--amber); }
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 3px;
-  background: #01120a;
+  position: relative;
   padding: 6px;
+}
+
+.board-frame {
+  position: relative;
+  background: #01120a;
   border: 1px solid var(--grid-line);
   border-radius: 6px;
+  overflow: hidden;
+}
+
+#board-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
 }
 
 .cell {
@@ -363,6 +377,13 @@ h1 span { color: var(--amber); text-shadow: 0 0 8px var(--amber); }
 }
 
 .hack-item .icon { display: inline-block; width: 1.2em; }
+.hack-item h3 { display: flex; align-items: baseline; }
+.hack-item .combo {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--green-dim);
+}
+.hack-item.held .combo { color: var(--amber); }
 .hack-item p { margin: 0; font-size: 11px; }
 
 .hack-item.held {
