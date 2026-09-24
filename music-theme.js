@@ -38,6 +38,15 @@ function createSynthwave(ctx, out) {
     [[0, 76, 12], [12, 80, 4]],
   ];
 
+  // Intensity layers: each fades in over `span` starting at `from` (0–1).
+  // The game's stack heights settle at 33% (5), 67% (6) and 100% (7+).
+  const LAYERS = [
+    { id: 'bright', label: 'Bass filter opens (900 → 2000Hz) and the arpeggio gets brighter and louder', from: 0, span: 1 },
+    { id: 'hats', label: '16th-note hi-hats', from: 0.05, span: 0.25 },
+    { id: 'kick', label: 'A kick on every beat', from: 0.4, span: 0.25 },
+    { id: 'tension', label: 'A high pulsing saw two octaves up (root/fifth)', from: 0.72, span: 0.25 },
+  ];
+
   const bus = ctx.createGain();
   bus.gain.value = 0.2;
   const comp = ctx.createDynamicsCompressor();
@@ -211,9 +220,11 @@ function createSynthwave(ctx, out) {
   return {
     step: STEP,
     loopSteps: 32 * 16,
+    layers: LAYERS,
     output: bus,
     schedule(step, t, intensity = 0) {
-      const I = intensity;
+      const L = {};
+      for (const { id, from, span } of LAYERS) L[id] = Math.max(0, Math.min(1, (intensity - from) / span));
       const bar = Math.floor(step / 16) % 32;
       const section = Math.floor(bar / 8);
       const i = bar % 8;
@@ -224,18 +235,18 @@ function createSynthwave(ctx, out) {
 
       const kickHit = !sparse && (drive ? s % 4 === 0 : s === 0 || s === 8 || (s === 10 && bar % 2 === 1));
       if (kickHit) kick(t);
-      else if (s % 4 === 0 && I > 0.05) kick(t, 0.8 * I);
+      else if (s % 4 === 0 && L.kick > 0) kick(t, 0.8 * L.kick);
       if (!sparse) {
         if (s === 4 || s === 12) snare(t);
         if (i === 7 && (section === 0 || section === 2) && s > 12) snare(t, 0.4 + (s - 12) * 0.2);
       }
       if (drive || s % 2 === 0) hat(t, s % 4 === 2);
-      else if (I > 0.05) hat(t, false, I);
-      if (s % 2 === 0) bass(t, roots[i] + (s % 4 === 2 ? 12 : 0), STEP * 1.8, I);
+      else if (L.hats > 0) hat(t, false, L.hats);
+      if (s % 2 === 0) bass(t, roots[i] + (s % 4 === 2 ? 12 : 0), STEP * 1.8, L.bright);
       if (s === 0) pad(t, chords[i], STEP * 16);
       const tones = [...chords[i], chords[i][0] + 12];
-      arp(t, tones[ARP[s % 8]] + 12, I);
-      if (I > 0.05) tension(t, (s % 2 ? chords[i][2] : chords[i][0]) + 24, I);
+      arp(t, tones[ARP[s % 8]] + 12, L.bright);
+      if (L.tension > 0) tension(t, (s % 2 ? chords[i][2] : chords[i][0]) + 24, L.tension);
 
       const melody = section === 1 || section === 3 ? MELODY_1 : section === 2 ? MELODY_2 : null;
       if (melody) {

@@ -31,6 +31,16 @@ function createSleepMode(ctx, out) {
   const BREAK = [0, 3, 6, 10, 12];
   const ARP = [0, 1, 2, 3, 2, 1, 2, 3];
 
+  // Intensity layers: each fades in over `span` starting at `from` (0–1).
+  // The game's stack heights settle at 33% (5), 67% (6) and 100% (7+).
+  const LAYERS = [
+    { id: 'amp', label: 'The amp opens up (cabinet 2200 → 4800Hz) and the arpeggio plucks brighten', from: 0, span: 1 },
+    { id: 'hats', label: '16th-note hi-hats', from: 0.05, span: 0.25 },
+    { id: 'chugs', label: 'Extra 8th-note chugs in the intro and build', from: 0.4, span: 0.25 },
+    { id: 'kick', label: 'Double-kick fills between the written kicks', from: 0.4, span: 0.25 },
+    { id: 'alarm', label: 'A square-wave alarm alternating A5 and C6', from: 0.72, span: 0.25 },
+  ];
+
   const bus = ctx.createGain();
   bus.gain.value = 0.17;
   const comp = ctx.createDynamicsCompressor();
@@ -247,16 +257,18 @@ function createSleepMode(ctx, out) {
   return {
     step: STEP,
     loopSteps: 32 * 16,
+    layers: LAYERS,
     output: bus,
     schedule(step, t, intensity = 0) {
-      const I = intensity;
+      const L = {};
+      for (const { id, from, span } of LAYERS) L[id] = Math.max(0, Math.min(1, (intensity - from) / span));
       const bar = Math.floor(step / 16) % 32;
       const section = Math.floor(bar / 8); // 0 intro, 1 build, 2 drop, 3 breakdown
       const i = bar % 8;
       const s = step % 16;
       const root = ROOTS[i];
       const tones = [...PADS[i], PADS[i][0] + 12];
-      cabLow.frequency.setTargetAtTime(2200 + 2600 * I, t, 0.3);
+      cabLow.frequency.setTargetAtTime(2200 + 2600 * L.amp, t, 0.3);
 
       // Kick
       let kicked = false;
@@ -264,7 +276,7 @@ function createSleepMode(ctx, out) {
       if (section === 1 && s % 4 === 0) { kick(t); kicked = true; }
       if (section === 2) { kick(t, s % 4 === 0 ? 1 : 0.55); kicked = true; }
       if (section === 3 && BREAK.includes(s)) { kick(t); kicked = true; }
-      if (!kicked && I > 0.05) kick(t, 0.5 * I);
+      if (!kicked && L.kick > 0) kick(t, 0.5 * L.kick);
 
       // Snare
       if (section === 1 && i === 7) snare(t, 0.3 + 0.7 * (s / 15));
@@ -276,7 +288,7 @@ function createSleepMode(ctx, out) {
       else if (section === 1 && s % 4 === 2) hat(t, true);
       else if (section === 2 && s % 2 === 0) hat(t, false);
       else if (section === 3 && s % 4 === 0) hat(t, true, 0.8);
-      else if (I > 0.05) hat(t, false, I);
+      else if (L.hats > 0) hat(t, false, L.hats);
       if (s === 0 && ((section === 1 && i === 0) || (section === 2 && i % 4 === 0) || (section === 3 && i % 2 === 0))) crash(t);
       if (section === 1 && i === 6 && s === 0) riser(t, STEP * 32);
 
@@ -284,12 +296,12 @@ function createSleepMode(ctx, out) {
       if (section === 0 && i >= 4 && s === 0) chug(t, root, STEP * 6, 0.6);
       else if (section === 2 && CHUG[s]) chug(t, root, STEP * 0.9);
       else if (section === 3 && BREAK.includes(s)) chug(t, root, STEP * 2.5, 1.1);
-      else if (section <= 1 && I > 0.05 && s % 2 === 0) chug(t, root, STEP * 0.9, 0.7 * I);
+      else if (section <= 1 && L.chugs > 0 && s % 2 === 0) chug(t, root, STEP * 0.9, 0.7 * L.chugs);
 
       // Synths
       if (s === 0 && section !== 2) pad(t, PADS[i], STEP * 16, section === 1 ? 0.02 : 0.03);
-      if (section === 1 || section === 2) pluck(t, tones[ARP[s % 8]] + 24, I);
-      if (I > 0.05 && s % 2 === 0) alarm(t, s % 4 ? 84 : 81, I);
+      if (section === 1 || section === 2) pluck(t, tones[ARP[s % 8]] + 24, L.amp);
+      if (L.alarm > 0 && s % 2 === 0) alarm(t, s % 4 ? 84 : 81, L.alarm);
 
       // Lullaby
       for (const [start, m, len] of LULLABY[i]) {

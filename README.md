@@ -75,8 +75,10 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
   (intro, melody 1, section B with melody 2, octave-doubled climax)
 - `music-sleep-mode.js` — track 02, SLEEP MODE: original electronicore
   (music box, trance synths, chugging distorted guitars, double-kick) at
-  150 BPM, built on the public-domain lullaby "Schlaf, Kindlein, schlaf";
-  same intensity layers as the theme
+  150 BPM, built on the public-domain lullaby "Schlaf, Kindlein, schlaf".
+  Each track lists its intensity layers (`LAYERS`) with the level each fades
+  in at: hi-hats from 5% (stack 5), heavier drums/guitars from 40% (stack 6),
+  the alarm layer from 72% (stack 7+); the brightening grows the whole way
 - `dev-tools/audio.html` — the audio compendium, opened by the `</>` icon in
   the footer: every sound effect and track with a play button, where each is
   used in the game, a seekable progress line and a live intensity slider for
