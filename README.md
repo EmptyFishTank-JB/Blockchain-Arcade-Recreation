@@ -49,6 +49,7 @@ A drop earns at most one exploit, picked from the longest chain it set off.
 | DAILY | The Daily Decrypt: bits dealt from a seed of the UTC date, so everyone gets the same sequence that day (Normal rules). Keeps a best per day and a daily streak |
 | BLITZ | Normal rules against a 2-minute clock that starts on your first drop (paused while the tab is hidden) |
 | ZEN | Normal rules with no encryption layers and no clock |
+| PUZZLE | 30 set boards (in `puzzles.js`): decrypt every block using exactly the bits given, in order. Solving one opens the next; ◀ ▶ move between them. No new layers rise and no exploits drop; puzzle layers hide a fixed bit |
 
 Switching modes mid-run asks to confirm, like RESTART. Each mode keeps its
 own best score.
@@ -160,6 +161,7 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
 - `script.js` — game state, rendering, chain resolution and exploits
 - `unlocks.js` — the Full Access check (never owned on the website; `?unlockall` previews it)
 - `progress.js` — lifetime stats, earnable unlocks and achievements
+- `puzzles.js` — the PUZZLE boards, generated and verified by brute force (each has 1-2 solutions and can't be solved in fewer drops)
 - `fx.js` — particle overlay: cleared cells dissolve into pixel fragments and
   drifting hex/binary glyphs (skipped under reduced motion)
 - `viz.js` — the shared music visualizer (LED bars or auto-gained

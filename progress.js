@@ -24,6 +24,7 @@ const Progress = (() => {
     lastDaily: '', // UTC date of the last one
     dailyStreak: 0, // consecutive days, up to lastDaily
     bestDailyStreak: 0,
+    puzzles: {}, // puzzle index -> true once solved
     earned: {}, // unlock id -> true, kept once earned
     achieved: {}, // achievement id -> true
   });
@@ -75,6 +76,7 @@ const Progress = (() => {
 
   const themeIds = UNLOCKS.filter((u) => u.group === 'THEMES').map((u) => u.id);
   let exploitCount = 7; // set by script.js from HACKS
+  let puzzleCount = 30; // set by script.js from PUZZLES
 
   const ACHIEVEMENTS = [
     { id: 'first-contact', name: 'FIRST CONTACT', desc: 'Start your first session', value: () => d.games, goal: 1 },
@@ -102,6 +104,8 @@ const Progress = (() => {
     { id: 'clean-sweep', name: 'CLEAN SWEEP', desc: 'Clear the whole board after 10+ drops', value: () => d.sweeps, goal: 1 },
     { id: 'close-call', name: 'CLOSE CALL', desc: 'Decrypt your way back under the line', value: () => d.closeCalls, goal: 1 },
     { id: 'daily-driver', name: 'DAILY DRIVER', desc: 'Play the Daily Decrypt 7 days in a row', value: () => d.bestDailyStreak, goal: 7 },
+    { id: 'locksmith', name: 'LOCKSMITH', desc: 'Solve 10 puzzles', value: () => Object.keys(d.puzzles).length, goal: 10 },
+    { id: 'master-key', name: 'MASTER KEY', desc: 'Solve every puzzle', value: () => Object.keys(d.puzzles).length, goal: () => puzzleCount },
     { id: 'collector', name: 'COLLECTOR', desc: 'Unlock every theme', value: () => themeIds.filter(isUnlocked).length, goal: themeIds.length },
   ];
 
@@ -152,6 +156,9 @@ const Progress = (() => {
       return u && { ...u, goal: goalOf(u) };
     },
     setExploitCount(n) { exploitCount = n; },
+    setPuzzleCount(n) { puzzleCount = n; },
+    puzzleSolved: (i) => !!d.puzzles[i],
+    solvePuzzle(i) { d.puzzles[i] = true; },
     // Lists for the RECORDS panel
     unlocks: () => UNLOCKS.map((u) => ({ ...u, goal: goalOf(u), current: u.value(), done: isUnlocked(u.id) })),
     achievements: () => ACHIEVEMENTS.map((a) => ({ ...a, goal: goalOf(a), current: a.value(), done: !!d.achieved[a.id] })),
@@ -164,7 +171,7 @@ const Progress = (() => {
     drop() {
       if (!run.started) {
         run.started = true;
-        d.games++;
+        if (run.mode !== 'puzzle') d.games++; // puzzle retries don't count as sessions
         if (run.mode === 'daily') playedDaily();
       }
       run.drops++;

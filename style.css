@@ -835,6 +835,26 @@ h1 span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
 }
 .difficulty[hidden] { display: none; }
 
+.puzzle-nav { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 10px; font-size: 12px; letter-spacing: 2px; }
+.puzzle-nav[hidden] { display: none; }
+.puzzle-nav button {
+  background: none;
+  border: 1px solid var(--fg-dim);
+  border-radius: 4px;
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 10px;
+  padding: 3px 8px;
+  cursor: pointer;
+}
+.puzzle-nav button:disabled { opacity: 0.3; cursor: default; }
+.puzzle-nav .solved { color: var(--accent); }
+
+/* A solved puzzle uses the terminal color instead of the trace red */
+.overlay-box.win { border-color: var(--fg); box-shadow: 0 0 30px rgba(var(--fg-rgb), 0.4); }
+.overlay-box.win h2,
+.overlay-box.win .overlay-sub { color: var(--fg); text-shadow: 0 0 8px var(--fg); }
+
 .overlay-note { font-size: 11px; letter-spacing: 1px; color: var(--fg-dim); }
 
 .stat.time-low .value { color: var(--danger); text-shadow: 0 0 8px var(--danger); }

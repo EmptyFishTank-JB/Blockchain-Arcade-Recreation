@@ -83,7 +83,21 @@ const MODES = {
   daily: { label: 'DAILY', info: (date) => `DAILY DECRYPT // ${date} (UTC): the same bits for everyone today, on Normal rules.` },
   blitz: { label: 'BLITZ', info: () => 'BLITZ // 2 minutes on the clock, starting with your first drop. Score all you can.' },
   zen: { label: 'ZEN', noLayers: true, info: () => 'ZEN // no encryption layers and no clock. Just decrypt.' },
+  puzzle: {
+    label: 'PUZZLE',
+    noLayers: true, // no new layers rise (puzzles can start with some)
+    noHacks: true,
+    info: () => `Decrypt every block on the board with exactly the ${PUZZLES[puzzleIndex].pieces.length === 1 ? 'bit' : `${PUZZLES[puzzleIndex].pieces.length} bits`} given, in order.`,
+  },
 };
+Progress.setPuzzleCount(PUZZLES.length);
+// PUZZLE: the first unsolved one, or the one you were on
+const firstUnsolved = () => {
+  const i = PUZZLES.findIndex((_, n) => !Progress.puzzleSolved(n));
+  return i < 0 ? PUZZLES.length - 1 : i;
+};
+let puzzleIndex = Math.min(Number(storage.get('bytefall-puzzle')) || firstUnsolved(), firstUnsolved());
+let overlayNext = null; // what the overlay button does in PUZZLE: 'next' or 'retry'
 let mode = MODES[storage.get('bytefall-mode')] ? storage.get('bytefall-mode') : 'classic';
 
 // Randomness. DAILY seeds each stream from the date, so the bits you're dealt are the same for
@@ -156,8 +170,9 @@ function bestKey() {
   return difficulty === 'hard' ? 'blockchain-best-hard-8x8' : `blockchain-best-${difficulty}`;
 }
 
-// Always enough upcoming bits for the widest preview (the keylogger's).
+// Always enough upcoming bits for the widest preview (the keylogger's). PUZZLE has a fixed list.
 function refillQueue() {
+  if (mode === 'puzzle') return;
   while (queue.length < 1 + KEYLOGGER_PREVIEW) queue.push(newPacket('queue'));
 }
 
@@ -178,6 +193,7 @@ function initGame() {
   columns = Array.from({ length: COLS }, () => []);
   queue = [];
   refillQueue();
+  if (mode === 'puzzle') loadPuzzle();
   score = 0;
   best = Number(storage.get(bestKey())) || 0;
   bestAtStart = best;
@@ -208,6 +224,82 @@ function initGame() {
   overlayEl.classList.add('hidden');
   setMessage('');
 }
+
+// A layer peeled to 0 shows the bit under it: fixed in PUZZLE boards, random otherwise.
+function revealBit(layer) {
+  return layer.hidden ? { type: 'number', val: layer.hidden } : newPacket();
+}
+
+// PUZZLE: 'L2:5' is a level 2 layer hiding a [5]; plain numbers are bits.
+function loadPuzzle() {
+  const puzzle = PUZZLES[puzzleIndex];
+  columns = puzzle.board.map((col) => col.map((block) => {
+    if (typeof block === 'number') return { type: 'number', val: block };
+    const [level, hidden] = block.slice(1).split(':').map(Number);
+    return { type: 'firewall', level, hidden };
+  }));
+  queue = puzzle.pieces.map((val) => ({ type: 'number', val }));
+}
+
+function setPuzzle(i) {
+  puzzleIndex = i;
+  storage.set('bytefall-puzzle', String(i));
+  SFX.play('static');
+  initGame();
+}
+
+// Runs at the end of each PUZZLE turn (when the board didn't overflow).
+function checkPuzzle() {
+  if (columns.every((c) => c.length === 0)) {
+    const first = !Progress.puzzleSolved(puzzleIndex);
+    Progress.solvePuzzle(puzzleIndex);
+    announce(Progress.check());
+    showPuzzleResult(true, first);
+  } else if (!queue.length) {
+    showPuzzleResult(false);
+  }
+}
+
+function showPuzzleResult(solved, firstTime = false) {
+  gameOver = true;
+  busy = true;
+  setMessage('');
+  SFX.play(solved ? 'egg' : 'denied');
+  const last = puzzleIndex === PUZZLES.length - 1;
+  overlayNext = solved && !last ? 'next' : 'retry';
+  document.querySelector('.overlay-box').classList.toggle('win', solved);
+  document.getElementById('overlay-title').textContent = solved ? 'DECRYPTED' : 'OUT OF BITS';
+  document.getElementById('overlay-sub').textContent = solved
+    ? (last ? 'Every puzzle solved. The whole archive is yours.' : `Puzzle ${puzzleIndex + 1} cracked${firstTime ? '' : ' again'}.`)
+    : 'Blocks are still encrypted.';
+  finalScoreEl.textContent = score;
+  newBestEl.hidden = true;
+  const note = document.getElementById('overlay-note');
+  note.hidden = false;
+  note.textContent = `PUZZLE ${puzzleIndex + 1} / ${PUZZLES.length} // ${PUZZLES.filter((_, n) => Progress.puzzleSolved(n)).length} SOLVED`;
+  document.getElementById('overlay-restart-btn').textContent = overlayNext === 'next' ? 'NEXT PUZZLE' : 'RETRY';
+  updatePuzzleNav();
+  const run = runId;
+  setTimeout(() => {
+    if (run === runId) overlayEl.classList.remove('hidden');
+  }, solved ? 500 : 700);
+}
+
+const puzzleNavEl = document.getElementById('puzzle-nav');
+function updatePuzzleNav() {
+  const label = document.getElementById('puzzle-label');
+  label.textContent = `PUZZLE ${puzzleIndex + 1} / ${PUZZLES.length}${Progress.puzzleSolved(puzzleIndex) ? ' \u2713' : ''}`;
+  label.classList.toggle('solved', Progress.puzzleSolved(puzzleIndex));
+  document.getElementById('puzzle-prev').disabled = puzzleIndex === 0;
+  // Ahead: any solved puzzle, or the first unsolved one
+  document.getElementById('puzzle-next').disabled = puzzleIndex + 1 >= PUZZLES.length || puzzleIndex + 1 > firstUnsolved();
+}
+document.getElementById('puzzle-prev').addEventListener('click', () => {
+  if (!busy || gameOver) setPuzzle(puzzleIndex - 1);
+});
+document.getElementById('puzzle-next').addEventListener('click', () => {
+  if (!busy || gameOver) setPuzzle(puzzleIndex + 1);
+});
 
 function buildColumnButtons() {
   columnButtonsEl.innerHTML = '';
@@ -345,9 +437,11 @@ function updateHud() {
   }
   scoreEl.textContent = score;
   bestEl.textContent = best;
-  showPiece(currentEl, queue[0]);
-  // Easy previews the next bit; an active keylogger shows the next three.
-  const preview = keyloggerDrops > 0 ? KEYLOGGER_PREVIEW : DIFFICULTIES[difficulty].showNext ? 1 : 0;
+  if (queue[0]) showPiece(currentEl, queue[0]);
+  else currentEl.textContent = '[ ]';
+  // Easy previews the next bit; an active keylogger shows the next three; PUZZLE shows what's left.
+  const preview = mode === 'puzzle' ? Math.min(KEYLOGGER_PREVIEW, Math.max(0, queue.length - 1))
+    : keyloggerDrops > 0 ? KEYLOGGER_PREVIEW : DIFFICULTIES[difficulty].showNext ? 1 : 0;
   nextStatEl.hidden = !preview;
   nextLabelEl.textContent = keyloggerDrops > 0 ? `KEYLOG ${keyloggerDrops}` : 'NEXT';
   nextStatEl.classList.toggle('keylogger', keyloggerDrops > 0);
@@ -362,9 +456,9 @@ function updateHud() {
     nextEl.classList.remove('hack');
     nextEl.title = '';
   }
-  pulseCounterEl.textContent = pulseInterval - dropsSinceLastPulse;
+  pulseCounterEl.textContent = mode === 'puzzle' ? queue.length : pulseInterval - dropsSinceLastPulse;
   pulseCounterEl.closest('.stat').classList.toggle('danger', !gameOver && !MODES[mode].noLayers && pulseInterval - dropsSinceLastPulse === 1);
-  const heldHack = queue[0].type === 'hack' ? queue[0].id : null;
+  const heldHack = queue[0] && queue[0].type === 'hack' ? queue[0].id : null;
   document.querySelectorAll('.hack-item').forEach((el) => {
     el.classList.toggle('held', el.dataset.hack === heldHack);
   });
@@ -385,7 +479,7 @@ function burstMessage(type) {
 }
 
 async function attemptDrop(col) {
-  if (gameOver || busy) return;
+  if (gameOver || busy || !queue.length) return;
   if (columns[col].length >= MAX_ROWS) {
     SFX.play('denied');
     return;
@@ -442,6 +536,7 @@ function finishTurn() {
   announce(Progress.check());
   if (overflowed()) endGame();
   else if (timeUp) endGame('time');
+  else if (mode === 'puzzle') checkPuzzle();
   // One drop until a firewall row: warn until the player drops (unless a hack message is showing)
   else if (!MODES[mode].noLayers && pulseInterval - dropsSinceLastPulse === 1 && messageEl.classList.contains('hidden')) {
     setMessage('ENCRYPTION // NEW LAYER NEXT DROP', 'warn');
@@ -584,7 +679,7 @@ async function resolveChains() {
           Progress.peeled(neighborCell.level <= 0);
           cracked = true;
           if (neighborCell.level <= 0) {
-            columns[n.col][n.row] = newPacket();
+            columns[n.col][n.row] = revealBit(neighborCell);
             revealed = true;
           }
         }
@@ -604,7 +699,7 @@ async function resolveChains() {
     await sleep(300);
     const bytes = DIFFICULTIES[difficulty].byteBonus ? Math.floor(cleared / BYTE_BITS) : 0;
     if (bytes) await awardBytes(bytes);
-    const hack = hackForChain(chain);
+    const hack = MODES[mode].noHacks ? null : hackForChain(chain);
     if (hack) awardHack(hack);
     else setMessage('');
   }
@@ -660,7 +755,7 @@ async function runHack(id, row, col) {
       cell.level--;
       Progress.peeled(cell.level <= 0);
       if (cell.level <= 0) {
-        columns[c][r] = newPacket();
+        columns[c][r] = revealBit(cell);
         revealed = true;
       }
     }
@@ -819,7 +914,8 @@ function armReset(btn, confirmText) {
 // apply() runs just before the new run starts (e.g. switching the difficulty).
 function requestReset(btn, confirmText, apply = () => {}) {
   // Nothing to lose once the run is over or before the first drop.
-  const fresh = score === 0 && columns.every((col) => col.length === 0);
+  // (PUZZLE boards are short and restart as they started, so they never ask)
+  const fresh = mode === 'puzzle' || (score === 0 && columns.every((col) => col.length === 0));
   if (gameOver || fresh) {
     if (busy && !gameOver) return;
     apply();
@@ -886,7 +982,14 @@ function applyModeUi() {
   info.hidden = mode === 'classic';
   info.textContent = mode === 'classic' ? '' : MODES[mode].info(todayKey());
   document.querySelector('.difficulty').hidden = mode !== 'classic';
-  document.getElementById('pulse-stat').hidden = !!MODES[mode].noLayers;
+  document.getElementById('pulse-stat').hidden = !!MODES[mode].noLayers && mode !== 'puzzle';
+  document.getElementById('pulse-label').textContent = mode === 'puzzle' ? 'BITS LEFT' : 'NEW LAYER IN';
+  puzzleNavEl.hidden = mode !== 'puzzle';
+  if (mode === 'puzzle') updatePuzzleNav();
+  // The overlay goes back to its trace look until a puzzle result changes it
+  overlayNext = null;
+  document.querySelector('.overlay-box').classList.remove('win');
+  document.getElementById('overlay-restart-btn').textContent = mode === 'puzzle' ? 'RETRY' : 'NEW SESSION';
   document.getElementById('time-stat').hidden = mode !== 'blitz';
   showClock();
 }
@@ -912,7 +1015,10 @@ setInterval(() => {
   }
 }, 200);
 
-document.getElementById('overlay-restart-btn').addEventListener('click', restart);
+document.getElementById('overlay-restart-btn').addEventListener('click', () => {
+  if (mode === 'puzzle' && overlayNext === 'next') setPuzzle(Math.min(puzzleIndex + 1, PUZZLES.length - 1));
+  else restart();
+});
 
 const soundBtn = document.getElementById('sound-btn');
 function updateSoundBtn() {
