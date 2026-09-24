@@ -7,6 +7,7 @@
 const COLS = 7;
 const ROWS = 7;
 const PULSE_INTERVAL = 3; // drops between blank-row injections
+const STEP_MS = 35; // per-row fall speed
 
 let columns = []; // columns[c] = array of cells, index 0 = bottom
 let score = 0;
@@ -79,9 +80,10 @@ function buildGrid() {
   return grid;
 }
 
-function render(popped = []) {
+function render(popped = [], falling = null) {
   boardEl.innerHTML = '';
   const grid = buildGrid();
+  if (falling) grid[falling.row][falling.col] = falling.cell;
   // Display top row first (visual row 0) down to bottom (visual row ROWS-1)
   for (let visualRow = 0; visualRow < ROWS; visualRow++) {
     const r = ROWS - 1 - visualRow;
@@ -96,7 +98,7 @@ function render(popped = []) {
         } else {
           div.classList.add('blank');
           if (cell.cracks > 0) div.classList.add('cracked');
-          div.textContent = cell.cracks > 0 ? '[!]' : '[ ]';
+          div.textContent = cell.cracks > 0 ? '[-]' : '[=]';
         }
       }
       if (popped.some((p) => p.row === r && p.col === c)) {
@@ -125,9 +127,14 @@ async function attemptDrop(col) {
 
   busy = true;
   chainEl.textContent = '0x';
+  const landing = columns[col].length;
+  for (let r = ROWS - 1; r > landing; r--) {
+    render([], { row: r, col, cell: currentDisc });
+    await sleep(STEP_MS);
+  }
   columns[col].push(currentDisc);
   render();
-  await sleep(120);
+  await sleep(60);
 
   await resolveChains();
 
@@ -166,6 +173,21 @@ async function injectPulse() {
   render();
   await sleep(200);
   setMessage('');
+}
+
+// Drops everything above each gap by one row per frame so falls read block by block.
+async function collapse() {
+  while (true) {
+    for (const col of columns) {
+      while (col.length && col[col.length - 1] === null) col.pop();
+    }
+    const gapped = columns.filter((col) => col.includes(null));
+    if (!gapped.length) break;
+    for (const col of gapped) col.splice(col.indexOf(null), 1);
+    render();
+    await sleep(STEP_MS);
+  }
+  render();
 }
 
 function computeRunLength(grid, row, col, dRow, dCol) {
@@ -241,22 +263,10 @@ async function resolveChains() {
       }
     }
 
-    // Remove popped discs column by column (descending row order so indices stay valid)
-    const byColumn = {};
-    for (const p of pops) {
-      byColumn[p.col] = byColumn[p.col] || [];
-      byColumn[p.col].push(p.row);
-    }
-    for (const c of Object.keys(byColumn)) {
-      const rowsToRemove = byColumn[c].sort((a, b) => b - a);
-      for (const r of rowsToRemove) {
-        columns[c].splice(r, 1);
-      }
-    }
-
-    render();
+    for (const p of pops) columns[p.col][p.row] = null;
+    await collapse();
     updateHud();
-    await sleep(180);
+    await sleep(100);
   }
 
   if (chain > 0) {

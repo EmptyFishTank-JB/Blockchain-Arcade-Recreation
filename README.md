@@ -10,8 +10,8 @@ from *Arcade Paradise*. Mechanically it's a Drop7-style number puzzle:
 - Popping can chain: discs above collapse into the gap and may trigger more
   pops. Chains multiply your score, and a 5x chain triggers a bonus.
 - Every few drops a "pulse" pushes a row of blank packets into the bottom of
-  the grid. Blanks don't pop on their own — an adjacent pop cracks them, and
-  two cracks turn a blank into a live numbered disc.
+  the grid. Packets (`[=]`) don't pop on their own — an adjacent pop cracks
+  them to `[-]`, and a second hit reveals a live numbered disc.
 - The run ends when the grid overflows (a column fills to the top).
 
 ## Playing

@@ -6,7 +6,6 @@
   --green-dim: #1f7a52;
   --amber: #ffd166;
   --red: #ff4d5e;
-  --cell-size: 56px;
 }
 
 * { box-sizing: border-box; }
@@ -25,7 +24,7 @@ body {
 }
 
 .crt {
-  padding: 24px 28px 32px;
+  padding: 24px clamp(12px, 4vw, 28px) 32px;
   background: var(--panel);
   border: 2px solid var(--green-dim);
   border-radius: 10px;
@@ -100,17 +99,22 @@ h1 span { color: var(--amber); text-shadow: 0 0 8px var(--amber); }
   font-size: 14px;
 }
 
-.board-wrap { display: flex; flex-direction: column; align-items: center; }
+.board-wrap {
+  width: 100%;
+  max-width: 424px;
+  margin: 0 auto;
+}
 
 .column-buttons {
   display: grid;
-  grid-template-columns: repeat(7, var(--cell-size));
+  grid-template-columns: repeat(7, 1fr);
   gap: 3px;
+  padding: 0 7px;
   margin-bottom: 4px;
 }
 
 .column-buttons button {
-  width: var(--cell-size);
+  min-width: 0;
   height: 28px;
   background: rgba(57, 255, 143, 0.08);
   border: 1px solid var(--green-dim);
@@ -133,8 +137,7 @@ h1 span { color: var(--amber); text-shadow: 0 0 8px var(--amber); }
 
 .board {
   display: grid;
-  grid-template-columns: repeat(7, var(--cell-size));
-  grid-template-rows: repeat(7, var(--cell-size));
+  grid-template-columns: repeat(7, 1fr);
   gap: 3px;
   background: #01120a;
   padding: 6px;
@@ -143,15 +146,16 @@ h1 span { color: var(--amber); text-shadow: 0 0 8px var(--amber); }
 }
 
 .cell {
-  width: var(--cell-size);
-  height: var(--cell-size);
+  aspect-ratio: 1;
+  min-width: 0;
   border-radius: 3px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: 'Courier New', Courier, monospace;
-  font-size: 18px;
+  font-size: clamp(11px, 3.6vw, 18px);
   font-weight: bold;
+  white-space: nowrap;
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid var(--grid-line);
   transition: transform 0.12s ease, opacity 0.2s ease;
