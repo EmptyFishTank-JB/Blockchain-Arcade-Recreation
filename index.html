@@ -8,11 +8,11 @@
   // Apply the saved color theme before first paint (script.js owns the setting).
   try {
     var theme = localStorage.getItem('blockchain-theme');
-    if (['cipher', 'amber', 'mono', 'redline', 'synthwave'].indexOf(theme) >= 0) document.documentElement.dataset.theme = theme;
+    if (['cipher', 'amber', 'mono', 'redline', 'synthwave', 'dotmatrix', 'daylight', 'glyph', 'spectrum'].indexOf(theme) >= 0) document.documentElement.dataset.theme = theme;
   } catch (e) {}
 </script>
 <title>BYTEFALL // decryption terminal</title>
-<link rel="stylesheet" href="style.css?v=36">
+<link rel="stylesheet" href="style.css?v=39">
 </head>
 <body>
   <main class="cabinet">
@@ -160,6 +160,16 @@
         <p>Records the incoming stream: shows your next 3 bits for the next 10 drops.</p>
         <p class="lock-tag"></p>
       </div>
+      <div class="hack-item" data-hack="backdoor" data-unlock="exploit-backdoor">
+        <h3><span class="icon">_</span> BACKDOOR<span class="combo"></span></h3>
+        <p>Opens a way in underneath: the entire bottom row is deleted, layers included, and everything drops by one.</p>
+        <p class="lock-tag"></p>
+      </div>
+      <div class="hack-item" data-hack="rainbow" data-unlock="exploit-rainbow">
+        <h3><span class="icon">*</span> RAINBOW TABLE<span class="combo"></span></h3>
+        <p>Looks up the most common number on the board and decrypts every bit showing it.</p>
+        <p class="lock-tag"></p>
+      </div>
     </aside>
   </main>
 
@@ -194,19 +204,19 @@
     </div>
   </div>
 
-  <script src="unlocks.js?v=35"></script>
-  <script src="progress.js?v=35"></script>
-  <script src="sfx.js?v=35"></script>
-  <script src="music-theme.js?v=35"></script>
-  <script src="music-sleep-mode.js?v=35"></script>
-  <script src="music-brute-force.js?v=35"></script>
-  <script src="music-deep-web.js?v=35"></script>
-  <script src="music-zero-day.js?v=35"></script>
-  <script src="music-system-restore.js?v=35"></script>
-  <script src="music.js?v=35"></script>
-  <script src="fx.js?v=35"></script>
-  <script src="viz.js?v=35"></script>
-  <script src="script.js?v=36"></script>
-  <script src="grid-bg.js?v=35"></script>
+  <script src="unlocks.js?v=37"></script>
+  <script src="progress.js?v=37"></script>
+  <script src="sfx.js?v=37"></script>
+  <script src="music-theme.js?v=37"></script>
+  <script src="music-sleep-mode.js?v=37"></script>
+  <script src="music-brute-force.js?v=37"></script>
+  <script src="music-deep-web.js?v=37"></script>
+  <script src="music-zero-day.js?v=37"></script>
+  <script src="music-system-restore.js?v=37"></script>
+  <script src="music.js?v=37"></script>
+  <script src="fx.js?v=37"></script>
+  <script src="viz.js?v=37"></script>
+  <script src="script.js?v=37"></script>
+  <script src="grid-bg.js?v=37"></script>
 </body>
 </html>

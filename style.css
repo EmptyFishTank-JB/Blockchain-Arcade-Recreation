@@ -18,6 +18,8 @@
   --fg-dim: #1f7a52;
   --accent: #ffd166; /* exploits, warnings, cracked layers */
   --accent-rgb: 255, 209, 102;
+  --cracked: var(--accent); /* cracked layers; SPECTRUM keeps them still */
+  --inset-bg: rgba(0, 0, 0, 0.35); /* HUD boxes, visualizer */
   --danger: #ff4d5e; /* the trace: overflow and game over */
   --danger-rgb: 255, 77, 94;
   --layer-a: #2a2a2a; /* encryption layer stripes */
@@ -217,6 +219,152 @@
   --heat-peak-bg: #6a1a5c;
 }
 
+/* DOT MATRIX: four shades of olive green, like an old handheld game screen */
+[data-theme="dotmatrix"] {
+  --bg: #0f1f0f;
+  --bg-solid: #081208;
+  --bg-center: #1b331a;
+  --panel: #132613;
+  --panel-text: #b8cf7a;
+  --popup-bg: #102210;
+  --overlay-bg: #0c180c;
+  --grid-line: #2d4f22;
+  --board-bg: #0b1a0b;
+  --cell-bg: #16301a;
+  --fg: #9bbc0f;
+  --fg-rgb: 155, 188, 15;
+  --fg-dim: #4f7a1f;
+  --accent: #e0f0a8;
+  --accent-rgb: 224, 240, 168;
+  --danger: #ff6b4a;
+  --danger-rgb: 255, 107, 74;
+  --layer-a: #24421f;
+  --layer-b: #162b14;
+  --layer-border: #6b8f2a;
+  --layer-text: #8bac0f;
+  --layer-rgb: 139, 172, 15;
+  --exploit-bg: #26301a;
+  --alarm-text: #f4ffd0;
+  --byte-text: #e8f8c0;
+  --hot-rgb: 190, 220, 90;
+  --burst-hot-rgb: 210, 235, 140;
+  --heat-text: #cfe88a;
+  --heat-bg: #2a4a18;
+  --heat-peak-border: #f4ffd0;
+  --heat-peak-text: #fbffe8;
+  --heat-peak-bg: #4d7a1c;
+}
+
+/* DAYLIGHT: dark ink on pale paper, for bright rooms and outdoors */
+[data-theme="daylight"] {
+  --inset-bg: rgba(90, 70, 30, 0.06);
+  --bg: #efeadf;
+  --bg-solid: #e9e3d6;
+  --bg-center: #f7f3ea;
+  --panel: #faf7f0;
+  --panel-text: #3a3f37;
+  --popup-bg: #fbf8f1;
+  --overlay-bg: #faf7f0;
+  --grid-line: #d3cbb8;
+  --board-bg: #ebe5d7;
+  --cell-bg: #fffdf7;
+  --fg: #1c6b3c;
+  --fg-rgb: 28, 107, 60;
+  --fg-dim: #7c8f80;
+  --accent: #a35f00;
+  --accent-rgb: 163, 95, 0;
+  --danger: #c62828;
+  --danger-rgb: 198, 40, 40;
+  --layer-a: #d6d0c2;
+  --layer-b: #c4bdad;
+  --layer-border: #8a8474;
+  --layer-text: #5f5a4c;
+  --layer-rgb: 120, 114, 100;
+  --exploit-bg: #fbefd6;
+  --alarm-text: #6e3f00;
+  --byte-text: #0f4d26;
+  --hot-rgb: 60, 170, 100;
+  --burst-hot-rgb: 40, 150, 80;
+  --heat-text: #0f4d26;
+  --heat-bg: #cfe8d6;
+  --heat-peak-border: #0f4d26;
+  --heat-peak-text: #08331a;
+  --heat-peak-bg: #9fd4b0;
+}
+
+/* GLYPH: bits drawn as shapes, one corner per point of their number, on blueprint blue */
+[data-theme="glyph"] {
+  --bg: #06101f;
+  --bg-solid: #030a15;
+  --bg-center: #0d1f3a;
+  --panel: #0a1830;
+  --panel-text: #cfe0ff;
+  --popup-bg: #081528;
+  --overlay-bg: #070f1c;
+  --grid-line: #1d3a63;
+  --board-bg: #051024;
+  --cell-bg: #0a1a33;
+  --fg: #d8e8ff;
+  --fg-rgb: 216, 232, 255;
+  --fg-dim: #5b7cad;
+  --accent: #ffc857;
+  --accent-rgb: 255, 200, 87;
+  --danger: #ff5a5a;
+  --danger-rgb: 255, 90, 90;
+  --layer-a: #1c2b44;
+  --layer-b: #121d30;
+  --layer-border: #6f86ab;
+  --layer-text: #93a8c9;
+  --layer-rgb: 147, 168, 201;
+  --exploit-bg: #1f1a0a;
+  --alarm-text: #fff6dc;
+  --byte-text: #eef5ff;
+  --hot-rgb: 170, 205, 255;
+  --burst-hot-rgb: 200, 222, 255;
+  --heat-text: #bcd6ff;
+  --heat-bg: #123058;
+  --heat-peak-border: #eef5ff;
+  --heat-peak-text: #ffffff;
+  --heat-peak-bg: #1e4a86;
+}
+
+/* SPECTRUM: every bit cycles through the rainbow on its own; the page drifts slowly behind them */
+[data-theme="spectrum"] {
+  --bg: #07070a;
+  --bg-solid: #030305;
+  --bg-center: #15151c;
+  --panel: #0e0e14;
+  --panel-text: #e6e6f0;
+  --popup-bg: #0c0c12;
+  --overlay-bg: #0a0a0e;
+  --grid-line: #2a2a38;
+  --board-bg: #08080c;
+  --cell-bg: #101018;
+  --fg: #ff4d6d;
+  --fg-rgb: 255, 77, 109;
+  --fg-dim: #8a3a52;
+  --accent: #ffd166;
+  --accent-rgb: 255, 209, 102;
+  --danger: #ff4d5e;
+  --danger-rgb: 255, 77, 94;
+  --layer-a: #2a2a2a;
+  --layer-b: #1a1a1a;
+  --layer-border: #6e6e6e;
+  --layer-text: #8e8e8e;
+  --layer-rgb: 170, 170, 170;
+  --exploit-bg: #1a1405;
+  --alarm-text: #fff4cf;
+  --byte-text: #ffe0ea;
+  --hot-rgb: 255, 150, 180;
+  --burst-hot-rgb: 255, 190, 210;
+  --heat-text: #ffb0c4;
+  --heat-bg: #301018;
+  --heat-peak-border: #ffe0ea;
+  --heat-peak-text: #fff5f8;
+  --heat-peak-bg: #5a1a2c;
+  --cracked: #e4e4e4; /* layers stay still: grey, and near-white once cracked */
+}
+
 * { box-sizing: border-box; }
 
 body {
@@ -275,7 +423,7 @@ h1 span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
   flex: 1;
   min-width: 72px;
   text-align: center;
-  background: rgba(0, 0, 0, 0.35);
+  background: var(--inset-bg);
   border: 1px solid var(--grid-line);
   border-radius: 6px;
   padding: 6px 4px;
@@ -418,8 +566,52 @@ h1 span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
 }
 
 .cell.firewall.cracked {
-  border-color: var(--accent);
-  color: var(--accent);
+  border-color: var(--cracked);
+  color: var(--cracked);
+}
+
+/* GLYPH: a bit is a shape with one corner per point of its number, plus a small number */
+.cell .glyph,
+.next-disc .glyph { display: block; width: 72%; height: 72%; overflow: visible; }
+.next-disc .glyph { width: 18px; height: 18px; }
+.glyph path,
+.glyph polygon { fill: rgba(var(--fg-rgb), 0.14); stroke: currentColor; stroke-width: 7; stroke-linejoin: round; }
+.cell.disc.has-glyph { position: relative; }
+.glyph-num {
+  position: absolute;
+  right: 3px;
+  bottom: 1px;
+  font-size: 9px;
+  line-height: 1;
+  opacity: 0.7;
+}
+.next-disc .glyphs { display: flex; gap: 3px; align-items: center; }
+
+/* SPECTRUM: each bit cycles hue on its own (random speed, start and direction, set per bit
+   by script.js); the rest of the page drifts slowly through the hues together. Grey and
+   white (the layers) are untouched by hue-rotate, so they stay still. */
+@property --bit-h {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+@keyframes bit-hue { from { --bit-h: 0; } to { --bit-h: 360; } }
+@keyframes page-hue { from { filter: hue-rotate(0deg); } to { filter: hue-rotate(360deg); } }
+
+[data-theme="spectrum"] .cell.disc {
+  color: hsl(var(--bit-h) 100% 64%);
+  border-color: hsl(var(--bit-h) 100% 64%);
+  text-shadow: 0 0 6px hsl(var(--bit-h) 100% 64% / 0.6);
+  animation: bit-hue var(--spin, 6s) linear var(--spin-delay, 0s) infinite var(--spin-dir, normal);
+}
+[data-theme="spectrum"] .cabinet,
+[data-theme="spectrum"] footer { animation: page-hue 48s linear infinite; }
+[data-theme="spectrum"] .cell.pop { animation: pop-out 0.16s ease-out forwards; }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-theme="spectrum"] .cell.disc,
+  [data-theme="spectrum"] .cabinet,
+  [data-theme="spectrum"] footer { animation: none; }
 }
 
 .cell.overflow {
@@ -932,8 +1124,8 @@ h1 span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
 .theme-list { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .settings .theme-option {
   align-items: center;
-  gap: 6px;
-  padding: 6px;
+  gap: 4px;
+  padding: 6px 5px;
   font-size: 10px;
   color: var(--fg-dim);
   border-color: var(--grid-line);
@@ -941,7 +1133,7 @@ h1 span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
 .settings .theme-option.active { color: var(--fg); border-color: var(--fg); }
 /* Each swatch carries its theme's data-theme, so it shows that theme's bit, layer and accent colors */
 .swatches { display: flex; gap: 2px; margin-left: auto; }
-.swatches i { display: block; width: 6px; height: 11px; border-radius: 1px; }
+.swatches i { display: block; width: 5px; height: 11px; border-radius: 1px; }
 .swatches i:nth-child(1) { background: var(--fg); }
 .swatches i:nth-child(2) { background: var(--layer-border); }
 .swatches i:nth-child(3) { background: var(--accent); }
@@ -957,13 +1149,13 @@ h1 span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
   padding: 0;
   border: 1px solid var(--grid-line);
   border-radius: 4px;
-  background: rgba(0, 0, 0, 0.35);
+  background: var(--inset-bg);
   cursor: pointer;
   overflow: hidden;
   white-space: normal; /* .settings button uses pre, which would render the markup's newline above the canvas */
 }
 
-.settings .viz-toggle:hover { border-color: var(--fg-dim); background: rgba(0, 0, 0, 0.35); }
+.settings .viz-toggle:hover { border-color: var(--fg-dim); background: var(--inset-bg); }
 
 .viz-toggle canvas { display: block; width: 100%; height: 100%; }
 

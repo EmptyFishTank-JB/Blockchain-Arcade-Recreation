@@ -10,9 +10,17 @@ const FX = (() => {
   const canvas = document.getElementById('board-fx');
   const ctx = canvas.getContext('2d');
   const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // SPECTRUM: each burst of bit fragments picks its own random hue
+  function randomHueRgb() {
+    const h = Math.random() * 6;
+    const x = Math.round(255 * (1 - Math.abs((h % 2) - 1)));
+    const [r, g, b] = [[255, x, 0], [x, 255, 0], [0, 255, x], [0, x, 255], [x, 0, 255], [255, 0, x]][Math.floor(h)];
+    return `${r}, ${g}, ${b}`;
+  }
+
   // Read at burst time so a theme switch applies straight away
   const colors = () => ({
-    number: themeRgb('--fg-rgb', '57, 255, 143'),
+    number: document.documentElement.dataset.theme === 'spectrum' ? randomHueRgb() : themeRgb('--fg-rgb', '57, 255, 143'),
     hack: themeRgb('--accent-rgb', '255, 209, 102'),
     firewall: themeRgb('--layer-rgb', '175, 175, 175'),
     warning: themeRgb('--accent-rgb', '255, 209, 102'),

@@ -34,6 +34,8 @@ lands:
 | Bitflip `[↕]` | 3x | Turns every column upside down |
 | Dictionary Attack `[#]` * | 4x | Every encryption layer on the board loses one level at once |
 | Keylogger `[@]` * | 3x | Shows your next 3 bits for the next 10 drops |
+| Backdoor `[_]` * | 4x | Deletes the entire bottom row, layers included; everything drops by one |
+| Rainbow Table `[*]` * | 5x | Decrypts every bit showing the most common number on the board |
 
 \* Bonus exploits, unlocked by playing (see below).
 
@@ -69,6 +71,12 @@ exploits are open from the start. Everything else is earned by playing:
 | SYNTHWAVE | Score 5,000 in one session |
 | Dictionary Attack | Peel 100 encryption layers |
 | Keylogger | Run 20 exploits |
+| Backdoor | Reveal 50 bits from under encryption layers |
+| Rainbow Table | Decrypt 5,000 bits |
+| DOT MATRIX | Decrypt 2,500 bits |
+| DAYLIGHT | Play 50 sessions |
+| GLYPH | Decrypt 100 of every number from 1 to 7 |
+| SPECTRUM | Earn every other unlock |
 
 The trophy icon (top-left of the terminal) opens **RECORDS**: every unlock
 and all 25 achievements with progress trackers, plus lifetime stats. Newly
@@ -108,6 +116,16 @@ Themes (picked from the swatch grid in settings):
 | MONOCHROME | light grey | striped grey | white | white |
 | REDLINE | red | steel blue | yellow | white |
 | SYNTHWAVE | pink | purple | orange | cyan |
+| DOT MATRIX | olive green | dark green | pale green | red |
+| DAYLIGHT | dark green ink on paper | tan | dark amber | red |
+| GLYPH | shapes on blueprint blue | slate | amber | red |
+| SPECTRUM | each bit cycles the rainbow on its own | grey (still) | near-white (still) | cycles |
+
+GLYPH draws each bit as a shape with one corner per point of its number (1 is
+a teardrop pointing up, 2 a lens, 3 a triangle... 8 an octagon), with a small
+number in the corner. SPECTRUM gives every bit its own random hue speed,
+direction and phase, slowly hue-rotates the rest of the page, and turns the
+background grid into dimmed rainbow blocks; it holds still under reduced motion.
 
 Every color in `style.css` is a named role in `:root`; a theme is a
 `[data-theme="…"]` block that overrides those values, plus an entry in

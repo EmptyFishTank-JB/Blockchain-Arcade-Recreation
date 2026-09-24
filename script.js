@@ -41,6 +41,8 @@ const HACKS = {
   bitflip: { name: 'BITFLIP', icon: '↕', easyCombo: 3 },
   dictionary: { name: 'DICTIONARY ATTACK', icon: '#', easyCombo: 4, unlock: 'exploit-dictionary' },
   keylogger: { name: 'KEYLOGGER', icon: '@', easyCombo: 3, unlock: 'exploit-keylogger' },
+  backdoor: { name: 'BACKDOOR', icon: '_', easyCombo: 4, unlock: 'exploit-backdoor' },
+  rainbow: { name: 'RAINBOW TABLE', icon: '*', easyCombo: 5, unlock: 'exploit-rainbow' },
 };
 const KEYLOGGER_DROPS = 10; // drops the keylogger keeps showing the next bits for
 const KEYLOGGER_PREVIEW = 3;
@@ -169,12 +171,54 @@ function updateColumnButtons() {
   });
 }
 
+// GLYPH theme: each number is a shape with that many corners (1 is a teardrop pointing up,
+// 2 a lens), in a 100x100 box.
+const GLYPHS = {
+  1: '<path d="M50 12 L72.21 48.48 A26 26 0 1 1 27.79 48.48 Z"/>',
+  2: '<path d="M50 12 Q90 52 50 92 Q10 52 50 12 Z"/>',
+  3: '<polygon points="50.0,14.0 84.6,74.0 15.4,74.0"/>',
+  4: '<polygon points="78.3,25.7 78.3,82.3 21.7,82.3 21.7,25.7"/>',
+  5: '<polygon points="50.0,14.0 88.0,41.6 73.5,86.4 26.5,86.4 12.0,41.6"/>',
+  6: '<polygon points="50.0,14.0 84.6,34.0 84.6,74.0 50.0,94.0 15.4,74.0 15.4,34.0"/>',
+  7: '<polygon points="50.0,14.0 81.3,29.1 89.0,62.9 67.4,90.0 32.6,90.0 11.0,62.9 18.7,29.1"/>',
+  8: '<polygon points="65.3,17.0 87.0,38.7 87.0,69.3 65.3,91.0 34.7,91.0 13.0,69.3 13.0,38.7 34.7,17.0"/>',
+};
+const themeIs = (id) => document.documentElement.dataset.theme === id;
+const glyphSvg = (n) => `<svg class="glyph" viewBox="0 0 100 100" aria-hidden="true">${GLYPHS[n]}</svg>`;
+
+// A bit's cell content: [n], or its glyph with a small number under GLYPH.
+function fillBit(el, val) {
+  if (themeIs('glyph')) {
+    el.innerHTML = `${glyphSvg(val)}<span class="glyph-num">${val}</span>`;
+    el.classList.add('has-glyph');
+    el.setAttribute('aria-label', String(val));
+  } else {
+    el.textContent = `[${val}]`;
+    el.classList.remove('has-glyph');
+    el.removeAttribute('aria-label');
+  }
+}
+
+// SPECTRUM: each bit keeps its own random hue speed, direction and phase across re-renders,
+// measured from a shared clock so the cycle carries on smoothly when the board redraws.
+function spinBit(el, cell) {
+  if (!themeIs('spectrum')) return;
+  if (!cell.spin) cell.spin = { dur: 3 + Math.random() * 7, phase: Math.random(), reverse: Math.random() < 0.5 };
+  const { dur, phase, reverse } = cell.spin;
+  const t = performance.now() / 1000 / dur + phase;
+  el.style.setProperty('--spin', `${dur.toFixed(2)}s`);
+  el.style.setProperty('--spin-delay', `${(-(t % 1) * dur).toFixed(2)}s`);
+  el.style.setProperty('--spin-dir', reverse ? 'reverse' : 'normal');
+  el.style.setProperty('--bit-h', String(Math.round(phase * 360))); // still hue under reduced motion
+}
+
 function pieceLabel(piece) {
   return piece.type === 'hack' ? `[${HACKS[piece.id].icon}]` : `[${piece.val}]`;
 }
 
 function showPiece(el, piece) {
-  el.textContent = pieceLabel(piece);
+  if (piece.type === 'number') fillBit(el, piece.val);
+  else el.textContent = pieceLabel(piece);
   el.classList.toggle('hack', piece.type === 'hack');
   el.title = piece.type === 'hack' ? HACKS[piece.id].name : '';
 }
@@ -204,7 +248,8 @@ function render(popped = [], falling = null) {
       if (cell) {
         if (cell.type === 'number') {
           div.classList.add('disc');
-          div.textContent = `[${cell.val}]`;
+          fillBit(div, cell.val);
+          spinBit(div, cell);
         } else if (cell.type === 'hack') {
           div.classList.add('hack');
           div.textContent = pieceLabel(cell);
@@ -253,7 +298,12 @@ function updateHud() {
   nextStatEl.classList.toggle('keylogger', keyloggerDrops > 0);
   if (preview === 1) showPiece(nextEl, queue[1]);
   else if (preview) {
-    nextEl.textContent = queue.slice(1, 1 + preview).map(pieceLabel).join('');
+    const upcoming = queue.slice(1, 1 + preview);
+    if (themeIs('glyph')) {
+      nextEl.innerHTML = `<span class="glyphs">${upcoming.map((p) => (p.type === 'number' ? glyphSvg(p.val) : pieceLabel(p))).join('')}</span>`;
+    } else {
+      nextEl.textContent = upcoming.map(pieceLabel).join('');
+    }
     nextEl.classList.remove('hack');
     nextEl.title = '';
   }
@@ -449,7 +499,7 @@ async function resolveChains() {
 
     chain++;
     cleared += pops.length;
-    Progress.decrypted(pops.length, chain);
+    Progress.decrypted(pops.map((p) => grid[p.row][p.col].val), chain);
     score += pops.length * 10 * chain;
     chainEl.textContent = `${chain}x`;
 
@@ -560,6 +610,42 @@ async function runHack(id, row, col) {
     render();
     SFX.play(revealed ? 'punct' : 'backspace');
     await sleep(300);
+  } else if (id === 'backdoor') {
+    // Delete the whole bottom row, layers included; everything drops by one
+    columns[col].pop();
+    const hits = columns.map((stack, c) => (stack.length ? { row: 0, col: c } : null)).filter(Boolean);
+    FX.burst(cellsAt(hits));
+    render(hits);
+    SFX.play('burst');
+    await sleep(220);
+    for (const h of hits) columns[h.col][0] = null;
+    score += hits.length * 10;
+    await collapse();
+  } else if (id === 'rainbow') {
+    // Decrypt every bit showing the most common number (ties go to the higher number)
+    columns[col].pop();
+    const counts = {};
+    columns.forEach((stack) => stack.forEach((cell) => {
+      if (cell.type === 'number') counts[cell.val] = (counts[cell.val] || 0) + 1;
+    }));
+    const target = Object.keys(counts).map(Number).sort((a, b) => counts[b] - counts[a] || b - a)[0];
+    const hits = [];
+    columns.forEach((stack, c) => stack.forEach((cell, r) => {
+      if (cell.type === 'number' && cell.val === target) hits.push({ row: r, col: c });
+    }));
+    if (hits.length) {
+      setMessage(`RAINBOW TABLE // CRACKED EVERY [${target}]`);
+      FX.burst(cellsAt(hits));
+      render(hits);
+      SFX.play('burst');
+      await sleep(220);
+      for (const h of hits) columns[h.col][h.row] = null;
+      Progress.decrypted(hits.map(() => target), 1);
+      score += hits.length * 10;
+      await collapse();
+    } else {
+      render();
+    }
   } else if (id === 'keylogger') {
     columns[col].pop();
     keyloggerDrops = KEYLOGGER_DROPS;
@@ -758,11 +844,15 @@ updateButtonsPos();
 // Every theme but TERMINAL is unlocked by progress.js (theme-<id>). Keep the head script in index.html in sync.
 const THEMES = [
   { id: 'terminal', label: 'TERMINAL', desc: 'green bits, grey layers, amber cracks and exploits.' },
-  { id: 'cipher', label: 'CIPHER', desc: 'cyan bits, magenta layers, yellow cracks and exploits.', full: true },
-  { id: 'amber', label: 'AMBER CRT', desc: 'an old amber monitor: grey layers, white cracks and exploits.', full: true },
-  { id: 'mono', label: 'MONOCHROME', desc: 'black and white; layers are told apart by stripes and dashed borders.', full: true },
-  { id: 'redline', label: 'REDLINE', desc: 'red-alert intrusion: steel-blue layers, yellow cracks, a white trace.', full: true },
-  { id: 'synthwave', label: 'SYNTHWAVE', desc: 'pink bits, purple layers, orange cracks and a cyan trace.', full: true },
+  { id: 'cipher', label: 'CIPHER', desc: 'cyan bits, magenta layers, yellow cracks and exploits.' },
+  { id: 'amber', label: 'AMBER CRT', desc: 'an old amber monitor: grey layers, white cracks and exploits.' },
+  { id: 'mono', label: 'MONOCHROME', desc: 'black and white; layers are told apart by stripes and dashed borders.' },
+  { id: 'redline', label: 'REDLINE', desc: 'red-alert intrusion: steel-blue layers, yellow cracks, a white trace.' },
+  { id: 'synthwave', label: 'SYNTHWAVE', desc: 'pink bits, purple layers, orange cracks and a cyan trace.' },
+  { id: 'dotmatrix', label: 'DOT MATRIX', desc: 'four shades of olive green, like an old handheld game screen.' },
+  { id: 'daylight', label: 'DAYLIGHT', desc: 'dark ink on pale paper, for bright rooms and outdoors.' },
+  { id: 'glyph', label: 'GLYPH', desc: 'bits become shapes with one corner per point: a teardrop is 1, a triangle 3, an octagon 8.' },
+  { id: 'spectrum', label: 'SPECTRUM', desc: 'every bit cycles through the rainbow on its own while the page drifts slowly behind them.' },
 ];
 const themeAvailable = (t) => t.id === 'terminal' || Progress.isUnlocked(`theme-${t.id}`);
 const themeListEl = document.getElementById('theme-list');
@@ -777,6 +867,11 @@ function applyTheme() {
   if (shown.id === 'terminal') delete document.documentElement.dataset.theme;
   else document.documentElement.dataset.theme = shown.id;
   themeMeta.content = getComputedStyle(document.documentElement).getPropertyValue('--bg-solid').trim();
+  // GLYPH swaps the bits' markup, so redraw the board and HUD (once the game exists)
+  if (columns.length) {
+    render();
+    updateHud();
+  }
   themeNoteEl.textContent = `${shown.label}: ${shown.desc}`;
 
   themeListEl.innerHTML = '';

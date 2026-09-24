@@ -8,6 +8,7 @@ const Progress = (() => {
     games: 0, // sessions started (first drop of a run)
     drops: 0,
     bits: 0, // bits decrypted
+    bitsByValue: {}, // number -> bits of that number decrypted
     bytes: 0, // Hard: BYTE bonuses
     peeled: 0, // encryption layer levels removed
     broken: 0, // layers peeled all the way, revealing a bit
@@ -57,8 +58,15 @@ const Progress = (() => {
     { id: 'theme-mono', group: 'THEMES', name: 'MONOCHROME', need: 'Get a 6x chain', value: () => d.bestChain, goal: 6 },
     { id: 'theme-redline', group: 'THEMES', name: 'REDLINE', need: 'Last 100 drops in one Hard session', value: () => d.bestHardDrops, goal: 100 },
     { id: 'theme-synthwave', group: 'THEMES', name: 'SYNTHWAVE', need: 'Score 5,000 in one session', value: () => d.bestScore, goal: 5000 },
+    { id: 'theme-dotmatrix', group: 'THEMES', name: 'DOT MATRIX', need: 'Decrypt 2,500 bits', value: () => d.bits, goal: 2500 },
+    { id: 'theme-daylight', group: 'THEMES', name: 'DAYLIGHT', need: 'Play 50 sessions', value: () => d.games, goal: 50 },
+    // 1-7 so it can be earned on any difficulty (8s only fall on Hard)
+    { id: 'theme-glyph', group: 'THEMES', name: 'GLYPH', need: 'Decrypt 100 of every number from 1 to 7', value: () => Math.min(...[1, 2, 3, 4, 5, 6, 7].map((n) => d.bitsByValue[n] || 0)), goal: 100 },
+    { id: 'theme-spectrum', group: 'THEMES', name: 'SPECTRUM', need: 'Earn every other unlock', value: () => UNLOCKS.filter((u) => u.id !== 'theme-spectrum' && d.earned[u.id]).length, goal: () => UNLOCKS.length - 1 },
     { id: 'exploit-dictionary', group: 'EXPLOITS', name: 'DICTIONARY ATTACK', need: 'Peel 100 encryption layers', value: () => d.peeled, goal: 100 },
     { id: 'exploit-keylogger', group: 'EXPLOITS', name: 'KEYLOGGER', need: 'Run 20 exploits', value: () => d.exploits, goal: 20 },
+    { id: 'exploit-backdoor', group: 'EXPLOITS', name: 'BACKDOOR', need: 'Reveal 50 bits from under encryption layers', value: () => d.broken, goal: 50 },
+    { id: 'exploit-rainbow', group: 'EXPLOITS', name: 'RAINBOW TABLE', need: 'Decrypt 5,000 bits', value: () => d.bits, goal: 5000 },
   ];
 
   const themeIds = UNLOCKS.filter((u) => u.group === 'THEMES').map((u) => u.id);
@@ -105,7 +113,7 @@ const Progress = (() => {
   function check(quiet = false) {
     const earned = [];
     for (const u of UNLOCKS) {
-      if (!d.earned[u.id] && u.value() >= u.goal) {
+      if (!d.earned[u.id] && u.value() >= goalOf(u)) {
         d.earned[u.id] = true;
         earned.push({ type: 'UNLOCKED', name: u.name });
       }
@@ -123,10 +131,13 @@ const Progress = (() => {
 
   return {
     isUnlocked,
-    unlock: (id) => UNLOCKS.find((u) => u.id === id),
+    unlock(id) {
+      const u = UNLOCKS.find((x) => x.id === id);
+      return u && { ...u, goal: goalOf(u) };
+    },
     setExploitCount(n) { exploitCount = n; },
     // Lists for the RECORDS panel
-    unlocks: () => UNLOCKS.map((u) => ({ ...u, current: u.value(), done: isUnlocked(u.id) })),
+    unlocks: () => UNLOCKS.map((u) => ({ ...u, goal: goalOf(u), current: u.value(), done: isUnlocked(u.id) })),
     achievements: () => ACHIEVEMENTS.map((a) => ({ ...a, goal: goalOf(a), current: a.value(), done: !!d.achieved[a.id] })),
     stats: () => ({ ...d, bestNormal: best('normal'), bestEasy: best('easy'), bestHard: best('hard') }),
 
@@ -144,8 +155,10 @@ const Progress = (() => {
       if (run.difficulty === 'hard') d.bestHardDrops = Math.max(d.bestHardDrops, run.drops);
     },
     runDrops: () => run.drops,
-    decrypted(count, chain) {
-      d.bits += count;
+    // values: the numbers of the bits decrypted
+    decrypted(values, chain) {
+      d.bits += values.length;
+      for (const v of values) d.bitsByValue[v] = (d.bitsByValue[v] || 0) + 1;
       d.bestChain = Math.max(d.bestChain, chain);
     },
     bytes(count) {
