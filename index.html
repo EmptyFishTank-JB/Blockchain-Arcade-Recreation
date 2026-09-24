@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#020403">
 <title>BLOCKCHAIN // arcade recreation</title>
-<link rel="stylesheet" href="style.css?v=25">
+<link rel="stylesheet" href="style.css?v=26">
 </head>
 <body>
   <main class="cabinet">
@@ -20,25 +20,35 @@
     </aside>
 
     <div class="crt">
-      <button type="button" id="playlist-btn" class="playlist-btn" aria-label="Playlist" aria-expanded="false" aria-controls="playlist">
-        <svg viewBox="0 0 32 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path d="M3 9 H8 L14 4 V20 L8 15 H3 Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-          <path d="M18.5 9 Q20.5 12 18.5 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-          <path d="M22 6.5 Q26 12 22 17.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-          <path d="M25.5 4 Q31 12 25.5 20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      <button type="button" id="settings-btn" class="settings-btn" aria-label="Settings and music" aria-expanded="false" aria-controls="settings">
+        <svg viewBox="0 0 60 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="10" cy="12" r="5" stroke="currentColor" stroke-width="2"/>
+          <circle cx="10" cy="12" r="1.6" fill="currentColor"/>
+          <path d="M15 12 L18.2 12 M13.54 15.54 L15.8 17.8 M10 17 L10 20.2 M6.46 15.54 L4.2 17.8 M5 12 L1.8 12 M6.46 8.46 L4.2 6.2 M10 7 L10 3.8 M13.54 8.46 L15.8 6.2" stroke="currentColor" stroke-width="2.4"/>
+          <path d="M28 3 L22 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path d="M33 9 H38 L44 4 V20 L38 15 H33 Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M48.5 9 Q50.5 12 48.5 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M52 6.5 Q56 12 52 17.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
         </svg>
       </button>
-      <div id="playlist" class="playlist" hidden>
-        <p class="playlist-title">// PLAYLIST</p>
+      <div id="settings" class="settings" hidden>
+        <p class="settings-title">// SETTINGS</p>
+        <div class="settings-row">
+          <button type="button" id="sound-btn" class="toggle-btn">SOUND: ON</button>
+          <button type="button" id="music-btn" class="toggle-btn">MUSIC: ON</button>
+        </div>
+        <button type="button" id="buttons-pos-btn" class="toggle-btn on">DROP BUTTONS: BOTTOM</button>
+        <p class="settings-note">Where the 1&ndash;7 drop buttons sit: under the grid (easier to reach on a phone) or above it.</p>
+        <p class="settings-title settings-section">// PLAYLIST</p>
         <button type="button" id="viz-toggle" class="viz-toggle">
           <canvas id="playlist-viz" aria-hidden="true"></canvas>
         </button>
         <ol id="playlist-tracks"></ol>
-        <div class="playlist-options">
-          <button type="button" id="play-mode-btn" class="bg-play-btn">MODE: REPEAT</button>
-          <p class="playlist-note">REPEAT loops the track. SEQUENCE and SHUFFLE play each track 4 times, then fade into the next (in order, or at random).</p>
-          <button type="button" id="bg-play-btn" class="bg-play-btn">BACKGROUND PLAY: OFF</button>
-          <p class="playlist-note">ON keeps the music going when you switch tabs or apps. OFF pauses it until you come back.</p>
+        <div class="settings-options">
+          <button type="button" id="play-mode-btn" class="toggle-btn">MODE: REPEAT</button>
+          <p class="settings-note">REPEAT loops the track. SEQUENCE and SHUFFLE play each track 4 times, then fade into the next (in order, or at random).</p>
+          <button type="button" id="bg-play-btn" class="toggle-btn">BACKGROUND PLAY: OFF</button>
+          <p class="settings-note">ON keeps the music going when you switch tabs or apps. OFF pauses it until you come back.</p>
         </div>
       </div>
       <header>
@@ -76,19 +86,17 @@
       </div>
 
       <div class="board-wrap">
-        <div id="column-buttons" class="column-buttons"></div>
         <div class="board-frame">
           <canvas id="board-bg" aria-hidden="true"></canvas>
           <div id="board" class="board"></div>
         </div>
+        <div id="column-buttons" class="column-buttons"></div>
       </div>
 
       <div id="message" class="message hidden"></div>
 
       <div class="controls">
         <button id="restart-btn">RESTART</button>
-        <button id="sound-btn">SOUND: ON</button>
-        <button id="music-btn">MUSIC: ON</button>
       </div>
     </div>
 
@@ -147,17 +155,17 @@
     </div>
   </div>
 
-  <script src="sfx.js?v=25"></script>
-  <script src="music-theme.js?v=25"></script>
-  <script src="music-sleep-mode.js?v=25"></script>
-  <script src="music-brute-force.js?v=25"></script>
-  <script src="music-deep-web.js?v=25"></script>
-  <script src="music-zero-day.js?v=25"></script>
-  <script src="music-system-restore.js?v=25"></script>
-  <script src="music.js?v=25"></script>
-  <script src="fx.js?v=25"></script>
-  <script src="viz.js?v=25"></script>
-  <script src="script.js?v=25"></script>
-  <script src="grid-bg.js?v=25"></script>
+  <script src="sfx.js?v=26"></script>
+  <script src="music-theme.js?v=26"></script>
+  <script src="music-sleep-mode.js?v=26"></script>
+  <script src="music-brute-force.js?v=26"></script>
+  <script src="music-deep-web.js?v=26"></script>
+  <script src="music-zero-day.js?v=26"></script>
+  <script src="music-system-restore.js?v=26"></script>
+  <script src="music.js?v=26"></script>
+  <script src="fx.js?v=26"></script>
+  <script src="viz.js?v=26"></script>
+  <script src="script.js?v=26"></script>
+  <script src="grid-bg.js?v=26"></script>
 </body>
 </html>

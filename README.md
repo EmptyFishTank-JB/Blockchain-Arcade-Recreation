@@ -44,8 +44,11 @@ High scores are saved in your browser, one per difficulty.
 
 ## Playing
 
-Open `index.html` in a browser. Click a column, or press `1`-`7`, to drop the
-current packet shown in the HUD.
+Open `index.html` in a browser. Tap a numbered drop button (under the grid by
+default), or press `1`-`7`, to drop the current packet shown in the HUD.
+
+The gear/speaker icon in the corner opens the settings: sound and music on or
+off, whether the drop buttons sit under or above the grid, and the playlist.
 
 ## Files
 
@@ -65,11 +68,12 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
   (static when the OS asks for reduced motion)
 - `sfx.js` — synthesized sound effects, mostly ported from the ECHOES terminal
   audio compendium, plus a retro 8-bit "data burst" for clears; toggle with
-  the SOUND button
+  the SOUND button in settings
 - `music.js` — the music player: scheduler, playlist and intensity input.
-  Music starts on your first click or key press (toggle with the MUSIC
-  button) and intensifies as your tallest stack nears the red line (from
-  height 4, full at 6). The speaker icon opens the playlist, which also has
+  Music starts on your first click or key press on track 01 (toggle with the
+  MUSIC button in settings) and intensifies as your tallest stack nears the
+  red line (from height 4, full at 6). The settings panel holds the playlist,
+  which also has
   a small visualizer of the live music (click it to switch between LED bars
   and an oscilloscope wave), a MODE button (REPEAT, or SEQUENCE / SHUFFLE,
   which play each track 4 times and then fade into the next), and the

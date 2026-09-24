@@ -552,6 +552,7 @@ document.querySelectorAll('.difficulty button').forEach((btn) => {
 const soundBtn = document.getElementById('sound-btn');
 function updateSoundBtn() {
   soundBtn.textContent = SFX.isMuted() ? 'SOUND: OFF' : 'SOUND: ON';
+  soundBtn.classList.toggle('on', !SFX.isMuted());
 }
 soundBtn.addEventListener('click', () => {
   SFX.toggle();
@@ -563,6 +564,7 @@ updateSoundBtn();
 const musicBtn = document.getElementById('music-btn');
 function updateMusicBtn() {
   musicBtn.textContent = Music.isEnabled() ? 'MUSIC: ON' : 'MUSIC: OFF';
+  musicBtn.classList.toggle('on', Music.isEnabled());
 }
 musicBtn.addEventListener('click', () => {
   Music.toggle();
@@ -571,9 +573,24 @@ musicBtn.addEventListener('click', () => {
 });
 updateMusicBtn();
 
+// Drop buttons under the grid (default, easier to reach on phones) or above it.
+const boardWrapEl = document.querySelector('.board-wrap');
+const buttonsPosBtn = document.getElementById('buttons-pos-btn');
+let buttonsOnTop = storage.get('blockchain-buttons') === 'top';
+function updateButtonsPos() {
+  boardWrapEl.classList.toggle('buttons-top', buttonsOnTop);
+  buttonsPosBtn.textContent = `DROP BUTTONS: ${buttonsOnTop ? 'TOP' : 'BOTTOM'}`;
+}
+buttonsPosBtn.addEventListener('click', () => {
+  buttonsOnTop = !buttonsOnTop;
+  storage.set('blockchain-buttons', buttonsOnTop ? 'top' : 'bottom');
+  updateButtonsPos();
+});
+updateButtonsPos();
+
 const PLAYLIST_SLOTS = 3; // unmade tracks show as COMING SOON
-const playlistBtn = document.getElementById('playlist-btn');
-const playlistEl = document.getElementById('playlist');
+const settingsBtn = document.getElementById('settings-btn');
+const settingsEl = document.getElementById('settings');
 const playlistTracksEl = document.getElementById('playlist-tracks');
 
 function renderPlaylist() {
@@ -617,7 +634,7 @@ vizBtn.addEventListener('click', () => {
 updateVizLabel();
 
 function visualizerLoop() {
-  if (playlistEl.hidden) return;
+  if (settingsEl.hidden) return;
   playlistViz.draw();
   requestAnimationFrame(visualizerLoop);
 }
@@ -634,7 +651,7 @@ modeBtn.addEventListener('click', () => {
 });
 updateModeBtn();
 Music.onTrackChange(() => {
-  if (!playlistEl.hidden) renderPlaylist();
+  if (!settingsEl.hidden) renderPlaylist();
 });
 
 const bgPlayBtn = document.getElementById('bg-play-btn');
@@ -648,21 +665,21 @@ bgPlayBtn.addEventListener('click', () => {
 });
 updateBgPlayBtn();
 
-function setPlaylistOpen(open) {
-  playlistEl.hidden = !open;
-  playlistBtn.setAttribute('aria-expanded', String(open));
+function setSettingsOpen(open) {
+  settingsEl.hidden = !open;
+  settingsBtn.setAttribute('aria-expanded', String(open));
   if (open) {
     renderPlaylist();
     requestAnimationFrame(visualizerLoop);
   }
 }
 
-playlistBtn.addEventListener('click', () => setPlaylistOpen(playlistEl.hidden));
+settingsBtn.addEventListener('click', () => setSettingsOpen(settingsEl.hidden));
 document.addEventListener('pointerdown', (e) => {
-  if (!playlistEl.hidden && !playlistEl.contains(e.target) && !playlistBtn.contains(e.target)) setPlaylistOpen(false);
+  if (!settingsEl.hidden && !settingsEl.contains(e.target) && !settingsBtn.contains(e.target)) setSettingsOpen(false);
 });
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && !playlistEl.hidden) setPlaylistOpen(false);
+  if (e.key === 'Escape' && !settingsEl.hidden) setSettingsOpen(false);
 });
 
 initGame();

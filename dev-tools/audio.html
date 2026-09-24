@@ -218,7 +218,7 @@
 
   <section id="tracks">
     <h2><span class="sec-num">02</span> Music Tracks</h2>
-    <p class="sec-desc">The playlist tracks, each a 32-bar loop scheduled live by <code>music.js</code>. In the game, music starts on your first click or key press and the speaker icon picks the track. Play one here and drag its intensity slider to hear the danger layers blend in.</p>
+    <p class="sec-desc">The playlist tracks, each a 32-bar loop scheduled live by <code>music.js</code>. In the game, music starts on your first click or key press and the gear/speaker settings icon picks the track. Play one here and drag its intensity slider to hear the danger layers blend in.</p>
     <div id="track-list"></div>
   </section>
 
@@ -637,7 +637,7 @@
     trackList.appendChild(card);
   }
 
-  // Follows the game's BACKGROUND PLAY setting (playlist panel).
+  // Follows the game's BACKGROUND PLAY setting (settings panel).
   document.addEventListener('visibilitychange', () => {
     if (!ctx || !player) return;
     let background = false;
