@@ -284,3 +284,31 @@ document.getElementById('restart-btn').addEventListener('click', initGame);
 document.getElementById('overlay-restart-btn').addEventListener('click', initGame);
 
 initGame();
+
+function formatCentral(isoDate) {
+  const d = new Date(isoDate);
+  const date = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Chicago', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).format(d);
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Chicago', hour: '2-digit', minute: '2-digit', hour12: false, timeZoneName: 'short',
+  }).formatToParts(d);
+  const get = (type) => parts.find((p) => p.type === type).value;
+  const hh = get('hour') === '24' ? '00' : get('hour');
+  return `${date} ${hh}:${get('minute')} ${get('timeZoneName')}`;
+}
+
+fetch('https://api.github.com/repos/EmptyFishTank-JB/Blockchain-Arcade-Recreation/commits?sha=main&per_page=1')
+  .then((r) => {
+    if (!r.ok) throw new Error('bad response');
+    return r.json();
+  })
+  .then((data) => {
+    const c = data[0];
+    document.getElementById('commitInfo').textContent = c.sha.slice(0, 7);
+    document.getElementById('updatedInfo').textContent = formatCentral(c.commit.committer.date);
+  })
+  .catch(() => {
+    document.getElementById('commitInfo').textContent = 'unavailable';
+    document.getElementById('updatedInfo').textContent = 'unavailable';
+  });
