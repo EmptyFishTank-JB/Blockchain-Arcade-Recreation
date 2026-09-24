@@ -75,11 +75,21 @@ The gear/speaker icon in the corner opens the settings: sound and music on or
 off, whether the drop buttons sit under or above the grid, the color theme
 and the playlist.
 
-Themes: **TERMINAL** (default: green bits, grey layers, amber for cracked
-layers and exploits) and **CIPHER** (cyan bits, magenta layers, yellow for
-cracked layers and exploits). Every color in `style.css` is a named role in
-`:root`; a theme is a `:root[data-theme="…"]` block that overrides those
-values, plus an entry in `THEMES` in `script.js`.
+Themes (picked from the swatch grid in settings):
+
+| Theme | Bits | Layers | Cracks & exploits | Trace |
+|---|---|---|---|---|
+| TERMINAL (default) | green | grey | amber | red |
+| CIPHER | cyan | magenta | yellow | orange-red |
+| AMBER CRT | amber | grey | white | red |
+| MONOCHROME | light grey | striped grey | white | white |
+| REDLINE | red | steel blue | yellow | white |
+| SYNTHWAVE | pink | purple | orange | cyan |
+
+Every color in `style.css` is a named role in `:root`; a theme is a
+`[data-theme="…"]` block that overrides those values, plus an entry in
+`THEMES` in `script.js` and in the small theme script in `index.html`'s
+head. All but TERMINAL are part of Full Access.
 
 RESTART and the difficulty buttons ask for a second press mid-run (CONFIRM
 RESTART? / CONFIRM?, which cancels itself after a few seconds), then the

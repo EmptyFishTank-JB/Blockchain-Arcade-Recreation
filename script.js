@@ -731,33 +731,58 @@ buttonsPosBtn.addEventListener('click', () => {
 });
 updateButtonsPos();
 
-// Color themes: each id matches a :root[data-theme] block in style.css ('terminal' is the default :root).
-// full: needs Full Access (see unlocks.js).
+// Color themes: each id matches a [data-theme] block in style.css ('terminal' is the default :root).
+// full: needs Full Access (see unlocks.js). Keep the head script in index.html in sync.
 const THEMES = [
-  { id: 'terminal', label: 'TERMINAL' },
-  { id: 'cipher', label: 'CIPHER', full: true },
+  { id: 'terminal', label: 'TERMINAL', desc: 'green bits, grey layers, amber cracks and exploits.' },
+  { id: 'cipher', label: 'CIPHER', desc: 'cyan bits, magenta layers, yellow cracks and exploits.', full: true },
+  { id: 'amber', label: 'AMBER CRT', desc: 'an old amber monitor: grey layers, white cracks and exploits.', full: true },
+  { id: 'mono', label: 'MONOCHROME', desc: 'black and white; layers are told apart by stripes and dashed borders.', full: true },
+  { id: 'redline', label: 'REDLINE', desc: 'red-alert intrusion: steel-blue layers, yellow cracks, a white trace.', full: true },
+  { id: 'synthwave', label: 'SYNTHWAVE', desc: 'pink bits, purple layers, orange cracks and a cyan trace.', full: true },
 ];
 const themeAvailable = (t) => !t.full || Unlocks.hasFullAccess();
-const themeBtn = document.getElementById('theme-btn');
+const themeListEl = document.getElementById('theme-list');
+const themeNoteEl = document.getElementById('theme-note');
 const themeMeta = document.querySelector('meta[name="theme-color"]');
+// The saved choice is kept even while locked, so it comes back once Full Access is owned.
 let themeId = THEMES.some((t) => t.id === storage.get('blockchain-theme')) ? storage.get('blockchain-theme') : 'terminal';
+
 function applyTheme() {
-  if (!themeAvailable(THEMES.find((t) => t.id === themeId))) themeId = 'terminal'; // stays saved for when it unlocks
-  document.getElementById('theme-note').textContent = Unlocks.hasFullAccess()
-    ? 'TERMINAL: green bits, grey layers. CIPHER: cyan bits, magenta layers.'
-    : 'More themes (like CIPHER: cyan bits, magenta layers) come with Full Access.';
-  if (themeId === 'terminal') delete document.documentElement.dataset.theme;
-  else document.documentElement.dataset.theme = themeId;
+  const theme = THEMES.find((t) => t.id === themeId);
+  const shown = themeAvailable(theme) ? theme : THEMES[0];
+  if (shown.id === 'terminal') delete document.documentElement.dataset.theme;
+  else document.documentElement.dataset.theme = shown.id;
   themeMeta.content = getComputedStyle(document.documentElement).getPropertyValue('--bg-solid').trim();
-  themeBtn.textContent = `THEME: ${THEMES.find((t) => t.id === themeId).label}`;
+  themeNoteEl.textContent = `${shown.label}: ${shown.desc}`
+    + (Unlocks.hasFullAccess() ? '' : ' More themes come with Full Access.');
+
+  themeListEl.innerHTML = '';
+  for (const t of THEMES) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'theme-option';
+    btn.classList.toggle('active', t.id === shown.id);
+    btn.setAttribute('aria-pressed', String(t.id === shown.id));
+    btn.textContent = t.label;
+    const swatches = document.createElement('span');
+    swatches.className = 'swatches';
+    swatches.dataset.theme = t.id;
+    swatches.innerHTML = '<i></i><i></i><i></i>';
+    btn.appendChild(swatches);
+    if (!themeAvailable(t)) {
+      btn.disabled = true;
+      btn.classList.add('locked');
+    } else {
+      btn.addEventListener('click', () => {
+        themeId = t.id;
+        storage.set('blockchain-theme', themeId);
+        applyTheme();
+      });
+    }
+    themeListEl.appendChild(btn);
+  }
 }
-themeBtn.addEventListener('click', () => {
-  const open = THEMES.filter(themeAvailable);
-  if (open.length < 2) return; // nothing to switch to; keep any saved (locked) choice
-  themeId = open[(open.findIndex((t) => t.id === themeId) + 1) % open.length].id;
-  storage.set('blockchain-theme', themeId);
-  applyTheme();
-});
 applyTheme();
 
 const PLAYLIST_SLOTS = 3; // unmade tracks show as COMING SOON

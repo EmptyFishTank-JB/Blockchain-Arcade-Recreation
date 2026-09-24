@@ -1,5 +1,7 @@
-:root {
-  /* Every color is a role, so a theme (:root[data-theme]) only swaps these values.
+/* [data-theme] also works on any element, so the settings panel's theme swatches preview each theme. */
+:root,
+[data-theme="terminal"] {
+  /* Every color is a role, so a theme ([data-theme] on <html>) only swaps these values.
      *-rgb triplets feed rgba() alphas, and fx.js, viz.js and grid-bg.js read them too. */
   --bg: #050a08;
   --bg-solid: #020403; /* flat match for the gradient's edge; also the meta theme-color */
@@ -36,7 +38,7 @@
 }
 
 /* CIPHER: cyan bits, magenta encryption layers that crack to yellow */
-:root[data-theme="cipher"] {
+[data-theme="cipher"] {
   --bg: #04080b;
   --bg-solid: #020306;
   --bg-center: #0b1520;
@@ -69,6 +71,150 @@
   --heat-peak-border: #dcfaff;
   --heat-peak-text: #f0fdff;
   --heat-peak-bg: #124656;
+}
+
+/* AMBER CRT: an old amber monitor, grey layers, white for cracks and exploits */
+[data-theme="amber"] {
+  --bg: #0a0703;
+  --bg-solid: #040301;
+  --bg-center: #1a1206;
+  --panel: #140e05;
+  --panel-text: #f5deb0;
+  --popup-bg: #120c04;
+  --overlay-bg: #0d0a05;
+  --grid-line: #3d2c10;
+  --board-bg: #120b02;
+  --cell-bg: #1a1003;
+  --fg: #ffb000;
+  --fg-rgb: 255, 176, 0;
+  --fg-dim: #8a5f10;
+  --accent: #fff4dc;
+  --accent-rgb: 255, 244, 220;
+  --danger: #ff4d3d;
+  --danger-rgb: 255, 77, 61;
+  --layer-a: #2a2a2a;
+  --layer-b: #1a1a1a;
+  --layer-border: #777;
+  --layer-text: #999;
+  --layer-rgb: 175, 175, 175;
+  --exploit-bg: #1e1a12;
+  --alarm-text: #ffffff;
+  --byte-text: #fff1cc;
+  --hot-rgb: 255, 200, 90;
+  --burst-hot-rgb: 255, 215, 140;
+  --heat-text: #ffd27a;
+  --heat-bg: #2e1f05;
+  --heat-peak-border: #fff1cc;
+  --heat-peak-text: #fffaf0;
+  --heat-peak-bg: #5a3a08;
+}
+
+/* MONOCHROME: black and white; layers told apart by their stripes and dashed borders */
+[data-theme="mono"] {
+  --bg: #070707;
+  --bg-solid: #030303;
+  --bg-center: #151515;
+  --panel: #0f0f0f;
+  --panel-text: #d0d0d0;
+  --popup-bg: #0c0c0c;
+  --overlay-bg: #0a0a0a;
+  --grid-line: #2e2e2e;
+  --board-bg: #080808;
+  --cell-bg: #121212;
+  --fg: #dcdcdc;
+  --fg-rgb: 220, 220, 220;
+  --fg-dim: #6e6e6e;
+  --accent: #ffffff;
+  --accent-rgb: 255, 255, 255;
+  --danger: #ffffff;
+  --danger-rgb: 255, 255, 255;
+  --layer-a: #2c2c2c;
+  --layer-b: #0c0c0c;
+  --layer-border: #8a8a8a;
+  --layer-text: #9a9a9a;
+  --layer-rgb: 150, 150, 150;
+  --exploit-bg: #262626;
+  --alarm-text: #ffffff;
+  --byte-text: #ffffff;
+  --hot-rgb: 230, 230, 230;
+  --burst-hot-rgb: 240, 240, 240;
+  --heat-text: #f0f0f0;
+  --heat-bg: #262626;
+  --heat-peak-border: #ffffff;
+  --heat-peak-text: #ffffff;
+  --heat-peak-bg: #4a4a4a;
+}
+
+/* REDLINE: a red-alert intrusion; steel-blue layers, yellow cracks, a white trace */
+[data-theme="redline"] {
+  --bg: #0a0404;
+  --bg-solid: #040101;
+  --bg-center: #1c0808;
+  --panel: #140707;
+  --panel-text: #f2c4c4;
+  --popup-bg: #120606;
+  --overlay-bg: #0d0505;
+  --grid-line: #401818;
+  --board-bg: #120404;
+  --cell-bg: #1c0606;
+  --fg: #ff4040;
+  --fg-rgb: 255, 64, 64;
+  --fg-dim: #8a2424;
+  --accent: #ffe066;
+  --accent-rgb: 255, 224, 102;
+  --danger: #ffffff;
+  --danger-rgb: 255, 255, 255;
+  --layer-a: #1c2a38;
+  --layer-b: #111a23;
+  --layer-border: #6f95b8;
+  --layer-text: #9cc3e6;
+  --layer-rgb: 111, 149, 184;
+  --exploit-bg: #1e1a08;
+  --alarm-text: #fffbe6;
+  --byte-text: #ffe0e0;
+  --hot-rgb: 255, 120, 120;
+  --burst-hot-rgb: 255, 170, 170;
+  --heat-text: #ff9a9a;
+  --heat-bg: #3a0c0c;
+  --heat-peak-border: #ffe0e0;
+  --heat-peak-text: #fff5f5;
+  --heat-peak-bg: #6a1414;
+}
+
+/* SYNTHWAVE: pink bits, purple layers, orange cracks and a cyan trace */
+[data-theme="synthwave"] {
+  --bg: #0a0410;
+  --bg-solid: #040108;
+  --bg-center: #1c0a2c;
+  --panel: #140a1f;
+  --panel-text: #f3c6ec;
+  --popup-bg: #12081c;
+  --overlay-bg: #0d0614;
+  --grid-line: #3d1a55;
+  --board-bg: #0e0418;
+  --cell-bg: #170826;
+  --fg: #ff5fd2;
+  --fg-rgb: 255, 95, 210;
+  --fg-dim: #8a2f78;
+  --accent: #ffa53a;
+  --accent-rgb: 255, 165, 58;
+  --danger: #3fe6ff;
+  --danger-rgb: 63, 230, 255;
+  --layer-a: #2b1650;
+  --layer-b: #1a0c33;
+  --layer-border: #9d6bff;
+  --layer-text: #c0a0ff;
+  --layer-rgb: 157, 107, 255;
+  --exploit-bg: #221306;
+  --alarm-text: #fff0dc;
+  --byte-text: #ffe0f6;
+  --hot-rgb: 255, 140, 225;
+  --burst-hot-rgb: 255, 180, 235;
+  --heat-text: #ff9fe4;
+  --heat-bg: #3a0f33;
+  --heat-peak-border: #ffe0f6;
+  --heat-peak-text: #fff5fc;
+  --heat-peak-bg: #6a1a5c;
 }
 
 * { box-sizing: border-box; }
@@ -672,6 +818,25 @@ h1 span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
 .settings button:disabled { color: var(--fg-dim); opacity: 0.55; cursor: default; }
 
 .settings-row { display: flex; gap: 6px; margin-bottom: 6px; }
+
+.theme-list { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.settings .theme-option {
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  font-size: 10px;
+  color: var(--fg-dim);
+  border-color: var(--grid-line);
+}
+.settings .theme-option.active { color: var(--fg); border-color: var(--fg); }
+/* Each swatch carries its theme's data-theme, so it shows that theme's bit, layer and accent colors */
+.swatches { display: flex; gap: 2px; margin-left: auto; }
+.swatches i { display: block; width: 6px; height: 11px; border-radius: 1px; }
+.swatches i:nth-child(1) { background: var(--fg); }
+.swatches i:nth-child(2) { background: var(--layer-border); }
+.swatches i:nth-child(3) { background: var(--accent); }
+.settings .theme-option.locked .swatches { opacity: 0.4; }
+.settings .theme-option.locked::after { margin-left: 4px; font-size: 9px; }
 .settings-row .toggle-btn { justify-content: center; }
 
 .settings .viz-toggle {

@@ -7,11 +7,12 @@
 <script>
   // Apply the saved color theme before first paint (script.js owns the setting).
   try {
-    if (localStorage.getItem('blockchain-theme') === 'cipher') document.documentElement.dataset.theme = 'cipher';
+    var theme = localStorage.getItem('blockchain-theme');
+    if (['cipher', 'amber', 'mono', 'redline', 'synthwave'].indexOf(theme) >= 0) document.documentElement.dataset.theme = theme;
   } catch (e) {}
 </script>
 <title>BYTEFALL // decryption terminal</title>
-<link rel="stylesheet" href="style.css?v=33">
+<link rel="stylesheet" href="style.css?v=34">
 </head>
 <body>
   <main class="cabinet">
@@ -46,8 +47,9 @@
         </div>
         <button type="button" id="buttons-pos-btn" class="toggle-btn on">DROP BUTTONS: BOTTOM</button>
         <p class="settings-note">Where the drop buttons sit: under the grid (easier to reach on a phone) or above it.</p>
-        <button type="button" id="theme-btn" class="toggle-btn on">THEME: TERMINAL</button>
-        <p class="settings-note" id="theme-note">TERMINAL: green bits, grey layers. CIPHER: cyan bits, magenta layers.</p>
+        <p class="settings-title settings-section">// THEME</p>
+        <div id="theme-list" class="theme-list" role="group" aria-label="Color theme"></div>
+        <p class="settings-note" id="theme-note"></p>
         <p class="settings-title settings-section">// PLAYLIST</p>
         <button type="button" id="viz-toggle" class="viz-toggle">
           <canvas id="playlist-viz" aria-hidden="true"></canvas>
@@ -175,18 +177,18 @@
     </div>
   </div>
 
-  <script src="unlocks.js?v=32"></script>
-  <script src="sfx.js?v=32"></script>
-  <script src="music-theme.js?v=32"></script>
-  <script src="music-sleep-mode.js?v=32"></script>
-  <script src="music-brute-force.js?v=32"></script>
-  <script src="music-deep-web.js?v=32"></script>
-  <script src="music-zero-day.js?v=32"></script>
-  <script src="music-system-restore.js?v=32"></script>
-  <script src="music.js?v=32"></script>
-  <script src="fx.js?v=32"></script>
-  <script src="viz.js?v=32"></script>
-  <script src="script.js?v=32"></script>
-  <script src="grid-bg.js?v=32"></script>
+  <script src="unlocks.js?v=34"></script>
+  <script src="sfx.js?v=34"></script>
+  <script src="music-theme.js?v=34"></script>
+  <script src="music-sleep-mode.js?v=34"></script>
+  <script src="music-brute-force.js?v=34"></script>
+  <script src="music-deep-web.js?v=34"></script>
+  <script src="music-zero-day.js?v=34"></script>
+  <script src="music-system-restore.js?v=34"></script>
+  <script src="music.js?v=34"></script>
+  <script src="fx.js?v=34"></script>
+  <script src="viz.js?v=34"></script>
+  <script src="script.js?v=34"></script>
+  <script src="grid-bg.js?v=34"></script>
 </body>
 </html>
