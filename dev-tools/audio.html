@@ -154,14 +154,21 @@
   .meter { position: relative; height: 6px; border-radius: 3px; background: var(--panel-2); border: 1px solid var(--line); overflow: hidden; margin-top: 10px; }
   .meter .mark { position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(201, 247, 220, 0.45); }
   .layers { list-style: none; padding: 0 !important; }
-  .layers li { display: grid; grid-template-columns: 215px 1fr 54px; gap: 10px; align-items: center; padding: 4px 0; color: var(--text-dim); transition: color 0.2s; }
+  .layers li { display: grid; grid-template-columns: 215px 1fr 54px 64px; gap: 10px; align-items: center; padding: 4px 0; color: var(--text-dim); transition: color 0.2s; }
   .layers li.on { color: var(--text); }
   .layers .at { font-size: 10.5px; letter-spacing: 0.06em; color: var(--green-dim); }
   .layers li.on .at { color: var(--amber); }
   .layers .lvl { height: 4px; border: 1px solid var(--line); border-radius: 2px; background: var(--panel-2); overflow: hidden; }
   .layers .lvl > span { display: block; height: 100%; width: 0; background: var(--green); }
+  .solo {
+    background: transparent; border: 1px solid var(--line); color: var(--text-dim);
+    font-family: inherit; font-size: 10px; letter-spacing: 0.1em; padding: 3px 0; border-radius: 4px; cursor: pointer;
+  }
+  .solo:hover { border-color: var(--green-dim); color: var(--green); }
+  .solo.on { border-color: var(--amber); color: var(--amber); background: rgba(255, 209, 102, 0.08); }
+  .layers-note { font-size: 11px; color: var(--green-dim); margin: 8px 0 0; }
   @media (max-width: 560px) {
-    .layers li { grid-template-columns: 1fr 54px; }
+    .layers li { grid-template-columns: 1fr 54px 64px; }
     .layers .at { grid-column: 1 / -1; }
   }
   .meter > div { height: 100%; width: 0; background: linear-gradient(90deg, var(--green), var(--amber), var(--red)); transition: width 0.1s linear; }
@@ -236,10 +243,10 @@
   <footer>GENERATED FROM SOURCE &mdash; NO AUDIO FILES, ALL SYNTHESIZED ON PLAY</footer>
 </div>
 
-<script src="../sfx.js?v=14"></script>
-<script src="../music-theme.js?v=14"></script>
-<script src="../music-sleep-mode.js?v=14"></script>
-<script src="../viz.js?v=14"></script>
+<script src="../sfx.js?v=15"></script>
+<script src="../music-theme.js?v=15"></script>
+<script src="../music-sleep-mode.js?v=15"></script>
+<script src="../viz.js?v=15"></script>
 <script>
 (() => {
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -375,6 +382,7 @@
     ui.now.textContent = '';
     ui.meter.style.width = '0';
     showLayers(ui, player.track, 0);
+    ui.soloBtns.forEach((b) => { b.classList.remove('on'); b.textContent = 'SOLO'; });
     ui.media.classList.remove('live');
     showPosition(ui, player.track, 0);
     player = null;
@@ -400,7 +408,7 @@
       if (p.nextTime < c.currentTime) p.nextTime = c.currentTime + 0.02;
       while (p.nextTime < c.currentTime + (document.hidden ? 1.5 : 0.12)) {
         p.intensity += (p.target - p.intensity) * EASE;
-        p.engine.schedule(p.step, p.nextTime, p.intensity);
+        p.engine.schedule(p.step, p.nextTime, p.intensity, p.solo);
         p.nextTime += p.engine.step;
         p.step++;
       }
@@ -408,9 +416,11 @@
       const bar = Math.floor(frac * 32);
       if (!ui.dragging) showPosition(ui, track, frac);
       ui.rows.forEach((r, i) => r.classList.toggle('active', i === Math.floor(bar / 8)));
-      ui.now.textContent = `// NOW PLAYING — BAR ${bar + 1} OF 32 — INTENSITY ${Math.round(p.intensity * 100)}%`;
+      ui.now.textContent = p.solo
+        ? `// NOW PLAYING — BAR ${bar + 1} OF 32 — SOLO: ${track.layers.find((l) => l.id === p.solo).label.toUpperCase()}`
+        : `// NOW PLAYING — BAR ${bar + 1} OF 32 — INTENSITY ${Math.round(p.intensity * 100)}%`;
       ui.meter.style.width = `${p.intensity * 100}%`;
-      showLayers(ui, track, p.intensity);
+      showLayers(ui, track, p.intensity, p.solo);
     }, 25);
     player = p;
     ui.btn.classList.add('playing');
@@ -429,9 +439,9 @@
     return `IN AT ${Math.round(from * 100)}% · STACK ${stack}${stack === 7 ? '+' : ''} · FULL ${full}%`;
   }
 
-  function showLayers(ui, track, intensity) {
-    track.layers.forEach(({ from, span }, i) => {
-      const level = Math.max(0, Math.min(1, (intensity - from) / span));
+  function showLayers(ui, track, intensity, solo = null) {
+    track.layers.forEach(({ id, from, span }, i) => {
+      const level = solo ? Number(id === solo) : Math.max(0, Math.min(1, (intensity - from) / span));
       ui.layerRows[i].classList.toggle('on', level > 0.01);
       ui.layerRows[i].querySelector('.lvl > span').style.width = `${level * 100}%`;
     });
@@ -510,7 +520,8 @@
         <div class="meter"><div></div>${[...new Set(track.layers.map((l) => l.from).filter((f) => f > 0))].map((f) => `<span class="mark" style="left:${f * 100}%"></span>`).join('')}</div>
       </div>
       <div class="uses"><h4>// INTENSITY LAYERS &mdash; WHEN EACH COMES IN</h4><ul class="layers">${track.layers.map((l) => `
-        <li><span class="at">${esc(layerWhen(l))}</span><span>${esc(l.label)}</span><span class="lvl"><span></span></span></li>`).join('')}</ul></div>`;
+        <li><span class="at">${esc(layerWhen(l))}</span><span>${esc(l.label)}</span><span class="lvl"><span></span></span><button type="button" class="solo" data-layer="${esc(l.id)}">SOLO</button></li>`).join('')}</ul>
+        <p class="layers-note">SOLO mutes the rest of the track and plays just what that layer adds, at full strength. Layers that fill gaps go quiet where the track already plays that part: the theme's extra hi-hats and kick in section B and the climax; SLEEP MODE's extra chugs in the drop and breakdown, and its double-kick fills in the drop.</p></div>`;
     const ui = {
       btn: card.querySelector('button.play'),
       rows: [...card.querySelectorAll('.sec-row')],
@@ -520,6 +531,7 @@
       presets: [...card.querySelectorAll('.presets button')],
       meter: card.querySelector('.meter > div'),
       layerRows: [...card.querySelectorAll('.layers li')],
+      soloBtns: [...card.querySelectorAll('.solo')],
       media: card.querySelector('.media'),
       bar: card.querySelector('.media .bar'),
       fill: card.querySelector('.media .fill'),
@@ -560,6 +572,15 @@
     };
     ui.slider.addEventListener('input', () => setTarget(Number(ui.slider.value)));
     ui.presets.forEach((b) => b.addEventListener('click', () => setTarget(Number(b.dataset.v))));
+    ui.soloBtns.forEach((b) => b.addEventListener('click', () => {
+      if (!player || player.track !== track) startTrack(track, ui);
+      player.solo = player.solo === b.dataset.layer ? null : b.dataset.layer;
+      ui.soloBtns.forEach((o) => {
+        const on = o.dataset.layer === player.solo;
+        o.classList.toggle('on', on);
+        o.textContent = on ? '■ SOLO' : 'SOLO';
+      });
+    }));
     setTarget(0);
     ui.btn.addEventListener('click', () => {
       if (player && player.track === track) stopTrack();

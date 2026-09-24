@@ -259,9 +259,13 @@ function createSleepMode(ctx, out) {
     loopSteps: 32 * 16,
     layers: LAYERS,
     output: bus,
-    schedule(step, t, intensity = 0) {
+    // solo: a layer id to hear that layer alone at full strength (dev page)
+    schedule(step, t, intensity = 0, solo = null) {
       const L = {};
-      for (const { id, from, span } of LAYERS) L[id] = Math.max(0, Math.min(1, (intensity - from) / span));
+      for (const { id, from, span } of LAYERS) {
+        L[id] = solo ? Number(id === solo) : Math.max(0, Math.min(1, (intensity - from) / span));
+      }
+      const base = !solo;
       const bar = Math.floor(step / 16) % 32;
       const section = Math.floor(bar / 8); // 0 intro, 1 build, 2 drop, 3 breakdown
       const i = bar % 8;
@@ -271,41 +275,44 @@ function createSleepMode(ctx, out) {
       cabLow.frequency.setTargetAtTime(2200 + 2600 * L.amp, t, 0.3);
 
       // Kick
-      let kicked = false;
-      if (section === 0 && i >= 4 && s === 0) { kick(t, 0.6); kicked = true; }
-      if (section === 1 && s % 4 === 0) { kick(t); kicked = true; }
-      if (section === 2) { kick(t, s % 4 === 0 ? 1 : 0.55); kicked = true; }
-      if (section === 3 && BREAK.includes(s)) { kick(t); kicked = true; }
-      if (!kicked && L.kick > 0) kick(t, 0.5 * L.kick);
+      let kickLevel = 0;
+      if (section === 0 && i >= 4 && s === 0) kickLevel = 0.6;
+      else if (section === 1 && s % 4 === 0) kickLevel = 1;
+      else if (section === 2) kickLevel = s % 4 === 0 ? 1 : 0.55;
+      else if (section === 3 && BREAK.includes(s)) kickLevel = 1;
+      if (kickLevel) { if (base) kick(t, kickLevel); }
+      else if (L.kick > 0) kick(t, 0.5 * L.kick);
 
       // Snare
-      if (section === 1 && i === 7) snare(t, 0.3 + 0.7 * (s / 15));
+      if (!base) { /* soloing a layer: no written snares */ }
+      else if (section === 1 && i === 7) snare(t, 0.3 + 0.7 * (s / 15));
       else if ((section === 1 && i >= 4) || section === 2) { if (s === 4 || s === 12) snare(t); }
       else if (section === 3 && s === 8) snare(t);
 
       // Hats and cymbals
-      if (section === 0 && i >= 4 && s % 4 === 2) hat(t, true, 0.6);
-      else if (section === 1 && s % 4 === 2) hat(t, true);
-      else if (section === 2 && s % 2 === 0) hat(t, false);
-      else if (section === 3 && s % 4 === 0) hat(t, true, 0.8);
+      if (section === 0 && i >= 4 && s % 4 === 2) { if (base) hat(t, true, 0.6); }
+      else if (section === 1 && s % 4 === 2) { if (base) hat(t, true); }
+      else if (section === 2 && s % 2 === 0) { if (base) hat(t, false); }
+      else if (section === 3 && s % 4 === 0) { if (base) hat(t, true, 0.8); }
       else if (L.hats > 0) hat(t, false, L.hats);
-      if (s === 0 && ((section === 1 && i === 0) || (section === 2 && i % 4 === 0) || (section === 3 && i % 2 === 0))) crash(t);
-      if (section === 1 && i === 6 && s === 0) riser(t, STEP * 32);
+      if (base && s === 0 && ((section === 1 && i === 0) || (section === 2 && i % 4 === 0) || (section === 3 && i % 2 === 0))) crash(t);
+      if (base && section === 1 && i === 6 && s === 0) riser(t, STEP * 32);
 
-      // Guitars
-      if (section === 0 && i >= 4 && s === 0) chug(t, root, STEP * 6, 0.6);
-      else if (section === 2 && CHUG[s]) chug(t, root, STEP * 0.9);
-      else if (section === 3 && BREAK.includes(s)) chug(t, root, STEP * 2.5, 1.1);
+      // Guitars (written chugs also carry the amp layer, so they play when it's soloed)
+      const guitar = base || solo === 'amp';
+      if (section === 0 && i >= 4 && s === 0) { if (guitar) chug(t, root, STEP * 6, 0.6); }
+      else if (section === 2 && CHUG[s]) { if (guitar) chug(t, root, STEP * 0.9); }
+      else if (section === 3 && BREAK.includes(s)) { if (guitar) chug(t, root, STEP * 2.5, 1.1); }
       else if (section <= 1 && L.chugs > 0 && s % 2 === 0) chug(t, root, STEP * 0.9, 0.7 * L.chugs);
 
       // Synths
-      if (s === 0 && section !== 2) pad(t, PADS[i], STEP * 16, section === 1 ? 0.02 : 0.03);
-      if (section === 1 || section === 2) pluck(t, tones[ARP[s % 8]] + 24, L.amp);
+      if (base && s === 0 && section !== 2) pad(t, PADS[i], STEP * 16, section === 1 ? 0.02 : 0.03);
+      if ((section === 1 || section === 2) && guitar) pluck(t, tones[ARP[s % 8]] + 24, L.amp);
       if (L.alarm > 0 && s % 2 === 0) alarm(t, s % 4 ? 84 : 81, L.alarm);
 
       // Lullaby
       for (const [start, m, len] of LULLABY[i]) {
-        if (start !== s) continue;
+        if (!base || start !== s) continue;
         if (section === 0) musicBox(t, m);
         else if (section === 3) musicBox(t, m + 12, 0.8);
         else supersaw(t, m + 12, len * STEP, section === 2 ? 0.035 : 0.03);

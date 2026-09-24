@@ -222,9 +222,13 @@ function createSynthwave(ctx, out) {
     loopSteps: 32 * 16,
     layers: LAYERS,
     output: bus,
-    schedule(step, t, intensity = 0) {
+    // solo: a layer id to hear that layer alone at full strength (dev page)
+    schedule(step, t, intensity = 0, solo = null) {
       const L = {};
-      for (const { id, from, span } of LAYERS) L[id] = Math.max(0, Math.min(1, (intensity - from) / span));
+      for (const { id, from, span } of LAYERS) {
+        L[id] = solo ? Number(id === solo) : Math.max(0, Math.min(1, (intensity - from) / span));
+      }
+      const base = !solo;
       const bar = Math.floor(step / 16) % 32;
       const section = Math.floor(bar / 8);
       const i = bar % 8;
@@ -234,22 +238,22 @@ function createSynthwave(ctx, out) {
       const sparse = section === 0 && i < 4;
 
       const kickHit = !sparse && (drive ? s % 4 === 0 : s === 0 || s === 8 || (s === 10 && bar % 2 === 1));
-      if (kickHit) kick(t);
+      if (kickHit) { if (base) kick(t); }
       else if (s % 4 === 0 && L.kick > 0) kick(t, 0.8 * L.kick);
-      if (!sparse) {
+      if (base && !sparse) {
         if (s === 4 || s === 12) snare(t);
         if (i === 7 && (section === 0 || section === 2) && s > 12) snare(t, 0.4 + (s - 12) * 0.2);
       }
-      if (drive || s % 2 === 0) hat(t, s % 4 === 2);
+      if (drive || s % 2 === 0) { if (base) hat(t, s % 4 === 2); }
       else if (L.hats > 0) hat(t, false, L.hats);
-      if (s % 2 === 0) bass(t, roots[i] + (s % 4 === 2 ? 12 : 0), STEP * 1.8, L.bright);
-      if (s === 0) pad(t, chords[i], STEP * 16);
+      if (s % 2 === 0 && (base || solo === 'bright')) bass(t, roots[i] + (s % 4 === 2 ? 12 : 0), STEP * 1.8, L.bright);
+      if (base && s === 0) pad(t, chords[i], STEP * 16);
       const tones = [...chords[i], chords[i][0] + 12];
-      arp(t, tones[ARP[s % 8]] + 12, L.bright);
+      if (base || solo === 'bright') arp(t, tones[ARP[s % 8]] + 12, L.bright);
       if (L.tension > 0) tension(t, (s % 2 ? chords[i][2] : chords[i][0]) + 24, L.tension);
 
       const melody = section === 1 || section === 3 ? MELODY_1 : section === 2 ? MELODY_2 : null;
-      if (melody) {
+      if (base && melody) {
         for (const [start, m, len] of melody[i]) {
           if (start !== s) continue;
           lead(t, m, len * STEP);

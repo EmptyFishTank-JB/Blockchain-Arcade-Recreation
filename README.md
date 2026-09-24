@@ -85,7 +85,7 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
 - `dev-tools/audio.html` — the audio compendium, opened by the `</>` icon in
   the footer: every sound effect and track with a play button, where each is
   used in the game, a seekable progress line and a live intensity slider for
-  each track
+  each track, and a SOLO button per intensity layer to hear just what it adds
 - `audio/` — offline WAV renders of the music for reference (not loaded by
   the game): `blockchain-theme-v1.wav` is the original 16-bar loop,
   `blockchain-theme-v2.wav` the current 32-bar version,
