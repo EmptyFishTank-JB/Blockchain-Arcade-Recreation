@@ -463,7 +463,10 @@ function fitBoard() {
   const frame = document.querySelector('.board-frame');
   boardWrapEl.style.maxWidth = '';
   const cssMax = boardWrapEl.getBoundingClientRect().width;
+  // (the card's contents, not the card: on phones the card fills the screen height)
+  crtEl.classList.add('measuring');
   const rest = crtEl.getBoundingClientRect().height - frame.getBoundingClientRect().height;
+  crtEl.classList.remove('measuring');
   const pad = parseFloat(getComputedStyle(document.body).paddingTop) * 2;
   const ratio = frame.offsetHeight / frame.offsetWidth;
   const width = Math.max(MIN_BOARD, Math.min(cssMax, (window.innerHeight - pad - rest) / ratio));

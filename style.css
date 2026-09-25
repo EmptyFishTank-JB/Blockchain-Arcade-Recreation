@@ -1794,3 +1794,10 @@ body.cards-in-settings .settings .dev-link { display: inline-flex; margin-top: 6
   .hud-bits.has-next { flex: 2 1 110px; }
   .hud .stat .label { font-size: 8px; letter-spacing: 0.5px; }
 }
+
+/* Phones and the app: the game card fills the screen height with the same 16px gap at the top and
+   bottom as at the sides; its contents center vertically inside it */
+body.cards-in-settings { padding: 16px; height: 100vh; height: 100dvh; min-height: 0; }
+body.cards-in-settings .cabinet { height: 100%; grid-template-areas: "game"; grid-template-rows: minmax(0, 1fr); gap: 0; }
+body.cards-in-settings .crt { height: 100%; display: flex; flex-direction: column; justify-content: center; }
+body.cards-in-settings .crt.measuring { height: auto; } /* script.js's fitBoard measures the contents */
