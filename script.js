@@ -1612,6 +1612,7 @@ function nextToast() {
   if (!text) return;
   toastEl.textContent = text;
   toastEl.hidden = false;
+  placeToast();
   toastEl.classList.remove('show');
   void toastEl.offsetWidth; // restart the pop-in animation
   toastEl.classList.add('show');
@@ -1621,6 +1622,20 @@ function nextToast() {
     setTimeout(nextToast, 250);
   }, 2200);
 }
+
+// Centers the pop-up over the overflow row, masking its blocks; falls back to
+// the top of the screen when the board isn't on screen
+function placeToast() {
+  const row = boardEl.querySelectorAll('.cell.overflow');
+  const a = row[0] && row[0].getBoundingClientRect();
+  const z = row.length && row[row.length - 1].getBoundingClientRect();
+  const onBoard = a && a.width > 0 && a.bottom > 0 && a.top < innerHeight;
+  toastEl.classList.toggle('on-board', !!onBoard);
+  toastEl.style.top = onBoard ? `${(a.top + a.bottom) / 2}px` : '';
+  toastEl.style.left = onBoard ? `${(a.left + z.right) / 2}px` : '';
+}
+window.addEventListener('resize', () => toastEl.hidden || placeToast());
+window.addEventListener('scroll', () => toastEl.hidden || placeToast(), { passive: true });
 
 // Track unlocks are named TRACK 03 etc.; add the title once the track exists.
 function unlockLabel(name) {

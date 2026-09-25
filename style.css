@@ -1236,7 +1236,7 @@ h1 span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
   top: 14px;
   left: 50%;
   z-index: 110;
-  transform: translateX(-50%);
+  translate: -50% 0;
   max-width: calc(100vw - 32px);
   padding: 8px 14px;
   background: var(--popup-bg);
@@ -1250,6 +1250,8 @@ h1 span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
   box-shadow: 0 0 16px rgba(var(--accent-rgb), 0.35);
 }
 .toast[hidden] { display: none; }
+/* Centered over the overflow row (placed by placeToast() in script.js) */
+.toast.on-board { translate: -50% -50%; white-space: nowrap; }
 .toast.show { animation: byte-in 0.35s ease-out; }
 
 .settings-btn {
