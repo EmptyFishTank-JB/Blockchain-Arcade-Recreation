@@ -235,10 +235,11 @@ function newPacket(stream = 'reveal') {
   return { type: 'number', val: 1 + Math.floor(dice[stream]() * COLS) };
 }
 
-// Points for a block cleared: a bit is worth 10 plus its number ([4] is 14), anything else 10.
-// Chains multiply the bits they decrypt.
+// Points for a bit a chain decrypts: 10 plus its number ([4] is 14), times the chain.
+// Blocks wiped out by exploits are a flat 10 each.
 const blockPoints = (cell) => 10 + (cell && cell.type === 'number' ? cell.val : 0);
-const pointsFor = (positions) => positions.reduce((n, { row, col }) => n + blockPoints(columns[col][row]), 0);
+const EXPLOIT_POINTS = 10;
+const pointsFor = (positions) => positions.length * EXPLOIT_POINTS;
 
 function newFirewall(level = 2) {
   return { type: 'firewall', level };
@@ -1090,7 +1091,7 @@ async function runHack(id, row, col) {
       await sleep(220);
       for (const h of hits) columns[h.col][h.row] = null;
       Progress.decrypted(hits.map(() => target), 1);
-      score += hits.length * (10 + target);
+      score += pointsFor(hits);
       await collapse();
     } else {
       render();
@@ -1842,7 +1843,7 @@ function renderRecords() {
   });
   recordsBodyEl.innerHTML = '';
   if (recordsTab === 'unlocks') {
-    // Level and prestige, with PRESTIGE (two presses) once at Lv 80
+    // Level and prestige, with PRESTIGE (four presses) once at Lv 80
     const lv = Progress.levelInfo();
     const box = document.createElement('div');
     box.className = 'rec-level';
@@ -1864,10 +1865,14 @@ function renderRecords() {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'rec-prestige';
-      btn.textContent = `PRESTIGE TO ${lv.prestige + 1}`;
+      btn.textContent = `PRESTIGE TO ${lv.prestige + 1}?`;
+      // Each press arms the next warning (for a few seconds); the fourth one prestiges
+      const warnings = ['CONFIRM? EXPLOITS LOCK AGAIN', 'NO GOING BACK. ARE YOU SURE?', 'YES, ENCRYPT MY PROGRESS!!'];
+      let stage = 0;
       btn.addEventListener('click', () => {
-        if (!armed || armed.btn !== btn) {
-          armReset(btn, 'CONFIRM? EXPLOITS LOCK AGAIN');
+        if (!armed || armed.btn !== btn) stage = 0;
+        if (stage < warnings.length) {
+          armReset(btn, warnings[stage++]);
           return;
         }
         disarmReset();

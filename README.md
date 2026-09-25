@@ -15,6 +15,7 @@ Mechanically it's a Drop7-style puzzle:
   line it sits in, across or down (e.g. a `[5]` decrypts when it's part of an
   unbroken run of exactly 5 filled cells in its row or column).
 - A decrypted bit scores 10 plus its number (a `[4]` is 14, a `[7]` is 17).
+  Blocks wiped out by exploits score a flat 10.
 - Decrypts chain: bits above fall into the gap and may make new matches.
   Chains multiply the points.
 - Every 8 drops a row of encryption layers (`[=]`) rises from the bottom.
@@ -85,7 +86,7 @@ Lv 1 to **Lv 80**. Lv 80's bar fills at 8,000 bits, so a full prestige is
 exactly **1 kilobyte**. The level bar sits under the title; tapping it opens
 RECORDS.
 
-**Prestige.** With Lv 80 full, PRESTIGE (in RECORDS → UNLOCKS, two presses)
+**Prestige.** With Lv 80 full, PRESTIGE (in RECORDS → UNLOCKS, four presses)
 starts you again at Lv 1 with prestige +1. Exploits and slots lock again, but
 prestige N keeps N slots (up to 6) and the first N exploits for good, and the
 rest unlock sooner. Each prestige also permanently unlocks the next theme.
