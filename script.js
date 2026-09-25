@@ -18,14 +18,21 @@ const HARD_MIN_INTERVAL = 4;
 const HARD_POINTS_PER_STEP = 700; // hard mode loses one drop per this many points
 const BYTE_BITS = 8; // Hard: every 8 bits decrypted by one drop is a byte...
 const BYTE_BONUS = 256; // ...worth 2^8 points
+const NIBBLE_BITS = 4; // Easy and Normal: every 4 is a nibble...
+const NIBBLE_BONUS = 16; // ...worth 2^4 points
+// The bonus a drop's decrypts earn: a BYTE on Hard, a NIBBLE on Easy and Normal
+const PACKETS = {
+  byte: { name: 'BYTE', plural: 'BYTES', bits: BYTE_BITS, bonus: BYTE_BONUS },
+  nibble: { name: 'NIBBLE', plural: 'NIBBLES', bits: NIBBLE_BITS, bonus: NIBBLE_BONUS },
+};
 
 const DIFFICULTIES = {
-  easy: { label: 'EASY', size: 7, showNext: true, interval: () => BASE_INTERVAL },
-  normal: { label: 'NORMAL', size: 7, showNext: false, interval: () => BASE_INTERVAL },
+  easy: { label: 'EASY', size: 7, packet: 'nibble', showNext: true, interval: () => BASE_INTERVAL },
+  normal: { label: 'NORMAL', size: 7, packet: 'nibble', showNext: false, interval: () => BASE_INTERVAL },
   hard: {
     label: 'HARD',
     size: 8,
-    byteBonus: true,
+    packet: 'byte',
     showNext: false,
     interval: (pts) => Math.max(HARD_MIN_INTERVAL, BASE_INTERVAL - Math.floor(pts / HARD_POINTS_PER_STEP)),
   },
@@ -842,12 +849,14 @@ function hackForChain(chain) {
   return ids[Math.floor(dice.hack() * ids.length)];
 }
 
-// Hard: 8 bits decrypted by one drop make a byte.
-async function awardBytes(bytes) {
-  score += bytes * BYTE_BONUS;
-  Progress.bytes(bytes);
+// Hard: 8 bits decrypted by one drop make a byte. Easy and Normal: 4 make a nibble.
+async function awardPackets(kind, count) {
+  const packet = PACKETS[kind];
+  score += count * packet.bonus;
+  if (kind === 'byte') Progress.bytes(count);
+  else Progress.nibbles(count);
   updateHud();
-  setMessage(`${bytes > 1 ? `${bytes} BYTES` : 'BYTE'} DECRYPTED // +${bytes * BYTE_BONUS}`, 'byte');
+  setMessage(`${count > 1 ? `${count} ${packet.plural}` : packet.name} DECRYPTED // +${count * packet.bonus}`, 'byte');
   SFX.play('egg');
   await sleep(900);
   burstMessage('number');
@@ -955,8 +964,9 @@ async function resolveChains() {
 
   if (chain > 0) {
     await sleep(300);
-    const bytes = DIFFICULTIES[difficulty].byteBonus ? Math.floor(cleared / BYTE_BITS) : 0;
-    if (bytes) await awardBytes(bytes);
+    const kind = mode === 'puzzle' ? null : DIFFICULTIES[difficulty].packet;
+    const packets = kind ? Math.floor(cleared / PACKETS[kind].bits) : 0;
+    if (packets) await awardPackets(kind, packets);
     const hack = MODES[mode].noHacks ? null : hackForChain(chain);
     if (hack) awardHack(hack);
     else setMessage('');
@@ -2003,6 +2013,7 @@ function renderRecords() {
       ['SESSIONS PLAYED', fmt(s.games)],
       ['TOTAL DROPS', fmt(s.drops)],
       ['BITS DECRYPTED', fmt(s.bits)],
+      ['NIBBLES DECRYPTED', fmt(s.nibbles)],
       ['BYTES DECRYPTED', fmt(s.bytes)],
       ['LAYERS PEELED', fmt(s.peeled)],
       ['BITS REVEALED', fmt(s.broken)],

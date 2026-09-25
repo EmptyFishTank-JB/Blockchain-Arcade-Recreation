@@ -69,12 +69,14 @@ own best score.
 
 | Setting | Effect |
 |---|---|
-| Easy | Shows the next bit, and exploits unlock at 3x–5x depending on the exploit |
-| Normal | New encryption layer every 8 drops |
+| Easy | Shows the next bit, and exploits unlock at 3x–5x depending on the exploit; NIBBLE bonus |
+| Normal | New encryption layer every 8 drops; NIBBLE bonus |
 | Hard | A full byte: 8×8 grid with bits 1-8; new layer every 8 drops, minus one per 700 points, down to every 4; BYTE bonus |
 
 On Hard, every 8 bits a single drop decrypts, chains included, make a byte:
-**BYTE DECRYPTED** adds a 256-point (2^8) bonus per byte.
+**BYTE DECRYPTED** adds a 256-point (2^8) bonus per byte. On Easy and Normal
+(and the modes that play Normal rules, all but PUZZLE), every 4 bits make a
+nibble: **NIBBLE DECRYPTED** adds a 16-point (2^4) bonus per nibble.
 
 High scores are saved in your browser, one per difficulty (Hard's started
 fresh when it moved to 8×8).

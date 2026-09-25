@@ -17,6 +17,7 @@ const Progress = (() => {
     bits: 0, // bits decrypted
     bitsByValue: {}, // number -> bits of that number decrypted
     bytes: 0, // Hard: BYTE bonuses
+    nibbles: 0, // Easy and Normal: NIBBLE bonuses
     peeled: 0, // encryption layer levels removed
     broken: 0, // layers peeled all the way, revealing a bit
     exploits: 0, // exploits run
@@ -534,6 +535,7 @@ const Progress = (() => {
       run.bytes += count;
       d.bestDropBytes = Math.max(d.bestDropBytes, count);
     },
+    nibbles(count) { d.nibbles += count; },
     peeled(broken) {
       d.peeled++;
       if (broken) {
