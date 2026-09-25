@@ -1959,6 +1959,20 @@ function applyFont() {
     }
     fontListEl.appendChild(btn);
   }
+  fitFontNames();
+}
+// Each font's name shrinks (from its normal size) until it fits its box; only measurable while
+// SETTINGS is open, so it also runs when the panel opens
+function fitFontNames() {
+  if (document.getElementById('settings').hidden) return;
+  for (const btn of fontListEl.children) {
+    btn.style.fontSize = '';
+    let size = parseFloat(getComputedStyle(btn).fontSize);
+    while (btn.scrollWidth > btn.clientWidth && size > 6) {
+      size -= 0.5;
+      btn.style.fontSize = `${size}px`;
+    }
+  }
 }
 applyFont();
 
@@ -2054,6 +2068,7 @@ function setSettingsOpen(open) {
   settingsBtn.setAttribute('aria-expanded', String(open));
   if (open) {
     renderPlaylist();
+    fitFontNames();
     requestAnimationFrame(visualizerLoop);
   }
 }
