@@ -146,6 +146,13 @@ const MODES = {
       return daily ? `DAILY PUZZLE // ${date} // ${WEEKDAYS[utcWeekday()]}, DIFFICULTY ${utcWeekday() + 1}/7: ${rule} Retry as often as you like.` : rule;
     },
   },
+  vs: {
+    label: 'VS CPU',
+    // Rising layers are optional in VS (the LAYERS toggle); both boards get them when on
+    get noLayers() { return !vsLayers; },
+    noHacks: true,
+    info: () => `VS CPU // ${CpuBoard.LEVELS[vsLevel].label} // LAYERS ${vsLayers ? 'ON' : 'OFF'}: your chains send encrypted blocks onto the CPU's board, and its chains send them onto yours. Your chains cancel blocks headed your way first. The first to overflow loses. The CPU starts with your first drop.`,
+  },
   breach: {
     label: 'BREACH',
     noLayers: true, // the firewall is built at the start; no new layers rise
@@ -162,7 +169,10 @@ const firstUnsolved = () => {
 let puzzleIndex = Math.min(Number(storage.get('bytefall-puzzle')) || firstUnsolved(), firstUnsolved());
 let overlayNext = null; // what the overlay button does in PUZZLE: 'next' or 'retry'
 // The mode row's choice ('daily' or one of MODES) and the daily game under it
-const TOP_MODES = ['classic', 'daily', 'blitz', 'zen', 'puzzle'];
+const TOP_MODES = ['classic', 'daily', 'blitz', 'zen', 'puzzle', 'vs'];
+// VS CPU: the opponent's level
+let vsLevel = CpuBoard.LEVELS[storage.get('bytefall-vs-level')] ? storage.get('bytefall-vs-level') : 'normal';
+let vsLayers = storage.get('bytefall-vs-layers') !== 'off'; // new layer rows every 8 drops, for both boards
 let topMode = TOP_MODES.includes(storage.get('bytefall-mode')) ? storage.get('bytefall-mode') : 'classic';
 let dailyKind = DAILY_KINDS[storage.get('bytefall-daily-kind')] ? storage.get('bytefall-daily-kind') : 'decrypt';
 let daily = false;
@@ -207,10 +217,15 @@ function setupDice() {
   if (daily) {
     const day = todayKey();
     for (const stream of Object.keys(dice)) dice[stream] = seeded(hashString(`bytefall:${day}:${dailyTag()}${stream}`));
+  } else if (mode === 'vs') {
+    // You and the CPU get the same bits, in the same order
+    vsSeed = Math.floor(Math.random() * 2 ** 31);
+    for (const stream of Object.keys(dice)) dice[stream] = seeded(hashString(`bytefall:vs:${vsSeed}:${stream}`));
   } else {
     for (const stream of Object.keys(dice)) dice[stream] = Math.random;
   }
 }
+let vsSeed = 0;
 
 // BLITZ clock: counts down from the first drop, paused while the tab is hidden
 let timeLeft = BLITZ_SECONDS;
@@ -294,6 +309,7 @@ function initGame() {
   refillQueue();
   if (mode === 'puzzle') loadPuzzle();
   if (mode === 'breach') buildBreachWall();
+  startVs();
   score = 0;
   best = Number(storage.get(daily ? dailyKey() : bestKey())) || 0;
   bestAtStart = best;
@@ -707,6 +723,7 @@ async function attemptDrop(col) {
   chainEl.textContent = '0x';
   setMessage('');
   const piecesBefore = columns.reduce((n, c) => n + c.length, 0);
+  const scoreBefore = score;
   const piece = queue.shift();
   refillQueue();
   if (keyloggerDrops > 0) keyloggerDrops--;
@@ -759,6 +776,7 @@ async function attemptDrop(col) {
     if (piecesBefore >= 5 && Progress.runDrops() >= 10 && columns.every((c) => c.length === 0)) Progress.sweep();
     if (sniffedOut) Progress.wiretap();
   }
+  if (mode === 'vs' && !overflowed()) await vsAfterDrop(score - scoreBefore);
   Progress.endDrop({
     hack: piece.type === 'hack', heights: columns.map((c) => c.length), rows: ROWS, over: overflowed(),
     lastSecond: mode === 'blitz' && timeLeft <= 1,
@@ -776,6 +794,7 @@ function finishTurn() {
   announce(Progress.check());
   if (overflowed()) endGame();
   else if (timeUp) endGame('time');
+  else if (cpuDown) endGame('win');
   else if (breached) endGame('breached');
   else if (dealLimit() < Infinity && !queue.length) endGame('daily');
   else if (mode === 'puzzle') checkPuzzle();
@@ -1206,7 +1225,13 @@ function endGame(reason = 'trace') {
     time: ["TIME'S UP", 'The connection timed out.'],
     daily: [mode === 'breach' ? 'BREACH COMPLETE' : 'DAILY COMPLETE', `All ${dealLimit()} bits dropped.`],
     breached: ['FIREWALL BREACHED', `Every block cleared. +${BREACH_CLEAR_BONUS}`],
+    win: ['YOU WIN', `The ${CpuBoard.LEVELS[vsLevel].label} CPU overflowed first.`],
   };
+  if (mode === 'vs') {
+    if (reason === 'trace') endings.trace = ['CPU WINS', `The ${CpuBoard.LEVELS[vsLevel].label} CPU traced you first.`];
+    Progress.vsResult(vsLevel, reason === 'win');
+    stopVs();
+  }
   document.getElementById('overlay-title').textContent = endings[reason][0];
   document.getElementById('overlay-sub').textContent = endings[reason][1];
   const note = document.getElementById('overlay-note');
@@ -1356,6 +1381,27 @@ document.querySelectorAll('.modes button').forEach((btn) => {
   });
 });
 
+// VS CPU: LAYERS ON / OFF
+const vsLayersBtn = document.getElementById('vs-layers-btn');
+vsLayersBtn.addEventListener('click', () => {
+  requestReset(vsLayersBtn, 'CONFIRM?', () => {
+    vsLayers = !vsLayers;
+    storage.set('bytefall-vs-layers', vsLayers ? 'on' : 'off');
+  });
+});
+
+// VS CPU's opponent level
+document.querySelectorAll('#vs-levels button[data-vs]').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const next = btn.dataset.vs;
+    if (next === vsLevel) return;
+    requestReset(btn, 'CONFIRM?', () => {
+      vsLevel = next;
+      storage.set('bytefall-vs-level', next);
+    });
+  });
+});
+
 // DAILY's games: DECRYPT, PUZZLE, BLITZ, BREACH
 document.querySelectorAll('#daily-kinds button').forEach((btn) => {
   btn.addEventListener('click', () => {
@@ -1383,6 +1429,13 @@ function applyModeUi() {
   info.textContent = mode === 'classic' ? '' : MODES[mode].info(todayKey());
   document.getElementById('difficulty-row').hidden = mode !== 'classic';
   document.getElementById('daily-kinds').hidden = !daily;
+  document.getElementById('vs-levels').hidden = mode !== 'vs';
+  document.querySelectorAll('#vs-levels button[data-vs]').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.vs === vsLevel);
+  });
+  vsLayersBtn.textContent = `LAYERS: ${vsLayers ? 'ON' : 'OFF'}`;
+  vsLayersBtn.classList.toggle('active', vsLayers);
+  document.body.classList.toggle('vs-mode', mode === 'vs'); // a slimmer header, room for the boards
   document.getElementById('pulse-stat').hidden = !!MODES[mode].noLayers && mode !== 'puzzle' && mode !== 'breach';
   document.getElementById('pulse-label').textContent = mode === 'puzzle' ? 'BITS LEFT' : mode === 'breach' ? 'LAYERS LEFT' : 'NEW LAYER IN';
   puzzleNavEl.hidden = mode !== 'puzzle' || daily;
@@ -1422,6 +1475,161 @@ setInterval(() => {
     if (!busy) endGame('time'); // mid-drop: finishTurn ends it once the drop resolves
   }
 }, 200);
+
+// VS CPU. Your chains attack: every VS_POINTS_PER_BLOCK points a drop scores sends one encrypted
+// block (up to a full board row pair at once). Attacks cancel blocks headed your way first; what's
+// left lands on the other board after its next move, on top of random columns, as one-peel
+// layers. The CPU moves on its own clock from your first drop, paused while a panel is open or
+// the tab is hidden.
+const VS_POINTS_PER_BLOCK = 30;
+const VS_MAX_BLOCKS = 14;
+let cpu = null;
+let incoming = 0; // blocks headed for you
+let cpuPending = 0; // blocks headed for the CPU
+let cpuDown = false; // the CPU overflowed (the win shows once your drop finishes)
+let cpuClock = 0;
+const cpuStatEl = document.getElementById('cpu-stat');
+const cpuCanvas = document.getElementById('cpu-grid');
+const incomingEl = document.getElementById('incoming');
+const vsBlocks = (points) => Math.min(VS_MAX_BLOCKS, Math.floor(points / VS_POINTS_PER_BLOCK));
+
+function startVs() {
+  incoming = 0;
+  cpuPending = 0;
+  cpuDown = false;
+  cpuClock = 0;
+  if (mode !== 'vs') {
+    cpu = null;
+    showVs();
+    return;
+  }
+  const rnd = seeded(hashString(`bytefall:vs:${vsSeed}:cpu`));
+  const bits = seeded(hashString(`bytefall:vs:${vsSeed}:queue`)); // the same bits you get
+  cpu = CpuBoard.create(vsLevel, rnd, () => 1 + Math.floor(bits() * CpuBoard.COLS), vsLayers ? BASE_INTERVAL : 0);
+  showVs();
+}
+function stopVs() {
+  cpuClock = 0;
+}
+
+// Your attack, then the blocks still headed your way land
+async function vsAfterDrop(points) {
+  sendToCpu(vsBlocks(points));
+  while (incoming > 0 && !overflowed() && !gameOver) {
+    const n = Math.min(incoming, VS_MAX_BLOCKS);
+    incoming -= n;
+    showVs();
+    const before = score;
+    await takeGarbage(n);
+    await resolveChains();
+    sendToCpu(vsBlocks(score - before)); // a chain set off by the garbage counts as an attack too
+  }
+  showVs();
+}
+function sendToCpu(blocks) {
+  const cancel = Math.min(blocks, incoming);
+  incoming -= cancel;
+  cpuPending += blocks - cancel;
+  showVs();
+}
+function sendToPlayer(blocks) {
+  const cancel = Math.min(blocks, cpuPending);
+  cpuPending -= cancel;
+  incoming += blocks - cancel;
+  if (blocks - cancel > 0) SFX.play('alert');
+  showVs();
+}
+
+// Encrypted blocks drop onto the top of random columns
+async function takeGarbage(n) {
+  setMessage(`INCOMING // ${n} ENCRYPTED BLOCK${n === 1 ? '' : 'S'}`, 'alarm');
+  for (let k = 0; k < n; k++) {
+    const open = columns.map((col, c) => (col.length < MAX_ROWS ? c : -1)).filter((c) => c >= 0);
+    if (!open.length) break;
+    const c = open[Math.floor(Math.random() * open.length)];
+    columns[c].push(newFirewall(1));
+    render();
+    SFX.play('click');
+    await sleep(70);
+  }
+  SFX.play('punct');
+  await sleep(200);
+  setMessage('');
+}
+
+// One CPU move: it drops a bit, attacks, then takes the blocks headed its way
+function cpuMove() {
+  sendToPlayer(vsBlocks(cpu.step()));
+  if (cpuPending > 0 && !cpu.isDead()) {
+    const n = Math.min(cpuPending, VS_MAX_BLOCKS);
+    cpuPending -= n;
+    sendToPlayer(vsBlocks(cpu.takeGarbage(n)));
+  }
+  drawCpu();
+  if (cpu.isDead() && !cpuDown) {
+    cpuDown = true;
+    if (!busy && !gameOver) endGame('win');
+  }
+}
+
+let lastCpuTick = performance.now();
+setInterval(() => {
+  const now = performance.now();
+  const dt = now - lastCpuTick;
+  lastCpuTick = now;
+  if (mode !== 'vs' || !cpu || gameOver || cpuDown || Progress.runDrops() === 0 || document.hidden || panelOpen()) return;
+  cpuClock += dt;
+  if (cpuClock >= cpu.delay) {
+    cpuClock -= cpu.delay;
+    cpuMove();
+  }
+}, 100);
+
+// The CPU's board in miniature, plus the blocks headed each way
+function drawCpu() {
+  if (!cpu) return;
+  const dpr = window.devicePixelRatio || 1;
+  const cell = 9;
+  const w = CpuBoard.COLS * cell;
+  const h = CpuBoard.MAX_ROWS * cell;
+  if (cpuCanvas.width !== w * dpr) {
+    cpuCanvas.width = w * dpr;
+    cpuCanvas.height = h * dpr;
+  }
+  const g = cpuCanvas.getContext('2d');
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.clearRect(0, 0, w, h);
+  const css = getComputedStyle(document.documentElement);
+  const fg = css.getPropertyValue('--fg').trim();
+  const accent = css.getPropertyValue('--accent').trim();
+  const line = css.getPropertyValue('--grid-line').trim();
+  const danger = css.getPropertyValue('--danger').trim();
+  g.fillStyle = line;
+  g.globalAlpha = 0.35;
+  for (let r = 0; r < CpuBoard.MAX_ROWS; r++) for (let c = 0; c < CpuBoard.COLS; c++) g.fillRect(c * cell + 1, r * cell + 1, cell - 2, cell - 2);
+  g.globalAlpha = 1;
+  g.fillStyle = danger;
+  g.fillRect(0, cell - 1, w, 1); // the overflow line
+  cpu.columns().forEach((col, c) => col.forEach((b, r) => {
+    const y = (CpuBoard.MAX_ROWS - 1 - r) * cell;
+    g.fillStyle = b.type === 'number' ? fg : accent;
+    g.globalAlpha = b.type === 'number' ? 0.7 + b.val * 0.04 : 1;
+    g.fillRect(c * cell + 1, y + 1, cell - 2, cell - 2);
+  }));
+  g.globalAlpha = 1;
+  const tallest = Math.max(...cpu.columns().map((col) => col.length));
+  cpuStatEl.classList.toggle('low', tallest >= CpuBoard.ROWS - 1);
+}
+function showVs() {
+  const vs = mode === 'vs' && !!cpu;
+  cpuStatEl.hidden = !vs;
+  incomingEl.hidden = !vs || incoming === 0;
+  if (!vs) return;
+  incomingEl.textContent = `\u25BC ${incoming} INCOMING`;
+  document.getElementById('cpu-label').textContent = `CPU // ${CpuBoard.LEVELS[vsLevel].label}`;
+  document.getElementById('cpu-sub').textContent = cpuPending ? `${fmt(cpu.score())} \u00b7 \u25BC${cpuPending}` : fmt(cpu.score());
+  drawCpu();
+}
 
 // SHARE (DAILY): the phone's share sheet where there is one, otherwise copy to the clipboard.
 const shareBtn = document.getElementById('overlay-share-btn');
@@ -1764,11 +1972,11 @@ if (freeExploit.day !== localDay()) {
   freeGrantedNow = true;
 }
 function updateFreeBtn() {
-  freeBtn.hidden = !freeExploit.ready || daily || mode === 'puzzle';
+  freeBtn.hidden = !freeExploit.ready || daily || mode === 'puzzle' || mode === 'vs';
   freeBtn.disabled = gameOver || busy || pivotFrom !== null;
 }
 freeBtn.addEventListener('click', () => {
-  if (!freeExploit.ready || gameOver || busy || pivotFrom !== null || daily || mode === 'puzzle') return;
+  if (!freeExploit.ready || gameOver || busy || pivotFrom !== null || daily || mode === 'puzzle' || mode === 'vs') return;
   const ids = Progress.exploitOrder().slice(0, 5);
   const id = ids[Math.floor(Math.random() * ids.length)];
   freeExploit.ready = false;
@@ -2060,6 +2268,7 @@ function renderRecords() {
       ['TOTAL POINTS', fmt(s.points)],
       ['BEST // BLITZ', fmt(Number(storage.get('bytefall-best-blitz')) || 0)],
       ['BEST // ZEN', fmt(Number(storage.get('bytefall-best-zen')) || 0)],
+      ...Object.entries(CpuBoard.LEVELS).map(([id, l]) => [`VS ${l.label} CPU // WON-LOST`, `${fmt(s.vsWins[id] || 0)} - ${fmt(s.vsLosses[id] || 0)}`]),
     ];
     const dl = document.createElement('dl');
     dl.className = 'rec-stats';

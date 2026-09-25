@@ -79,6 +79,8 @@ const Progress = (() => {
     sundaySolves: 0, // Sunday (hardest) daily puzzles solved
     dailyFirstTries: 0, // daily puzzles solved on the first try
     secrets: {}, // hidden achievement id -> true (reported by script.js)
+    vsWins: {}, // VS CPU: CPU level -> wins
+    vsLosses: {}, // VS CPU: CPU level -> losses
   });
 
   let d = fresh();
@@ -557,6 +559,10 @@ const Progress = (() => {
     // Hidden achievements script.js spots itself (KONAMI, OVERKILL and the like)
     secret(id) { d.secrets[id] = true; },
     breached() { d.breaches++; },
+    vsResult(level, won) {
+      const tally = won ? d.vsWins : d.vsLosses;
+      tally[level] = (tally[level] || 0) + 1;
+    },
     dailyPuzzleSolved(weekday, tries) {
       if (weekday === 6) d.sundaySolves++;
       if (tries === 1) d.dailyFirstTries++;

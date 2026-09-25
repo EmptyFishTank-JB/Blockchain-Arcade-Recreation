@@ -893,6 +893,14 @@ h1 span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
   cursor: pointer;
   letter-spacing: 1px;
 }
+/* Six modes on one row on phones */
+@media (max-width: 480px) {
+  .modes { gap: 4px; }
+  .modes button { padding: 4px 6px; letter-spacing: 0.5px; }
+}
+@media (max-width: 380px) {
+  .modes button { padding: 3px 5px; font-size: 10px; letter-spacing: 0; }
+}
 .modes button:hover { color: var(--fg); border-color: var(--fg); }
 .modes button.active { color: var(--fg); border-color: var(--fg); box-shadow: 0 0 8px rgba(var(--fg-rgb), 0.3); }
 .modes button.danger { background: rgba(var(--danger-rgb), 0.12); border-color: var(--danger); color: var(--danger); }
@@ -963,8 +971,34 @@ h1 span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
   box-shadow: 0 0 10px rgba(var(--fg-rgb), 0.4);
 }
 
-.difficulty#daily-kinds { gap: 6px; }
-.difficulty#daily-kinds button { padding-left: 10px; padding-right: 10px; }
+.difficulty#daily-kinds, .difficulty#vs-levels { gap: 6px; }
+.difficulty#daily-kinds button, .difficulty#vs-levels button { padding-left: 10px; padding-right: 10px; }
+.difficulty#vs-levels button { white-space: nowrap; padding-left: 8px; padding-right: 8px; }
+/* VS CPU: the opponent's mini board, the incoming-garbage badge, and a slimmer header */
+.cpu-stat canvas { display: block; margin: 3px auto 0; width: 63px; height: 72px; }
+.cpu-stat .sub { font-size: 9px; }
+.cpu-stat.low .label { color: var(--danger); }
+.incoming {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  z-index: 5;
+  padding: 1px 6px;
+  border: 1px solid var(--danger);
+  border-radius: 3px;
+  background: rgba(var(--danger-rgb), 0.15);
+  color: var(--danger);
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-shadow: 0 0 6px var(--danger);
+  pointer-events: none;
+}
+.incoming[hidden] { display: none; }
+body.vs-mode header h1,
+body.vs-mode header .tagline,
+body.vs-mode header .level-bar,
+body.vs-mode header #mode-info { display: none; }
+body.vs-mode header .modes { margin-top: 26px; }
 .difficulty button.danger {
   background: rgba(var(--danger-rgb), 0.12);
   border-color: var(--danger);
