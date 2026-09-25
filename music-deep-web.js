@@ -23,13 +23,11 @@ function createDeepWeb(ctx, out) {
     { id: 'bright', label: 'The kick and rolling bass come out of the muffle (lowpass opens)', from: 0, span: 1 },
     { id: 'shaker', label: '16th-note shaker', from: 0.05, span: 0.25 },
     { id: 'acid', label: 'A squelchy acid synth line with accents', from: 0.4, span: 0.25 },
-    // Stack 6+ options: the game plays TOP_LAYER only; the dev page can audition both
-    { id: 'dub', label: 'Dub-techno chord stabs on the offbeats, echoing away', from: 0.72, span: 0.25, option: true },
-    { id: 'modem', label: 'The original: a dial-up modem screech on beat 3 of every bar', from: 0.72, span: 0.25, option: true },
+    { id: 'dub', label: 'Dub-techno chord stabs on the offbeats, echoing away', from: 0.72, span: 0.25 },
+    { id: 'modem', label: 'The original: a dial-up modem screech on beat 3 of every bar', from: 0.72, span: 0.25, archived: true },
   ];
-  const TOP_LAYER = 'dub';
-  // Without the dev page's own MUTE choices, the other option stays silent
-  const DEFAULT_MUTED = LAYERS.filter((l) => l.option && l.id !== TOP_LAYER).map((l) => l.id);
+  // ARCHIVED layers stay here for the dev page's audio compendium but the game never plays them
+  const DEFAULT_MUTED = LAYERS.filter((l) => l.archived).map((l) => l.id);
 
   const bus = ctx.createGain();
   bus.gain.value = 0.22;
@@ -225,7 +223,7 @@ function createDeepWeb(ctx, out) {
       for (const { id, from, span } of LAYERS) {
         L[id] = solo ? Number(id === solo) : Math.max(0, Math.min(1, (intensity - from) / span));
       }
-      for (const id of muted || DEFAULT_MUTED) if (!solo) L[id] = 0; // the game: TOP_LAYER only; dev page: its MUTE buttons
+      for (const id of muted || DEFAULT_MUTED) if (!solo) L[id] = 0; // the game leaves ARCHIVED layers out; dev page: its MUTE buttons
       const base = !solo;
       const loopStep = step % (32 * 16);
       const bar = Math.floor(loopStep / 16);

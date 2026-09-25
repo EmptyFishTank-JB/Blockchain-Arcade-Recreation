@@ -32,13 +32,11 @@ function createSystemRestore(ctx, out) {
     { id: 'wear', label: 'The tape warble deepens and the vinyl crackle gets louder', from: 0, span: 1 },
     { id: 'stutter', label: 'Glitch stutters: a chopped piano note retriggering at the end of each bar', from: 0.05, span: 0.25 },
     { id: 'grit', label: 'A distorted bass creeping in under the clean one', from: 0.4, span: 0.25 },
-    // Stack 6+ options: the game plays TOP_LAYER only; the dev page can audition both
-    { id: 'strings', label: 'Tremolo strings: the chords bowed fast, an octave up', from: 0.72, span: 0.25, option: true },
-    { id: 'error', label: 'The original: a dissonant tritone "error" bell every two beats', from: 0.72, span: 0.25, option: true },
+    { id: 'strings', label: 'Tremolo strings: the chords bowed fast, an octave up', from: 0.72, span: 0.25 },
+    { id: 'error', label: 'An "error" bell: a dissonant tritone every two beats, over the strings', from: 0.72, span: 0.25 },
   ];
-  const TOP_LAYER = 'strings';
-  // Without the dev page's own MUTE choices, the other option stays silent
-  const DEFAULT_MUTED = LAYERS.filter((l) => l.option && l.id !== TOP_LAYER).map((l) => l.id);
+  // ARCHIVED layers stay here for the dev page's audio compendium but the game never plays them
+  const DEFAULT_MUTED = LAYERS.filter((l) => l.archived).map((l) => l.id);
 
   const bus = ctx.createGain();
   bus.gain.value = 0.27;
@@ -277,7 +275,7 @@ function createSystemRestore(ctx, out) {
       for (const { id, from, span } of LAYERS) {
         L[id] = solo ? Number(id === solo) : Math.max(0, Math.min(1, (intensity - from) / span));
       }
-      for (const id of muted || DEFAULT_MUTED) if (!solo) L[id] = 0; // the game: TOP_LAYER only; dev page: its MUTE buttons
+      for (const id of muted || DEFAULT_MUTED) if (!solo) L[id] = 0; // the game leaves ARCHIVED layers out; dev page: its MUTE buttons
       const base = !solo;
       const bar = Math.floor(step / 16) % 32;
       const section = Math.floor(bar / 8); // 0 standby, 1 restore, 2 recovery, 3 reboot

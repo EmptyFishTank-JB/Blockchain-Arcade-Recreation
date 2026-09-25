@@ -266,15 +266,15 @@
   <footer>GENERATED FROM SOURCE &mdash; NO AUDIO FILES, ALL SYNTHESIZED ON PLAY</footer>
 </div>
 
-<script src="../sfx.js?v=61"></script>
-<script src="../music-theme.js?v=61"></script>
-<script src="../music-sleep-mode.js?v=61"></script>
-<script src="../music-brute-force.js?v=61"></script>
-<script src="../music-deep-web.js?v=61"></script>
-<script src="../music-zero-day.js?v=61"></script>
-<script src="../music-system-restore.js?v=61"></script>
-<script src="../music-night-drive.js?v=61"></script>
-<script src="../viz.js?v=61"></script>
+<script src="../sfx.js?v=62"></script>
+<script src="../music-theme.js?v=62"></script>
+<script src="../music-sleep-mode.js?v=62"></script>
+<script src="../music-brute-force.js?v=62"></script>
+<script src="../music-deep-web.js?v=62"></script>
+<script src="../music-zero-day.js?v=62"></script>
+<script src="../music-system-restore.js?v=62"></script>
+<script src="../music-night-drive.js?v=62"></script>
+<script src="../viz.js?v=62"></script>
 <script>
 (() => {
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -516,8 +516,8 @@
   // Game stack heights settle at these intensities (see dangerLevel in script.js).
   const STACK_LEVELS = [[4, 1 / 3], [5, 2 / 3], [6, 1]];
 
-  function layerWhen({ id, from, span, option }, track) {
-    if (option) return `OPTION${track.defaultMuted.includes(id) ? '' : ' (GAME)'} · STACK 6+ · IN AT ${Math.round(from * 100)}%`;
+  function layerWhen({ from, span, archived }) {
+    if (archived) return 'ARCHIVED · NOT IN THE GAME';
     if (from === 0) return 'FROM 0% · GROWS TO 100%';
     const stack = STACK_LEVELS.find(([, level]) => level > from)[0];
     const full = Math.min(100, Math.round((from + span) * 100));
@@ -608,8 +608,8 @@
         <div class="meter"><div></div>${[...new Set(track.layers.map((l) => l.from).filter((f) => f > 0))].map((f) => `<span class="mark" style="left:${f * 100}%"></span>`).join('')}</div>
       </div>
       <div class="uses"><h4>// INTENSITY LAYERS &mdash; WHEN EACH COMES IN</h4><ul class="layers">${track.layers.map((l) => `
-        <li><span class="at">${esc(layerWhen(l, track))}</span><span>${esc(l.label)}</span><span class="lvl"><span></span></span><button type="button" class="mute" data-layer="${esc(l.id)}">MUTE</button><button type="button" class="solo" data-layer="${esc(l.id)}">SOLO</button></li>`).join('')}</ul>
-        <p class="layers-note">MUTE leaves a layer out of the full track (PLAY brings it back), so you can hear what it adds in the mix. OPTION layers are alternatives for the stack 6+ slot: the game plays only the one marked (GAME) and the others start muted here. SOLO mutes the rest of the track and plays just what that layer adds, at full strength. Layers that fill gaps go quiet where the track already plays that part: the theme's extra hi-hats and kick in section B and the climax; SLEEP MODE's extra chugs in the drop and breakdown, and its double-kick fills in the drop; BRUTE FORCE's octave double in the boot (no melody yet) and its hi-hats in the boss; ZERO DAY's extra break hits wherever its drums drop out (first half of the intro, and the breakdown); SYSTEM RESTORE's distorted bass until the bass enters (first half of standby); NIGHT DRIVE's hats, tambourine and turbo kicks until the drums enter (first half of ignition).</p></div>`;
+        <li><span class="at">${esc(layerWhen(l))}</span><span>${esc(l.label)}</span><span class="lvl"><span></span></span><button type="button" class="mute" data-layer="${esc(l.id)}">MUTE</button><button type="button" class="solo" data-layer="${esc(l.id)}">SOLO</button></li>`).join('')}</ul>
+        <p class="layers-note">MUTE leaves a layer out of the full track (PLAY brings it back), so you can hear what it adds in the mix. ARCHIVED layers are kept here to listen to (they start muted) but are no longer in the game. SOLO mutes the rest of the track and plays just what that layer adds, at full strength. Layers that fill gaps go quiet where the track already plays that part: the theme's extra hi-hats and kick in section B and the climax; SLEEP MODE's extra chugs in the drop and breakdown, and its double-kick fills in the drop; BRUTE FORCE's octave double in the boot (no melody yet) and its hi-hats in the boss; ZERO DAY's extra break hits wherever its drums drop out (first half of the intro, and the breakdown); SYSTEM RESTORE's distorted bass until the bass enters (first half of standby); NIGHT DRIVE's hats, tambourine and turbo kicks until the drums enter (first half of ignition).</p></div>`;
     const ui = {
       btn: card.querySelector('button.play'),
       rows: [...card.querySelectorAll('.sec-row')],

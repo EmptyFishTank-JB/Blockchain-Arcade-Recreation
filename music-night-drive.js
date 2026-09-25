@@ -32,18 +32,16 @@ function createNightDrive(ctx, out) {
   const LAYERS = [
     { id: 'glow', label: 'The pads, bass and arpeggio open up and brighten', from: 0, span: 1 },
     { id: 'drive', label: 'Driving 16th-note hi-hats and a tambourine on 2 and 4', from: 0.05, span: 0.25 },
+    { id: 'countdown', label: 'Countdown: a clock ticking every beat over a low heartbeat', from: 0.05, span: 0.25 },
+    { id: 'brass', label: 'Brass: bright 80s synth-brass chord stabs on the offbeats', from: 0.05, span: 0.25 },
     { id: 'turbo', label: 'Four-on-the-floor kicks and an overdriven bass under the clean one', from: 0.4, span: 0.25 },
-    // Stack 6+ options: the game plays TOP_LAYER only; the dev page can audition all of them
-    { id: 'chase', label: 'Chase: a second arpeggio racing at 32nd notes, two octaves up', from: 0.72, span: 0.25, option: true },
-    { id: 'countdown', label: 'Countdown: a clock ticking every beat over a low heartbeat', from: 0.72, span: 0.25, option: true },
-    { id: 'brass', label: 'Brass: bright 80s synth-brass chord stabs on the offbeats', from: 0.72, span: 0.25, option: true },
-    { id: 'riser', label: 'Riser: a white-noise sweep building over two bars into a crash', from: 0.72, span: 0.25, option: true },
-    { id: 'choir', label: 'Choir: a swelling "ahh" choir pad behind everything', from: 0.72, span: 0.25, option: true },
-    { id: 'siren', label: 'The original: a wailing siren lead sweeping over the top', from: 0.72, span: 0.25, option: true },
+    { id: 'choir', label: 'Choir: a swelling "ahh" choir pad behind everything', from: 0.4, span: 0.25 },
+    { id: 'riser', label: 'Riser: a white-noise sweep building over two bars into a crash', from: 0.4, span: 0.25 },
+    { id: 'chase', label: 'Chase: a second arpeggio racing at 32nd notes, two octaves up', from: 0.72, span: 0.25 },
+    { id: 'siren', label: 'The original: a wailing siren lead sweeping over the top', from: 0.72, span: 0.25, archived: true },
   ];
-  const TOP_LAYER = 'chase';
-  // Without the dev page's own MUTE choices, every other option stays silent
-  const DEFAULT_MUTED = LAYERS.filter((l) => l.option && l.id !== TOP_LAYER).map((l) => l.id);
+  // ARCHIVED layers stay here for the dev page's audio compendium but the game never plays them
+  const DEFAULT_MUTED = LAYERS.filter((l) => l.archived).map((l) => l.id);
 
   const bus = ctx.createGain();
   bus.gain.value = 0.068; // level-matched to the other tracks
@@ -256,7 +254,6 @@ function createNightDrive(ctx, out) {
     if (remember) lastLead = m;
   }
 
-  // ---- Top-layer options (stack 6+). The game plays TOP_LAYER; the dev page can audition all five.
 
   // Chase: a second arpeggio at 32nd notes racing two octaves up
   function chase(t, chord, s, level) {
@@ -278,7 +275,7 @@ function createNightDrive(ctx, out) {
     osc.type = 'square';
     osc.frequency.value = beat % 2 ? 2400 : 1800; // tick, tock
     const hp = filter('highpass', 1200);
-    osc.connect(hp); hp.connect(envGain(t, 0.05 * level, 0.03, bus));
+    osc.connect(hp); hp.connect(envGain(t, 0.16 * level, 0.035, bus));
     osc.start(t); osc.stop(t + 0.04);
   }
   function heartbeat(t, level) {
@@ -286,7 +283,7 @@ function createNightDrive(ctx, out) {
       const osc = ctx.createOscillator();
       osc.frequency.setValueAtTime(70, t + at);
       osc.frequency.exponentialRampToValueAtTime(42, t + at + 0.12);
-      osc.connect(envGain(t + at, 0.5 * level * amp, 0.16, bus));
+      osc.connect(envGain(t + at, 0.9 * level * amp, 0.18, bus));
       osc.start(t + at); osc.stop(t + at + 0.18);
     }
   }
@@ -399,7 +396,7 @@ function createNightDrive(ctx, out) {
       for (const { id, from, span } of LAYERS) {
         L[id] = solo ? Number(id === solo) : Math.max(0, Math.min(1, (intensity - from) / span));
       }
-      for (const id of muted || DEFAULT_MUTED) if (!solo) L[id] = 0; // the game: TOP_LAYER only; dev page: its MUTE buttons
+      for (const id of muted || DEFAULT_MUTED) if (!solo) L[id] = 0; // the game leaves ARCHIVED layers out; dev page: its MUTE buttons
       const base = !solo;
       const bar = Math.floor(step / 16) % 32;
       const section = Math.floor(bar / 8); // 0 ignition, 1 cruise, 2 neon, 3 overdrive
@@ -450,7 +447,7 @@ function createNightDrive(ctx, out) {
         }
       }
 
-      // Stack 6+ options
+      // Countdown and brass (stack 4), choir and riser (stack 5), chase (stack 6+); siren is archived
       if (L.chase > 0 && section + i > 0) chase(t, chord, s, L.chase);
       if (L.countdown > 0 && s % 4 === 0) {
         tick(t, s / 4, L.countdown);
