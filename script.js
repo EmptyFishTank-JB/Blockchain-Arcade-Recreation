@@ -1964,9 +1964,10 @@ function renderRecords() {
       list.appendChild(recordRow({ name, desc: u.need, current: u.current, goal: u.goal, done: u.done }));
     }
   } else if (recordsTab === 'achievements') {
-    // The IMPOSSIBLE ones get their own section at the bottom and stay out of the count
+    // HIDDEN and IMPOSSIBLE ones get their own sections at the bottom; hidden ones count toward
+    // EARNED, impossible ones don't
     const all = Progress.achievements();
-    const counted = [...all.filter((a) => !a.impossible && !a.hidden), ...all.filter((a) => a.hidden)]; // hidden ones last
+    const counted = all.filter((a) => !a.impossible);
     const summary = document.createElement('p');
     summary.className = 'rec-summary';
     summary.textContent = `${counted.filter((a) => a.done).length} / ${counted.length} EARNED`;
@@ -1981,12 +1982,17 @@ function renderRecords() {
       }
       return list;
     };
-    recordsBodyEl.appendChild(listOf(counted));
-    const head = document.createElement('p');
-    head.className = 'rec-group';
-    head.textContent = '// IMPOSSIBLE ACHIEVEMENTS';
-    recordsBodyEl.appendChild(head);
-    recordsBodyEl.appendChild(listOf(all.filter((a) => a.impossible)));
+    const section = (title, items) => {
+      const head = document.createElement('p');
+      head.className = 'rec-group';
+      head.textContent = title;
+      recordsBodyEl.appendChild(head);
+      recordsBodyEl.appendChild(listOf(items));
+    };
+    recordsBodyEl.appendChild(listOf(counted.filter((a) => !a.hidden)));
+    const hidden = counted.filter((a) => a.hidden);
+    section(`// HIDDEN ACHIEVEMENTS !? (${hidden.filter((a) => a.done).length} / ${hidden.length} FOUND)`, hidden);
+    section('// IMPOSSIBLE ACHIEVEMENTS', all.filter((a) => a.impossible));
   } else {
     const s = Progress.stats();
     const favorite = Object.entries(s.exploitUses).sort((a, b) => b[1] - a[1])[0];
