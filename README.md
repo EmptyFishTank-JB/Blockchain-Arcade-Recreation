@@ -113,8 +113,9 @@ SPECTRUM (9).
 
 **Fonts** (SETTINGS → FONT) unlock by achievements earned, for good: COURIER is
 the default, SHARE TECH MONO opens at 10 achievements, PRESS START (Press Start
-2P) at 25 and BYTESIZED at 40. Each has an achievement for playing a full
-session in it (TECH SUPPORT, INSERT COIN, BITE-SIZED). The font changes all the
+2P) at 25, BITCOUNT (Bitcount Single) at 40 and BYTESIZED at 55. Each has an
+achievement for playing a full session in it (TECH SUPPORT, INSERT COIN, BIT BY
+BIT, BITE-SIZED). The font changes all the
 game's text (the particles and the dev page too); the fonts are bundled in
 `fonts/` and scaled so the layout stays the same as in Courier.
 
@@ -216,7 +217,7 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
 - `style.css` — terminal/hacker visual theme
 - `script.js` — game state, rendering, chain resolution and exploits
 - `unlocks.js` — the Full Access check (never owned on the website; `?unlockall` previews it)
-- `fonts/` — the unlockable fonts, Share Tech Mono (Carrois Type Design), Press Start 2P (CodeMan38) and Bytesized (Baltdev), from Google Fonts, with their SIL Open Font License files
+- `fonts/` — the unlockable fonts, Share Tech Mono (Carrois Type Design), Press Start 2P (CodeMan38), Bitcount Single (Petr van Blokland) and Bytesized (Baltdev), from Google Fonts, with their SIL Open Font License files
 - `cpu.js` — VS CPU: the computer opponent (a copy of the board rules with no animation, and a player that tries every column)
 - `progress.js` — lifetime stats, earnable unlocks and achievements
 - `achievements.csv` — every achievement grouped by what it's about (category, name, description, goal, and whether it's standard, hidden or impossible)

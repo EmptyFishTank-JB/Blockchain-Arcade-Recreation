@@ -166,7 +166,7 @@ const Progress = (() => {
     ['synthwave', 'SYNTHWAVE'], ['dot-matrix', 'DOT MATRIX'], ['paper', 'PAPER'], ['glyph', 'GLYPH'], ['spectrum', 'SPECTRUM']];
 
   // Pixel fonts (COURIER is free): [id, name, achievements needed]
-  const FONT_ORDER = [['share-tech', 'SHARE TECH MONO', 10], ['press-start', 'PRESS START', 25], ['bytesized', 'BYTESIZED', 40]];
+  const FONT_ORDER = [['share-tech', 'SHARE TECH MONO', 10], ['press-start', 'PRESS START', 25], ['bitcount', 'BITCOUNT', 40], ['bytesized', 'BYTESIZED', 55]];
 
   // group: where it shows in the UNLOCKS list. value() / goal drive its tracker.
   const UNLOCKS = [
@@ -257,6 +257,7 @@ const Progress = (() => {
     // Collection and progress
     { id: 'tech-support', name: 'TECH SUPPORT', desc: 'Play a full session (10+ drops) in the SHARE TECH MONO font', value: () => (d.fontsPlayed['share-tech'] ? 1 : 0), goal: 1 },
     { id: 'insert-coin', name: 'INSERT COIN', desc: 'Play a full session (10+ drops) in the PRESS START font', value: () => (d.fontsPlayed['press-start'] ? 1 : 0), goal: 1 },
+    { id: 'bit-by-bit', name: 'BIT BY BIT', desc: 'Play a full session (10+ drops) in the BITCOUNT font', value: () => (d.fontsPlayed.bitcount ? 1 : 0), goal: 1 },
     { id: 'bite-sized', name: 'BITE-SIZED', desc: 'Play a full session (10+ drops) in the BYTESIZED font', value: () => (d.fontsPlayed.bytesized ? 1 : 0), goal: 1 },
     { id: 'dj', name: 'DJ', desc: 'Listen to every track', value: () => count(d.tracksHeard), goal: () => trackCount },
     { id: 'audiophile', name: 'AUDIOPHILE', desc: 'Play a full session (10+ drops) on every track', value: () => count(d.tracksPlayed), goal: () => trackCount },
@@ -348,7 +349,7 @@ const Progress = (() => {
     ['DAILY', ['daily-driver', 'daily-grind', 'streak', 'century', 'daily-sweep', 'perfect-daily', 'breached', 'one-shot', 'sunday-best', 'stubborn', 'so-close']],
     ['PUZZLES', ['first-try', 'locksmith', 'safecracker', 'master-key', 'pickpocket']],
     ['LEVELS AND DECRYPTOR RANKS', ['lv-40', 'maxed-out', 'rollover', 'triple-crown', 'full-spectrum']],
-    ['THEMES, FONTS AND MUSIC', ['collector', 'chameleon', 'tech-support', 'insert-coin', 'bite-sized', 'dj', 'audiophile', 'theme-park', 'channel-surfer', 'silent-running']],
+    ['THEMES, FONTS AND MUSIC', ['collector', 'chameleon', 'tech-support', 'insert-coin', 'bit-by-bit', 'bite-sized', 'dj', 'audiophile', 'theme-park', 'channel-surfer', 'silent-running']],
     ['DATES AND TIMES', ['insomniac', 'birthday', 'friday-13th', 'pi-day']],
     ['SECRETS', ['konami']],
   ];

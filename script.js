@@ -1917,6 +1917,7 @@ const FONTS = [
   { id: 'courier', label: 'COURIER', desc: 'the classic terminal typewriter.' },
   { id: 'share-tech', label: 'SHARE TECH MONO', desc: 'clean, squared-off terminal type.' },
   { id: 'press-start', label: 'PRESS START', desc: 'chunky 8-bit arcade pixels.' },
+  { id: 'bitcount', label: 'BITCOUNT', desc: 'letters built from a grid of single bits.' },
   { id: 'bytesized', label: 'BYTESIZED', desc: 'tiny pixel type, for the hard-core.' },
 ];
 const fontAvailable = (f) => f.id === 'courier' || Progress.isUnlocked(`font-${f.id}`);
