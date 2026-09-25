@@ -256,6 +256,7 @@ function initGame() {
   overlayEl.classList.add('hidden');
   setMessage('');
   refreshExploitCards();
+  fitBoard();
 }
 
 // A layer peeled to 0 shows the bit under it: fixed in PUZZLE boards, random otherwise.
@@ -333,6 +334,22 @@ document.getElementById('puzzle-prev').addEventListener('click', () => {
 document.getElementById('puzzle-next').addEventListener('click', () => {
   if (!busy || gameOver) setPuzzle(puzzleIndex + 1);
 });
+
+// Size the board so the whole game panel fits the window's height (no clipping at the top or
+// bottom), between MIN_BOARD and the CSS maximum.
+const MIN_BOARD = 240;
+const crtEl = document.querySelector('.crt');
+function fitBoard() {
+  const frame = document.querySelector('.board-frame');
+  boardWrapEl.style.maxWidth = '';
+  const cssMax = boardWrapEl.getBoundingClientRect().width;
+  const rest = crtEl.getBoundingClientRect().height - frame.getBoundingClientRect().height;
+  const pad = parseFloat(getComputedStyle(document.body).paddingTop) * 2;
+  const ratio = frame.offsetHeight / frame.offsetWidth;
+  const width = Math.max(MIN_BOARD, Math.min(cssMax, (window.innerHeight - pad - rest) / ratio));
+  boardWrapEl.style.maxWidth = `${Math.floor(width)}px`;
+}
+window.addEventListener('resize', fitBoard);
 
 function buildColumnButtons() {
   columnButtonsEl.innerHTML = '';
@@ -495,7 +512,11 @@ function updateHud() {
   nextStatEl.hidden = !preview;
   nextLabelEl.textContent = keyloggerDrops > 0 ? `KEYLOG ${keyloggerDrops}` : 'NEXT';
   nextStatEl.classList.toggle('keylogger', keyloggerDrops > 0);
-  document.getElementById('hud-bits').classList.toggle('has-next', !!preview);
+  const hudBits = document.getElementById('hud-bits');
+  if (hudBits.classList.contains('has-next') !== !!preview) {
+    hudBits.classList.toggle('has-next', !!preview);
+    requestAnimationFrame(fitBoard); // the HUD may wrap differently now
+  }
   nextEl.innerHTML = '';
   for (const piece of queue.slice(1, 1 + preview)) {
     const sq = document.createElement('div');

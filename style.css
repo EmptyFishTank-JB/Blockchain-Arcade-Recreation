@@ -422,6 +422,9 @@ h1 span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
 .stat {
   flex: 1;
   min-width: 72px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* short boxes (SCORE, CHAIN...) centre beside the taller bit boxes */
   text-align: center;
   background: var(--inset-bg);
   border: 1px solid var(--grid-line);
@@ -467,7 +470,6 @@ h1 span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
   font-weight: bold;
   font-size: 16px;
 }
-.stat-current .bit-sq { width: 46px; height: 46px; font-size: 19px; }
 .bit-row { display: flex; justify-content: center; gap: 4px; }
 .bit-row .bit-sq { margin: 4px 0 0; }
 .stat.keylogger .bit-row .bit-sq { width: 30px; height: 30px; font-size: 13px; }
@@ -978,8 +980,9 @@ h1 span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
     max-width: 960px;
     align-items: start;
   }
-  /* The exploits column matches the game panel's height and scrolls inside itself:
-     contain: size keeps its long list from setting the row height, then it stretches. */
+  /* The rules and exploits columns match the game panel's height and scroll inside
+     themselves: contain: size keeps their text from setting the row height, then they stretch. */
+  .cabinet .panel-rules,
   .cabinet .panel-hacks {
     align-self: stretch;
     contain: size;
@@ -988,7 +991,9 @@ h1 span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
     scrollbar-width: thin;
     scrollbar-color: var(--fg-dim) transparent;
   }
+  .panel-rules::-webkit-scrollbar,
   .panel-hacks::-webkit-scrollbar { width: 6px; }
+  .panel-rules::-webkit-scrollbar-thumb,
   .panel-hacks::-webkit-scrollbar-thumb { background: var(--fg-dim); border-radius: 3px; }
 }
 
@@ -1443,4 +1448,23 @@ footer p.accent { color: var(--accent); }
   letter-spacing: 2px;
   color: var(--danger);
   opacity: 0.75;
+}
+
+/* Short screens: tighter spacing around the board so the whole game panel fits the window
+   with as big a board as possible (script.js's fitBoard sizes the board to what's left). */
+@media (max-height: 860px) {
+  body { padding-top: 8px; padding-bottom: 8px; }
+  .crt { padding-top: 12px; padding-bottom: 14px; }
+  h1 { font-size: 24px; }
+  header { margin-bottom: 6px; }
+  .level-bar { margin-top: 3px; }
+  .modes { margin-top: 6px; }
+  .mode-info { margin-top: 4px; }
+  .difficulty { margin-top: 6px; }
+  .difficulty button { padding-top: 4px; padding-bottom: 4px; }
+  .hud { margin: 8px 0; }
+  .stat { padding-top: 4px; padding-bottom: 4px; }
+  .message { margin-top: 4px; }
+  .controls { margin-top: 6px; }
+  #restart-btn, .free-exploit-btn { padding-top: 6px; padding-bottom: 6px; }
 }
