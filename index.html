@@ -20,7 +20,7 @@
   } catch (e) {}
 </script>
 <title>BYTEFALL // decryption terminal</title>
-<link rel="stylesheet" href="style.css?v=88">
+<link rel="stylesheet" href="style.css?v=93">
 </head>
 <body>
   <main class="cabinet">
@@ -119,12 +119,6 @@
           <button data-daily="blitz">BLITZ</button>
           <button data-daily="breach">BREACH</button>
         </div>
-        <div class="difficulty" id="vs-levels" role="group" aria-label="CPU level" hidden>
-          <button data-vs="easy">EASY</button>
-          <button data-vs="normal">NORMAL</button>
-          <button data-vs="hard">HARD</button>
-          <button type="button" id="vs-layers-btn">LAYERS: ON</button>
-        </div>
         <div class="difficulty" id="difficulty-row" role="group" aria-label="Difficulty">
           <button data-difficulty="easy">EASY</button>
           <button data-difficulty="normal">NORMAL</button>
@@ -133,6 +127,7 @@
       </header>
 
       <div class="hud">
+        <div class="vs-status" id="vs-status"></div>
         <div class="stat">
           <span class="label">SCORE</span>
           <span class="value" id="score">0</span>
@@ -150,8 +145,6 @@
         <div class="stat cpu-stat" id="cpu-stat" hidden title="Press and hold to see the CPU's board full size">
           <span class="label" id="cpu-label">CPU</span>
           <div class="cpu-grid" id="cpu-grid" aria-label="The CPU's board"></div>
-          <span class="sub" id="cpu-sub">0</span>
-          <span class="cpu-hint">HOLD TO ENLARGE</span>
         </div>
         <div class="stat" id="time-stat" hidden>
           <span class="label" id="time-label">TIME</span>
@@ -168,7 +161,6 @@
             <div class="bit-row" id="next-piece"></div>
           </div>
         </div>
-        <button type="button" class="vs-quit" id="vs-quit" hidden>QUIT</button>
       </div>
 
       <div class="board-wrap">
@@ -177,6 +169,18 @@
           <div id="board" class="board"></div>
           <div class="incoming" id="incoming" hidden></div>
           <div class="board cpu-full" id="cpu-full" hidden aria-hidden="true"></div>
+          <!-- VS CPU: pick the opponent, then START (it bursts apart; it comes back after the match) -->
+          <div class="vs-setup" id="vs-setup" hidden>
+            <p class="vs-setup-title">// VS CPU</p>
+            <p class="vs-setup-note">Your chains send encrypted blocks onto the CPU's board; its chains send them onto yours. First to overflow loses. Press and hold the CPU's board to see it full size.</p>
+          <div class="difficulty" id="vs-levels" role="group" aria-label="CPU level">
+            <button data-vs="easy">EASY</button>
+            <button data-vs="normal">NORMAL</button>
+            <button data-vs="hard">HARD</button>
+            <button type="button" id="vs-layers-btn">LAYERS: ON</button>
+          </div>
+          <button type="button" class="vs-start" id="vs-start">START</button>
+          </div>
         </div>
         <div id="column-buttons" class="column-buttons"></div>
       </div>
@@ -185,6 +189,7 @@
 
       <div class="controls">
         <button id="restart-btn">RESTART</button>
+        <button type="button" class="vs-quit" id="vs-quit">QUIT</button>
         <button id="free-exploit-btn" class="free-exploit-btn" hidden><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 10-13h-7z"/></svg>FREE EXPLOIT</button>
       </div>
     </div>
@@ -295,24 +300,24 @@
     </div>
   </div>
 
-  <script src="unlocks.js?v=88"></script>
-  <script src="progress.js?v=88"></script>
-  <script src="sfx.js?v=88"></script>
-  <script src="music-theme.js?v=88"></script>
-  <script src="music-sleep-mode.js?v=88"></script>
-  <script src="music-brute-force.js?v=88"></script>
-  <script src="music-deep-web.js?v=88"></script>
-  <script src="music-zero-day.js?v=88"></script>
-  <script src="music-system-restore.js?v=88"></script>
-  <script src="music-night-drive.js?v=88"></script>
-  <script src="music-standby-mode.js?v=88"></script>
-  <script src="music.js?v=88"></script>
-  <script src="puzzles.js?v=88"></script>
-  <script src="daily-puzzles.js?v=88"></script>
-  <script src="cpu.js?v=88"></script>
-  <script src="fx.js?v=88"></script>
-  <script src="viz.js?v=88"></script>
-  <script src="script.js?v=88"></script>
-  <script src="grid-bg.js?v=88"></script>
+  <script src="unlocks.js?v=93"></script>
+  <script src="progress.js?v=93"></script>
+  <script src="sfx.js?v=93"></script>
+  <script src="music-theme.js?v=93"></script>
+  <script src="music-sleep-mode.js?v=93"></script>
+  <script src="music-brute-force.js?v=93"></script>
+  <script src="music-deep-web.js?v=93"></script>
+  <script src="music-zero-day.js?v=93"></script>
+  <script src="music-system-restore.js?v=93"></script>
+  <script src="music-night-drive.js?v=93"></script>
+  <script src="music-standby-mode.js?v=93"></script>
+  <script src="music.js?v=93"></script>
+  <script src="puzzles.js?v=93"></script>
+  <script src="daily-puzzles.js?v=93"></script>
+  <script src="cpu.js?v=93"></script>
+  <script src="fx.js?v=93"></script>
+  <script src="viz.js?v=93"></script>
+  <script src="script.js?v=93"></script>
+  <script src="grid-bg.js?v=93"></script>
 </body>
 </html>

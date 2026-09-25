@@ -454,6 +454,7 @@ document.getElementById('puzzle-next').addEventListener('click', () => {
 const MIN_BOARD = 240;
 const crtEl = document.querySelector('.crt');
 function fitBoard() {
+  layoutVsTop();
   const frame = document.querySelector('.board-frame');
   boardWrapEl.style.maxWidth = '';
   const cssMax = boardWrapEl.getBoundingClientRect().width;
@@ -713,6 +714,10 @@ async function attemptDrop(col) {
       return;
     }
   }
+  if (mode === 'vs' && !vsStarted) {
+    SFX.play('denied');
+    return;
+  }
   if (columns[col].length >= MAX_ROWS) {
     pivotWith = null;
     SFX.play('denied');
@@ -744,10 +749,7 @@ async function attemptDrop(col) {
     if (tries >= 10) Progress.secret('stubborn');
   }
   Progress.drop();
-  if (Progress.runDrops() === 1) {
-    refreshExploitCards(); // the loadout locks for this session
-    updateVsChrome();
-  }
+  if (Progress.runDrops() === 1) refreshExploitCards(); // the loadout locks for this session
   if (mode === 'blitz') clockRunning = true;
   let wentOver = overflowed();
   render();
@@ -1235,7 +1237,6 @@ function endGame(reason = 'trace') {
     Progress.vsResult(vsLevel, reason === 'win');
     stopVs();
     holdCpu(false);
-    updateVsChrome();
   }
   document.getElementById('overlay-title').textContent = endings[reason][0];
   document.getElementById('overlay-sub').textContent = endings[reason][1];
@@ -1281,6 +1282,11 @@ document.addEventListener('keydown', (e) => {
 });
 
 document.addEventListener('keydown', (e) => {
+  if (mode === 'vs' && !vsStarted && !gameOver && (e.key === 'Enter' || e.key === ' ')) {
+    e.preventDefault();
+    startMatch();
+    return;
+  }
   const num = parseInt(e.key, 10);
   if (num >= 1 && num <= COLS) attemptDrop(num - 1);
   else if (e.key === 'ArrowLeft' && pivotFrom !== null) { e.preventDefault(); attemptDrop(pivotFrom - 1); }
@@ -1493,6 +1499,7 @@ let cpu = null;
 let incoming = 0; // blocks headed for you
 let cpuPending = 0; // blocks headed for the CPU
 let cpuDown = false; // the CPU overflowed (the win shows once your drop finishes)
+let vsStarted = false; // START pressed on the setup overlay
 let cpuClock = 0;
 const cpuStatEl = document.getElementById('cpu-stat');
 const incomingEl = document.getElementById('incoming');
@@ -1503,6 +1510,14 @@ function startVs() {
   cpuPending = 0;
   cpuDown = false;
   cpuClock = 0;
+  vsStarted = false;
+  // The setup overlay: shown (popping back in) whenever a match hasn't started
+  vsSetupEl.hidden = mode !== 'vs';
+  if (mode === 'vs') {
+    vsSetupEl.style.animation = 'none';
+    void vsSetupEl.offsetWidth;
+    vsSetupEl.style.animation = '';
+  }
   if (mode !== 'vs') {
     cpu = null;
     showVs();
@@ -1582,7 +1597,7 @@ setInterval(() => {
   const now = performance.now();
   const dt = now - lastCpuTick;
   lastCpuTick = now;
-  if (mode !== 'vs' || !cpu || gameOver || cpuDown || Progress.runDrops() === 0 || document.hidden || panelOpen()) return;
+  if (mode !== 'vs' || !cpu || !vsStarted || gameOver || cpuDown || document.hidden || panelOpen()) return;
   cpuClock += dt;
   if (cpuClock >= cpu.delay) {
     cpuClock -= cpu.delay;
@@ -1661,6 +1676,17 @@ cpuStatEl.addEventListener('pointerdown', (e) => {
 for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) cpuStatEl.addEventListener(type, () => holdCpu(false));
 cpuStatEl.addEventListener('contextmenu', (e) => e.preventDefault()); // a long press shouldn't open a menu
 
+// START: the setup overlay bursts apart and the match (and the CPU's clock) begins
+const vsSetupEl = document.getElementById('vs-setup');
+function startMatch() {
+  if (mode !== 'vs' || vsStarted || gameOver) return;
+  vsStarted = true;
+  FX.burst([{ el: vsSetupEl, type: 'warning' }]);
+  vsSetupEl.hidden = true;
+  SFX.play('static');
+}
+document.getElementById('vs-start').addEventListener('click', startMatch);
+
 // QUIT: back to the mode you came from (two presses mid-match, like RESTART)
 const vsQuitBtn = document.getElementById('vs-quit');
 vsQuitBtn.addEventListener('click', () => {
@@ -1672,15 +1698,42 @@ vsQuitBtn.addEventListener('click', () => {
   });
 });
 
-// In VS the level row shows before your first drop and after the match, not during it
+// The status line in the mode row's place, and how many stat rows the left column has
 function updateVsChrome() {
-  const levels = document.getElementById('vs-levels');
-  const hide = mode !== 'vs' || (Progress.runDrops() > 0 && !gameOver);
-  if (levels.hidden !== hide) {
-    levels.hidden = hide;
-    requestAnimationFrame(fitBoard);
-  }
-  vsQuitBtn.hidden = mode !== 'vs';
+  const rows = [...document.querySelectorAll('.hud > .stat:not(.cpu-stat), .hud > .hud-bits')].filter((el) => !el.hidden).length;
+  document.getElementById('vs-status').textContent = `VS ${CpuBoard.LEVELS[vsLevel].label} CPU // LAYERS ${vsLayers ? 'ON' : 'OFF'}`;
+  document.querySelector('.hud').style.setProperty('--vs-rows', rows);
+}
+
+// VS: the HUD takes the room from under the corner icons to where the regular HUD ends, so your
+// board keeps its regular size and place. Measured by briefly laying out the regular header and HUD.
+function layoutVsTop() {
+  const hud = document.querySelector('.hud');
+  hud.style.height = '';
+  hud.style.marginTop = '';
+  if (mode !== 'vs') return;
+  // Laid out as Classic shows it: the difficulty row on, no mode note
+  const diffRow = document.getElementById('difficulty-row');
+  const info = document.getElementById('mode-info');
+  const wasHidden = [diffRow.hidden, info.hidden];
+  document.body.classList.remove('vs-mode');
+  cpuStatEl.hidden = true;
+  diffRow.hidden = false;
+  info.hidden = true;
+  // (relative to the game card, which can move as the page re-centers)
+  const cardTop = () => crtEl.getBoundingClientRect().top;
+  const bottom = hud.getBoundingClientRect().bottom - cardTop();
+  const top = document.querySelector('.records-btn').getBoundingClientRect().bottom - cardTop() + 8;
+  [diffRow.hidden, info.hidden] = wasHidden;
+  cpuStatEl.hidden = false;
+  document.body.classList.add('vs-mode');
+  hud.style.marginTop = '0px';
+  const vsTop = hud.getBoundingClientRect().top - cardTop();
+  hud.style.marginTop = `${top - vsTop}px`;
+  hud.style.height = `${bottom - top}px`;
+  // The CPU's board fills the height (its label takes ~24px), up to 60% of the width
+  const gridH = bottom - top - 24;
+  hud.style.setProperty('--vs-cpu-w', `${Math.round(Math.min(hud.clientWidth * 0.6, gridH * 7 / 8 + 14))}px`);
 }
 
 function showVs() {
@@ -1689,8 +1742,8 @@ function showVs() {
   incomingEl.hidden = !vs || incoming === 0;
   if (!vs) return;
   incomingEl.textContent = `\u25BC ${incoming} INCOMING`;
-  document.getElementById('cpu-label').textContent = `CPU // ${CpuBoard.LEVELS[vsLevel].label}`;
-  document.getElementById('cpu-sub').textContent = cpuPending ? `${fmt(cpu.score())} \u00b7 \u25BC${cpuPending}` : fmt(cpu.score());
+  // CPU // its score, and the blocks headed its way
+  document.getElementById('cpu-label').textContent = `CPU // ${fmt(cpu.score())}${cpuPending ? ` \u25BC${cpuPending}` : ''}`;
   drawCpu();
 }
 

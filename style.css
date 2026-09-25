@@ -1010,28 +1010,71 @@ h1 span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
   color: var(--accent);
 }
 .vs-quit {
-  padding: 6px;
+  padding: 8px 18px;
   background: none;
   border: 1px solid var(--danger);
-  border-radius: 6px;
+  border-radius: 4px;
   color: var(--danger);
-  font-family: inherit;
-  font-size: 11px;
-  letter-spacing: 2px;
+  font-family: inherit; /* same size as RESTART, whose place it takes */
+  letter-spacing: 1px;
   cursor: pointer;
 }
-.vs-quit[hidden] { display: none; }
 /* VS layout: your stats and QUIT stacked on the left, the CPU's board on the right */
-body.vs-mode header .modes { display: none; }
-body.vs-mode header { padding-top: 26px; } /* room for the RECORDS and SETTINGS icons */
-body.vs-mode .hud { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 6px; align-items: stretch; }
-body.vs-mode .hud > * { grid-column: 1; min-width: 0; }
-body.vs-mode .hud > .cpu-stat { grid-column: 2; grid-row: 1 / span 6; justify-content: flex-start; }
+/* In VS the header (title, tagline, level bar, modes) gives its room to the VS info, your stats
+   and the CPU's board */
+.vs-status { display: none; }
+body.vs-mode header { display: none; }
+body.vs-mode .vs-status { display: flex; align-items: center; justify-content: center; font-size: 11px; letter-spacing: 1px; text-align: center; color: var(--accent); text-shadow: 0 0 6px rgba(var(--accent-rgb), 0.5); }
+body.vs-mode #restart-btn { display: none; }
+#vs-quit { display: none; }
+body.vs-mode #vs-quit { display: inline-block; }
+/* Before the match: pick the CPU level and LAYERS, then START */
+.vs-setup {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.78);
+  animation: byte-in 0.35s ease-out;
+}
+.vs-setup[hidden] { display: none; }
+.vs-setup-title { margin: 0; font-size: 16px; letter-spacing: 3px; color: var(--accent); text-shadow: 0 0 8px rgba(var(--accent-rgb), 0.6); }
+.vs-setup-note { margin: 0; max-width: 300px; font-size: 11px; line-height: 1.5; color: var(--panel-text); }
+.vs-setup .difficulty { flex-wrap: wrap; margin-top: 0; }
+.vs-start {
+  padding: 10px 34px;
+  background: rgba(var(--fg-rgb), 0.12);
+  border: 1px solid var(--fg);
+  border-radius: 4px;
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 14px;
+  letter-spacing: 3px;
+  cursor: pointer;
+  box-shadow: 0 0 12px rgba(var(--fg-rgb), 0.35);
+}
+/* Its height (set by script.js) spans where the difficulty row and HUD sit in regular play, so your
+   board keeps its regular size and place */
+body.vs-mode .hud { display: grid; grid-template-columns: minmax(0, 1fr) var(--vs-cpu-w, 120px); grid-template-rows: auto repeat(var(--vs-rows, 4), minmax(0, 1fr)); gap: 6px; align-items: stretch; }
+body.vs-mode .hud > * { grid-column: 1; min-width: 0; min-height: 0; }
+body.vs-mode .hud > .cpu-stat { grid-column: 2; grid-row: 1 / -1; justify-content: flex-start; padding: 4px 6px; }
+body.vs-mode .cpu-grid { flex: 1 1 0; min-height: 0; width: 100%; max-width: none; grid-template-rows: repeat(8, minmax(0, 1fr)); margin: 3px auto 0; }
+body.vs-mode .cpu-grid i { aspect-ratio: auto; }
+body.vs-mode .hud-bits { flex: none; }
 body.vs-mode .hud > .stat:not(.cpu-stat),
 body.vs-mode .hud-bits .stat { flex-direction: row; align-items: center; justify-content: space-between; gap: 6px; padding: 4px 8px; text-align: left; }
 body.vs-mode .hud .stat:not(.cpu-stat) .value { margin-top: 0; font-size: 16px; }
 body.vs-mode .hud .stat:not(.cpu-stat) .sub { display: none; }
-body.vs-mode .hud-bits .bit-sq { width: 32px; height: 32px; font-size: 14px; }
+body.vs-mode .hud > .stat:not(.cpu-stat), body.vs-mode .hud-bits .stat { padding-top: 2px; padding-bottom: 2px; }
+body.vs-mode .hud-bits .bit-sq { width: auto; height: 100%; max-height: 32px; aspect-ratio: 1; font-size: 13px; }
+body.vs-mode .hud-bits, body.vs-mode .hud-bits .stat { min-height: 0; }
+body.vs-mode .vs-status { font-size: 10px; white-space: nowrap; overflow: hidden; }
 .incoming {
   position: absolute;
   top: 2px;
@@ -1048,9 +1091,6 @@ body.vs-mode .hud-bits .bit-sq { width: 32px; height: 32px; font-size: 14px; }
   pointer-events: none;
 }
 .incoming[hidden] { display: none; }
-body.vs-mode header h1,
-body.vs-mode header .tagline,
-body.vs-mode header .level-bar,
 body.vs-mode header #mode-info { display: none; }
 .difficulty button.danger {
   background: rgba(var(--danger-rgb), 0.12);
@@ -1633,7 +1673,7 @@ footer p.accent { color: var(--accent); }
   .stat { padding-top: 4px; padding-bottom: 4px; }
   .message { margin-top: 4px; }
   .controls { margin-top: 6px; }
-  #restart-btn, .free-exploit-btn { padding-top: 6px; padding-bottom: 6px; }
+  #restart-btn, #vs-quit, .free-exploit-btn { padding-top: 6px; padding-bottom: 6px; }
 }
 
 /* Themed scrollbars for the settings and RECORDS panels (the side columns get theirs on desktop) */
