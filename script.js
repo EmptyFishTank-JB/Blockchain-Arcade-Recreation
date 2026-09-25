@@ -43,13 +43,19 @@ const HACKS = {
   keylogger: { name: 'KEYLOGGER', icon: '@', easyCombo: 3 },
   backdoor: { name: 'BACKDOOR', icon: '_', easyCombo: 4 },
   rainbow: { name: 'RAINBOW TABLE', icon: '*', easyCombo: 5 },
+  sniffer: { name: 'PACKET SNIFFER', icon: '~', easyCombo: 3 },
+  logicbomb: { name: 'LOGIC BOMB', icon: '!', easyCombo: 4 },
+  honeypot: { name: 'HONEYPOT', icon: '\u25CE', easyCombo: 4 },
 };
 const KEYLOGGER_DROPS = 10; // drops the keylogger keeps showing the next bits for
 const KEYLOGGER_PREVIEW = 3;
+const SNIFFER_BITS = 3; // bits the packet sniffer lets you choose
+const BOMB_DROPS = 3; // drops before a logic bomb detonates
+const BLAST_RADIUS = 2; // logic bomb and honeypot reach: a 5x5 area
 
-// The Daily Decrypt uses the same five exploits for everyone; elsewhere it's what you've unlocked.
+// The Daily Decrypt uses the same five exploits for everyone; elsewhere it's your equipped loadout.
 const DAILY_EXPLOITS = ['worm', 'overflow', 'trojan', 'rng', 'bitflip'];
-const hackAvailable = (id) => (mode === 'daily' ? DAILY_EXPLOITS.includes(id) : Progress.exploitInfo(id).unlocked);
+const hackAvailable = (id) => (mode === 'daily' ? DAILY_EXPLOITS.includes(id) : Progress.isEquipped(id));
 Progress.setExploitCount(Object.keys(HACKS).length);
 Progress.setExploitNames(Object.fromEntries(Object.entries(HACKS).map(([id, h]) => [id, h.name])));
 
@@ -64,6 +70,7 @@ let gameOver = false;
 let busy = false; // true while animating/resolving, blocks input
 let runId = 0; // bumped on every new game so a pending game-over sequence can tell it's stale
 let keyloggerDrops = 0; // drops left with the keylogger's preview showing
+let snifferBits = 0; // bits left whose number the player can pick
 
 const storage = {
   get(key) {
@@ -223,6 +230,7 @@ function initGame() {
   bestAtStart = best;
   dropsSinceLastPulse = 0;
   keyloggerDrops = 0;
+  snifferBits = 0;
   pulseInterval = DIFFICULTIES[difficulty].interval(0);
   gameOver = false;
   busy = false;
@@ -232,8 +240,8 @@ function initGame() {
   });
   const easy = difficulty === 'easy';
   document.getElementById('hack-intro').textContent = easy
-    ? 'Chains earn exploits you\'ve unlocked: the longer the chain, the stronger the exploit.'
-    : `Chain ${HACK_COMBO} decrypts in one drop to get a random exploit you've unlocked.`;
+    ? 'Chains earn your equipped exploits: the longer the chain, the stronger the exploit.'
+    : `Chain ${HACK_COMBO} decrypts in one drop to get a random exploit from your equipped slots.`;
   document.querySelectorAll('.hack-item').forEach((el) => {
     el.querySelector('.combo').textContent = `${easy ? HACKS[el.dataset.hack].easyCombo : HACK_COMBO}x`;
   });
@@ -426,6 +434,14 @@ function render(popped = [], falling = null) {
         } else if (cell.type === 'hack') {
           div.classList.add('hack');
           div.textContent = pieceLabel(cell);
+        } else if (cell.type === 'bomb') {
+          div.classList.add('hack', 'armed', 'bomb');
+          div.textContent = `[!${cell.timer}]`;
+          div.title = `LOGIC BOMB: detonates in ${cell.timer} drop${cell.timer === 1 ? '' : 's'}`;
+        } else if (cell.type === 'honeypot') {
+          div.classList.add('hack', 'armed');
+          div.textContent = `[${HACKS.honeypot.icon}]`;
+          div.title = 'HONEYPOT: waiting for a bit beside it to decrypt';
         } else {
           div.classList.add('firewall');
           if (cell.level < 2) div.classList.add('cracked');
@@ -485,6 +501,10 @@ function updateHud() {
   pulseCounterEl.textContent = mode === 'puzzle' ? queue.length : pulseInterval - dropsSinceLastPulse;
   if (mode === 'daily') showClock();
   pulseCounterEl.closest('.stat').classList.toggle('danger', !gameOver && !MODES[mode].noLayers && pulseInterval - dropsSinceLastPulse === 1);
+  const sniffing = snifferBits > 0 && queue[0] && queue[0].type === 'number';
+  currentEl.closest('.stat').classList.toggle('sniffing', !!sniffing);
+  document.getElementById('current-label').textContent = sniffing ? `SNIFF ${snifferBits} \u2195` : 'CURRENT';
+  currentEl.title = sniffing ? 'Tap (or press up / down) to change this bit' : '';
   const heldHack = queue[0] && queue[0].type === 'hack' ? queue[0].id : null;
   document.querySelectorAll('.hack-item').forEach((el) => {
     el.classList.toggle('held', el.dataset.hack === heldHack);
@@ -519,6 +539,7 @@ async function attemptDrop(col) {
   const piece = queue.shift();
   refillQueue();
   if (keyloggerDrops > 0) keyloggerDrops--;
+  if (snifferBits > 0 && piece.type === 'number') snifferBits--;
   updateHud();
   const landing = columns[col].length;
   for (let r = MAX_ROWS - 1; r > landing; r--) {
@@ -537,6 +558,7 @@ async function attemptDrop(col) {
 
   if (piece.type === 'hack') await runHack(piece.id, landing, col);
   await resolveChains();
+  await tickBombs();
 
   if (!overflowed() && !MODES[mode].noLayers) {
     dropsSinceLastPulse++;
@@ -678,6 +700,27 @@ async function resolveChains() {
       }
     }
 
+    // HONEYPOT: a bit decrypting beside one also decrypts every bit of that number within
+    // BLAST_RADIUS of the trap, and the trap is spent
+    const sprung = [];
+    for (let r = 0; r < MAX_ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        if (!grid[r][c] || grid[r][c].type !== 'honeypot') continue;
+        const values = pops.filter((p) => Math.abs(p.row - r) + Math.abs(p.col - c) === 1).map((p) => grid[p.row][p.col].val);
+        if (!values.length) continue;
+        sprung.push({ row: r, col: c });
+        for (let dr = -BLAST_RADIUS; dr <= BLAST_RADIUS; dr++) {
+          for (let dc = -BLAST_RADIUS; dc <= BLAST_RADIUS; dc++) {
+            const cell = grid[r + dr] && grid[r + dr][c + dc];
+            if (cell && cell.type === 'number' && values.includes(cell.val) && !pops.some((p) => p.row === r + dr && p.col === c + dc)) {
+              pops.push({ row: r + dr, col: c + dc });
+            }
+          }
+        }
+        setMessage(`HONEYPOT // CAUGHT EVERY [${[...new Set(values)].join('] [')}]`);
+      }
+    }
+
     if (pops.length === 0) break;
 
     chain++;
@@ -686,8 +729,8 @@ async function resolveChains() {
     score += pops.length * 10 * chain;
     chainEl.textContent = `${chain}x`;
 
-    FX.burst(cellsAt(pops));
-    render(pops);
+    FX.burst(cellsAt([...pops, ...sprung]));
+    render([...pops, ...sprung]);
     updateHud();
     SFX.play('burst');
     if (chain >= 2) SFX.play('egg');
@@ -720,7 +763,7 @@ async function resolveChains() {
     if (revealed) SFX.play('punct');
     else if (cracked) SFX.play('backspace');
 
-    for (const p of pops) columns[p.col][p.row] = null;
+    for (const p of [...pops, ...sprung]) columns[p.col][p.row] = null;
     await collapse();
     updateHud();
     await sleep(100);
@@ -736,11 +779,58 @@ async function resolveChains() {
   }
 }
 
+// LOGIC BOMB: after each drop every armed bomb (except one just placed) counts down; at zero it
+// wipes out everything within BLAST_RADIUS, then the board settles and chains resolve.
+async function tickBombs() {
+  const blasts = [];
+  columns.forEach((stack, c) => stack.forEach((cell, r) => {
+    if (!cell || cell.type !== 'bomb') return;
+    if (cell.fresh) {
+      cell.fresh = false;
+      return;
+    }
+    cell.timer--;
+    if (cell.timer <= 0) blasts.push({ row: r, col: c });
+  }));
+  if (!blasts.length) {
+    render();
+    return;
+  }
+  const hits = [];
+  for (const b of blasts) {
+    for (let dr = -BLAST_RADIUS; dr <= BLAST_RADIUS; dr++) {
+      for (let dc = -BLAST_RADIUS; dc <= BLAST_RADIUS; dc++) {
+        const pos = { row: b.row + dr, col: b.col + dc };
+        if (occupied(pos.row, pos.col) && !hits.some((h) => h.row === pos.row && h.col === pos.col)) hits.push(pos);
+      }
+    }
+  }
+  setMessage('LOGIC BOMB // DETONATED');
+  FX.burst(cellsAt(hits));
+  render(hits);
+  SFX.play('burst');
+  SFX.play('denied');
+  await sleep(260);
+  for (const h of hits) columns[h.col][h.row] = null;
+  score += (hits.length - blasts.length) * 10;
+  await collapse();
+  await resolveChains();
+}
+
+// PACKET SNIFFER: step the current bit's number up or down (wrapping 1..COLS)
+function sniff(step) {
+  if (snifferBits <= 0 || busy || gameOver || !queue[0] || queue[0].type !== 'number') return;
+  queue[0] = { type: 'number', val: ((queue[0].val - 1 + step + COLS) % COLS) + 1 };
+  SFX.play('click');
+  updateHud();
+}
+currentEl.addEventListener('click', () => sniff(1));
+
 // DOM cells for board positions, captured before a re-render replaces them.
 function cellsAt(positions) {
   return positions.map(({ row, col }) => ({
     el: boardEl.querySelector(`[data-pos="${row},${col}"]`),
-    type: columns[col][row] && columns[col][row].type,
+    type: columns[col][row] && (['bomb', 'honeypot'].includes(columns[col][row].type) ? 'hack' : columns[col][row].type),
   }));
 }
 
@@ -829,6 +919,18 @@ async function runHack(id, row, col) {
     } else {
       render();
     }
+  } else if (id === 'logicbomb' || id === 'honeypot') {
+    // Both stay on the board as armed blocks where they landed
+    columns[col][row] = id === 'logicbomb' ? { type: 'bomb', timer: BOMB_DROPS, fresh: true } : { type: 'honeypot' };
+    render();
+    SFX.play('enter');
+    await sleep(300);
+  } else if (id === 'sniffer') {
+    columns[col].pop();
+    snifferBits = SNIFFER_BITS;
+    render();
+    SFX.play('enter');
+    await sleep(300);
   } else if (id === 'keylogger') {
     columns[col].pop();
     keyloggerDrops = KEYLOGGER_DROPS;
@@ -916,6 +1018,8 @@ function endGame(reason = 'trace') {
 document.addEventListener('keydown', (e) => {
   const num = parseInt(e.key, 10);
   if (num >= 1 && num <= COLS) attemptDrop(num - 1);
+  else if (e.key === 'ArrowUp' && snifferBits > 0) { e.preventDefault(); sniff(1); }
+  else if (e.key === 'ArrowDown' && snifferBits > 0) { e.preventDefault(); sniff(-1); }
 });
 
 // Ignored mid-animation: the in-flight drop would keep mutating the fresh board.
@@ -1465,8 +1569,8 @@ function renderRecords() {
     const row = recordRow({
       name: `LV ${lv.level} // PRESTIGE ${lv.prestige}`,
       desc: lv.maxed
-        ? 'Lv 80 reached. PRESTIGE to start again at Lv 1: exploits lock again (you keep one more at the start), and the next theme unlocks for good.'
-        : `Decrypt bits to level up. At Lv 80 you can prestige.`,
+        ? 'A kilobyte decrypted. PRESTIGE to start again at Lv 1: exploits and slots lock again (you keep one more of each for good), and the next theme unlocks for good.'
+        : `100 bits per level. Fill Lv 80 (${fmt(lv.xp)} / ${fmt(lv.prestigeBits)} bits, a kilobyte) to prestige.`,
       current: lv.maxed ? 1 : lv.into,
       goal: lv.maxed ? 1 : lv.need,
       done: lv.maxed,
@@ -1505,13 +1609,21 @@ function renderRecords() {
     recordsBodyEl.appendChild(exHead);
     const exList = document.createElement('ul');
     exList.className = 'rec-list';
+    const slotsNow = Progress.slotInfo();
+    exList.appendChild(recordRow({
+      name: `EXPLOIT SLOTS ${slotsNow.slots} / ${slotsNow.max}`,
+      desc: slotsNow.nextLevel ? `Next slot at Lv ${slotsNow.nextLevel}. Each prestige keeps one more.` : 'Each prestige keeps one more, up to 6.',
+      current: slotsNow.slots,
+      goal: slotsNow.max,
+      done: slotsNow.slots >= slotsNow.max,
+    }));
     for (const id of Progress.exploitOrder()) {
       const info = Progress.exploitInfo(id);
       exList.appendChild(recordRow({
         name: HACKS[id].name,
-        desc: info.start ? 'Unlocked from the start this prestige' : `${fmt(info.goal)} points this prestige`,
-        current: info.start ? 1 : info.current,
-        goal: info.start ? 1 : info.goal,
+        desc: info.kept ? 'Kept for good by your prestige' : `Unlocks at Lv ${info.level}`,
+        current: info.kept ? 1 : Math.min(lv.level, info.level),
+        goal: info.kept ? 1 : info.level,
         done: info.unlocked,
       }));
     }
@@ -1632,16 +1744,53 @@ document.addEventListener('keydown', (e) => {
 });
 
 // Locked exploits dim with their points tracker (this prestige); DAILY shows its fixed five.
+// Exploit cards, in unlock order: locked (with the level that unlocks them), unlocked (tap to
+// equip) or equipped (tap to remove). DAILY shows its fixed five instead.
+const hacksPanelEl = document.querySelector('.panel-hacks');
+const slotInfoEl = document.getElementById('slot-info');
 function refreshExploitCards() {
-  document.querySelectorAll('.hack-item').forEach((el) => {
-    const id = el.dataset.hack;
+  const { slots, max, nextLevel } = Progress.slotInfo();
+  const equipped = Progress.equipped();
+  if (mode === 'daily') {
+    slotInfoEl.textContent = 'DAILY DECRYPT // THE SAME FIVE EXPLOITS FOR EVERYONE';
+  } else {
+    slotInfoEl.textContent = `SLOTS ${equipped.length} / ${slots}`
+      + (slots < max ? (nextLevel ? ` // NEXT SLOT AT LV ${nextLevel}` : ' // MORE SLOTS WITH PRESTIGE') : '')
+      + (slots === 0 ? ' // TAP AN UNLOCKED EXPLOIT TO EQUIP IT' : '');
+  }
+  for (const id of Progress.exploitOrder()) {
+    const el = hacksPanelEl.querySelector(`.hack-item[data-hack="${id}"]`);
+    if (!el) continue;
+    hacksPanelEl.appendChild(el); // keep the cards in unlock order
     const info = Progress.exploitInfo(id);
-    el.classList.toggle('locked', !hackAvailable(id));
-    el.querySelector('.lock-tag').textContent = mode === 'daily'
-      ? 'NOT USED IN THE DAILY DECRYPT'
-      : `UNLOCKS AT ${fmt(info.goal)} POINTS THIS PRESTIGE (${fmt(Math.min(info.current, info.goal))} / ${fmt(info.goal)})`;
-  });
+    const daily = mode === 'daily';
+    const on = daily ? DAILY_EXPLOITS.includes(id) : equipped.includes(id);
+    el.classList.toggle('locked', daily ? !on : !info.unlocked);
+    el.classList.toggle('unlocked', !daily && info.unlocked);
+    el.classList.toggle('equipped', on);
+    let tag;
+    if (daily) tag = on ? '' : 'NOT USED IN THE DAILY DECRYPT';
+    else if (!info.unlocked) tag = `UNLOCKS AT LV ${info.level} THIS PRESTIGE`;
+    else if (on) tag = 'TAP TO REMOVE';
+    else tag = equipped.length < slots ? 'TAP TO EQUIP' : 'SLOTS FULL // REMOVE ONE TO SWAP';
+    el.querySelector('.lock-tag').textContent = tag;
+  }
 }
+hacksPanelEl.addEventListener('click', (e) => {
+  const card = e.target.closest('.hack-item');
+  if (!card || mode === 'daily' || !Progress.exploitInfo(card.dataset.hack).unlocked) return;
+  const id = card.dataset.hack;
+  if (Progress.isEquipped(id)) {
+    Progress.unequip(id);
+    SFX.play('backspace');
+  } else if (Progress.equip(id)) {
+    SFX.play('enter');
+  } else {
+    SFX.play('denied');
+    showToast(Progress.slotInfo().slots ? 'SLOTS FULL // REMOVE ONE TO SWAP' : 'NO EXPLOIT SLOTS YET');
+  }
+  refreshExploitCards();
+});
 
 // Refreshes everything that can be locked, after progress or Full Access changes.
 function applyUnlocks() {

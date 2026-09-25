@@ -4,10 +4,11 @@
 // script.js reports what happens in a run; check() then returns anything newly earned.
 //
 // Levels: bits decrypted are XP, from Lv 1 to Lv 80. At Lv 80 the player can PRESTIGE:
-// back to Lv 1, prestige +1, and exploits lock again. Exploits unlock in EXPLOIT_ORDER as
-// points pile up within a prestige, and prestige N starts with the first N unlocked. Each
-// prestige also permanently unlocks the next theme in THEME_ORDER. Tracks and Hard mode
-// are permanent unlocks and never reset.
+// back to Lv 1, prestige +1, and exploits lock again. Exploits (in EXPLOIT_ORDER) and exploit
+// slots unlock by level within a prestige; prestige N keeps N slots and the first N exploits
+// for good, and the rest unlock sooner. Only exploits equipped in a slot are awarded. Each
+// prestige also permanently unlocks the next theme in THEME_ORDER. Tracks and Hard mode are
+// permanent unlocks and never reset.
 const Progress = (() => {
   const KEY = 'bytefall-progress';
   const fresh = () => ({
@@ -36,9 +37,11 @@ const Progress = (() => {
     achieved: {}, // achievement id -> true
     prestige: 0,
     xp: 0, // bits decrypted this prestige
-    prestigePoints: 0, // points earned this prestige (unlocks exploits)
+    prestigePoints: 0, // points earned this prestige
+    equipped: [], // exploit ids in the loadout slots
     lastLevel: 1, // for LEVEL UP announcements
     exploitsSeen: {}, // exploit id -> true once announced this prestige
+    slotsSeen: 0, // slots announced this prestige
   });
 
   let d = fresh();
@@ -64,30 +67,57 @@ const Progress = (() => {
   const TRACK_BITS = [300, 750, 1500, 3000, 5000, 7500, 10000, 15000]; // tracks 03-10
 
   const MAX_LEVEL = 80;
-  // Bits to go from level L to L+1: 50, 55, 60... (about 19,000 bits to reach Lv 80)
-  const bitsForLevel = (level) => 50 + 5 * (level - 1);
+  // 100 bits (12.5 bytes) per level. Lv 80 starts at 7,900 bits and its bar fills at 8,000,
+  // when PRESTIGE opens: a full prestige is exactly 1 kilobyte.
+  const BITS_PER_LEVEL = 100;
+  const PRESTIGE_BITS = MAX_LEVEL * BITS_PER_LEVEL;
   function levelInfo() {
-    let level = 1;
-    let xp = d.xp;
-    while (level < MAX_LEVEL && xp >= bitsForLevel(level)) {
-      xp -= bitsForLevel(level);
-      level++;
-    }
-    const need = level < MAX_LEVEL ? bitsForLevel(level) : 0;
-    return { level, into: level < MAX_LEVEL ? xp : 0, need, maxed: level >= MAX_LEVEL, prestige: d.prestige };
+    const level = Math.min(MAX_LEVEL, Math.floor(d.xp / BITS_PER_LEVEL) + 1);
+    const into = Math.min(BITS_PER_LEVEL, d.xp - (level - 1) * BITS_PER_LEVEL);
+    return { level, into, need: BITS_PER_LEVEL, maxed: d.xp >= PRESTIGE_BITS, prestige: d.prestige, xp: Math.min(d.xp, PRESTIGE_BITS), prestigeBits: PRESTIGE_BITS };
   }
 
-  // Weakest first; points (this prestige) for each unlock after the ones a prestige starts with
-  const EXPLOIT_ORDER = ['rng', 'bitflip', 'overflow', 'trojan', 'worm', 'keylogger', 'backdoor', 'dictionary', 'rainbow'];
-  const EXPLOIT_POINTS = [500, 2000, 5000, 10000, 20000, 35000, 55000, 80000, 110000, 150000];
+  // Weakest first. After the ones a prestige keeps, each unlocks at the next level in EXPLOIT_LEVELS.
+  const EXPLOIT_ORDER = ['rng', 'bitflip', 'overflow', 'trojan', 'worm', 'keylogger', 'sniffer', 'backdoor',
+    'logicbomb', 'honeypot', 'dictionary', 'rainbow'];
+  const EXPLOIT_LEVELS = [3, 8, 14, 20, 26, 32, 38, 44, 50, 56, 63, 70];
+  // Loadout slots: prestige N keeps N (up to MAX_SLOTS); the rest unlock at SLOT_LEVELS in turn
+  const MAX_SLOTS = 6;
+  const SLOT_LEVELS = [5, 15, 30, 45, 60, 75];
   let exploitNames = {}; // id -> name, from script.js
+
   function exploitInfo(id) {
     const k = EXPLOIT_ORDER.indexOf(id);
-    const start = Math.min(d.prestige, EXPLOIT_ORDER.length);
-    if (k < 0) return { unlocked: true, start: true, goal: 0 };
-    if (k < start) return { unlocked: true, start: true, goal: 0 };
-    const goal = EXPLOIT_POINTS[Math.min(k - start, EXPLOIT_POINTS.length - 1)];
-    return { unlocked: Unlocks.hasFullAccess() || d.prestigePoints >= goal, start: false, goal, current: d.prestigePoints };
+    const kept = Math.min(d.prestige, EXPLOIT_ORDER.length);
+    if (k < kept) return { unlocked: true, kept: true, level: 0 };
+    const level = EXPLOIT_LEVELS[k - kept];
+    return { unlocked: Unlocks.hasFullAccess() || levelInfo().level >= level, kept: false, level };
+  }
+  function slotInfo() {
+    if (Unlocks.hasFullAccess()) return { slots: MAX_SLOTS, max: MAX_SLOTS, kept: MAX_SLOTS, nextLevel: 0 };
+    const kept = Math.min(d.prestige, MAX_SLOTS);
+    const { level } = levelInfo();
+    const levels = SLOT_LEVELS.slice(0, MAX_SLOTS - kept);
+    const earned = levels.filter((l) => level >= l).length;
+    const next = levels.find((l) => level < l);
+    return { slots: kept + earned, max: MAX_SLOTS, kept, nextLevel: next || 0 };
+  }
+  const unlockedExploits = () => EXPLOIT_ORDER.filter((id) => exploitInfo(id).unlocked);
+
+  // Keep the loadout valid: only unlocked exploits, no more than the slots.
+  function tidyLoadout() {
+    const { slots } = slotInfo();
+    d.equipped = d.equipped.filter((id, i, all) => exploitInfo(id).unlocked && all.indexOf(id) === i).slice(0, slots);
+  }
+  // When an exploit or slot unlocks, fill free slots with unlocked exploits in order, so new
+  // unlocks are ready to use. (Not on every change, or unequipping to swap would refill.)
+  function fillLoadout() {
+    tidyLoadout();
+    const { slots } = slotInfo();
+    for (const id of unlockedExploits()) {
+      if (d.equipped.length >= slots) break;
+      if (!d.equipped.includes(id)) d.equipped.push(id);
+    }
   }
 
   // Each prestige permanently unlocks the next theme
@@ -141,7 +171,7 @@ const Progress = (() => {
     { id: 'daily-driver', name: 'DAILY DRIVER', desc: 'Play the Daily Decrypt 7 days in a row', value: () => d.bestDailyStreak, goal: 7 },
     { id: 'locksmith', name: 'LOCKSMITH', desc: 'Solve 10 puzzles', value: () => Object.keys(d.puzzles).length, goal: 10 },
     { id: 'master-key', name: 'MASTER KEY', desc: 'Solve every puzzle', value: () => Object.keys(d.puzzles).length, goal: () => puzzleCount },
-    { id: 'maxed-out', name: 'MAXED OUT', desc: 'Reach Lv 80', value: () => (levelInfo().maxed || d.prestige > 0 ? 1 : 0), goal: 1 },
+    { id: 'maxed-out', name: 'MAXED OUT', desc: 'Fill Lv 80: a kilobyte of bits in one prestige', value: () => (levelInfo().maxed || d.prestige > 0 ? 1 : 0), goal: 1 },
     { id: 'rollover', name: 'ROLLOVER', desc: 'Prestige for the first time', value: () => d.prestige, goal: 1 },
     { id: 'full-spectrum', name: 'FULL SPECTRUM', desc: 'Reach prestige 9', value: () => d.prestige, goal: 9 },
     { id: 'collector', name: 'COLLECTOR', desc: 'Unlock every theme', value: () => themeIds.filter(isUnlocked).length, goal: themeIds.length },
@@ -179,12 +209,22 @@ const Progress = (() => {
     const { level } = levelInfo();
     if (level > d.lastLevel) earned.push({ type: 'LEVEL UP', name: `LV ${level}` });
     d.lastLevel = Math.max(d.lastLevel, level);
+    let opened = false;
     for (const id of EXPLOIT_ORDER) {
       if (!d.exploitsSeen[id] && exploitInfo(id).unlocked) {
         d.exploitsSeen[id] = true;
         earned.push({ type: 'UNLOCKED', name: exploitNames[id] || id });
+        opened = true;
       }
     }
+    const { slots } = slotInfo();
+    if (slots > d.slotsSeen) {
+      earned.push({ type: 'UNLOCKED', name: `EXPLOIT SLOT ${slots}` });
+      d.slotsSeen = slots;
+      opened = true;
+    }
+    if (opened) fillLoadout();
+    else tidyLoadout();
     for (const a of ACHIEVEMENTS) {
       if (!d.achieved[a.id] && a.value() >= goalOf(a)) {
         d.achieved[a.id] = true;
@@ -194,8 +234,13 @@ const Progress = (() => {
     save();
     return quiet ? [] : earned;
   }
-  // Exploits a prestige starts with aren't announced
-  EXPLOIT_ORDER.forEach((id) => { if (exploitInfo(id).start) d.exploitsSeen[id] = true; });
+  // Exploits and slots a prestige starts with aren't announced
+  const markKept = () => {
+    EXPLOIT_ORDER.forEach((id) => { if (exploitInfo(id).kept) d.exploitsSeen[id] = true; });
+    d.slotsSeen = Math.max(d.slotsSeen, Math.min(d.prestige, MAX_SLOTS));
+  };
+  markKept();
+  if (!d.equipped.length) fillLoadout(); // first load, or a new Full Access / dev unlock
   check(true); // seed from existing best scores without announcing anything
 
   return {
@@ -208,6 +253,21 @@ const Progress = (() => {
     setExploitNames(names) { exploitNames = names; },
     exploitInfo,
     exploitOrder: () => [...EXPLOIT_ORDER],
+    slotInfo,
+    equipped: () => (tidyLoadout(), [...d.equipped]),
+    isEquipped: (id) => (tidyLoadout(), d.equipped.includes(id)),
+    // Returns false when it can't (locked, or every slot is taken)
+    equip(id) {
+      tidyLoadout();
+      if (d.equipped.includes(id) || !exploitInfo(id).unlocked || d.equipped.length >= slotInfo().slots) return false;
+      d.equipped.push(id);
+      save();
+      return true;
+    },
+    unequip(id) {
+      d.equipped = d.equipped.filter((x) => x !== id);
+      save();
+    },
     levelInfo,
     // Lv 80 only: back to Lv 1 with exploits locked again; the next theme unlocks for good
     prestige() {
@@ -217,7 +277,10 @@ const Progress = (() => {
       d.prestigePoints = 0;
       d.lastLevel = 1;
       d.exploitsSeen = {};
-      EXPLOIT_ORDER.forEach((id) => { if (exploitInfo(id).start) d.exploitsSeen[id] = true; });
+      d.slotsSeen = 0;
+      d.equipped = [];
+      markKept();
+      fillLoadout();
       save();
       return true;
     },

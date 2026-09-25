@@ -36,8 +36,11 @@ lands:
 | Keylogger `[@]` * | 3x | Shows your next 3 bits for the next 10 drops |
 | Backdoor `[_]` * | 4x | Deletes the entire bottom row, layers included; everything drops by one |
 | Rainbow Table `[*]` * | 5x | Decrypts every bit showing the most common number on the board |
+| Packet Sniffer `[~]` * | 3x | For your next 3 bits, tap CURRENT (or press ↑ / ↓) to pick each one's number |
+| Logic Bomb `[!]` * | 4x | Lands as a `[!3]` block counting down each drop; at zero it wipes out the 5×5 around it |
+| Honeypot `[◎]` * | 4x | Lands as a trap; when a bit next to it decrypts, every bit of that number within 2 cells decrypts too |
 
-\* Bonus exploits, unlocked by playing (see below).
+Every exploit is unlocked by level and has to be equipped in a slot (see below).
 
 A drop earns at most one exploit, picked from the longest chain it set off.
 
@@ -70,19 +73,23 @@ fresh when it moved to 8×8).
 
 ## Levels, prestige and unlocks
 
-**Levels.** Every bit you decrypt is XP. Lv 1 → 2 takes 50 bits and each level
-after needs 5 more, up to **Lv 80** (about 19,000 bits). The level bar sits
-under the title; tapping it opens RECORDS.
+**Levels.** Every bit you decrypt is XP: **100 bits (12.5 bytes) per level**,
+Lv 1 to **Lv 80**. Lv 80's bar fills at 8,000 bits, so a full prestige is
+exactly **1 kilobyte**. The level bar sits under the title; tapping it opens
+RECORDS.
 
-**Prestige.** At Lv 80, PRESTIGE (in RECORDS → UNLOCKS, two presses) starts you
-again at Lv 1 with prestige +1. Exploits lock again, and each prestige
-permanently unlocks the next theme.
+**Prestige.** With Lv 80 full, PRESTIGE (in RECORDS → UNLOCKS, two presses)
+starts you again at Lv 1 with prestige +1. Exploits and slots lock again, but
+prestige N keeps N slots (up to 6) and the first N exploits for good, and the
+rest unlock sooner. Each prestige also permanently unlocks the next theme.
 
-**Exploits** are locked at first and unlock in this order as points pile up
-within the current prestige: RNG (500), BITFLIP (2,000), BUFFER OVERFLOW
-(5,000), TROJAN (10,000), WORM VIRUS (20,000), KEYLOGGER (35,000), BACKDOOR
-(55,000), DICTIONARY ATTACK (80,000), RAINBOW TABLE (110,000). Prestige N
-starts with the first N unlocked and the rest move down the thresholds. The
+**Exploit slots (loadout).** Only exploits equipped in a slot are awarded.
+Slots unlock at Lv 5, 15, 30, 45, 60 and 75 (6 at most). Exploits unlock by
+level in this order: RNG (3), BITFLIP (8), BUFFER OVERFLOW (14), TROJAN (20),
+WORM VIRUS (26), KEYLOGGER (32), PACKET SNIFFER (38), BACKDOOR (44), LOGIC
+BOMB (50), HONEYPOT (56), DICTIONARY ATTACK (63), RAINBOW TABLE (70); with a
+prestige's kept exploits, the rest move down this list. A new unlock drops
+into a free slot by itself; tap an exploit card to remove or equip it. The
 Daily Decrypt always uses the five standard exploits, so it's the same for
 everyone.
 
@@ -104,7 +111,7 @@ reports each drop, decrypt, peel, byte, exploit and point to it.
 
 **Dev switches.** The `</>` dev page has UNLOCK EVERYTHING (like owning Full
 Access, for this browser; the game shows a DEV badge while it's on), JUMP TO
-LV 80 and +10,000 POINTS for testing prestige and exploit unlocks.
+LV 80 and +10 LEVELS for testing prestige, slots and exploit unlocks.
 
 ## Daily bonus, vibration and resetting
 

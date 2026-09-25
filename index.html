@@ -12,7 +12,7 @@
   } catch (e) {}
 </script>
 <title>BYTEFALL // decryption terminal</title>
-<link rel="stylesheet" href="style.css?v=46">
+<link rel="stylesheet" href="style.css?v=48">
 </head>
 <body>
   <main class="cabinet">
@@ -118,7 +118,7 @@
           <span class="value" id="chain">0x</span>
         </div>
         <div class="stat">
-          <span class="label">CURRENT</span>
+          <span class="label" id="current-label">CURRENT</span>
           <div class="next-disc" id="current-piece">[?]</div>
         </div>
         <div class="stat" id="next-stat" hidden>
@@ -153,6 +153,7 @@
 
     <aside class="panel panel-hacks">
       <h2>EXPLOITS</h2>
+      <p class="slot-info" id="slot-info"></p>
       <p><span id="hack-intro">Chain 5 decrypts in one drop to unlock a random exploit.</span> It becomes your next drop and runs wherever it lands.</p>
       <div class="hack-item" data-hack="worm">
         <h3><span class="icon">§</span> WORM VIRUS<span class="combo"></span></h3>
@@ -187,6 +188,21 @@
       <div class="hack-item" data-hack="keylogger">
         <h3><span class="icon">@</span> KEYLOGGER<span class="combo"></span></h3>
         <p>Records the incoming stream: shows your next 3 bits for the next 10 drops.</p>
+        <p class="lock-tag"></p>
+      </div>
+      <div class="hack-item" data-hack="sniffer">
+        <h3><span class="icon">~</span> PACKET SNIFFER<span class="combo"></span></h3>
+        <p>Taps the incoming stream: for your next 3 bits, tap CURRENT (or press &uarr; / &darr;) to choose each one's number.</p>
+        <p class="lock-tag"></p>
+      </div>
+      <div class="hack-item" data-hack="logicbomb">
+        <h3><span class="icon">!</span> LOGIC BOMB<span class="combo"></span></h3>
+        <p>Lands as a block counting down from 3. Three drops later it detonates, wiping out everything in the 5&times;5 around it.</p>
+        <p class="lock-tag"></p>
+      </div>
+      <div class="hack-item" data-hack="honeypot">
+        <h3><span class="icon">&#9678;</span> HONEYPOT<span class="combo"></span></h3>
+        <p>Lands as a trap. When a bit next to it decrypts, every bit with that number within 2 cells of the trap decrypts too.</p>
         <p class="lock-tag"></p>
       </div>
       <div class="hack-item" data-hack="backdoor">
@@ -236,20 +252,20 @@
     </div>
   </div>
 
-  <script src="unlocks.js?v=46"></script>
-  <script src="progress.js?v=46"></script>
-  <script src="sfx.js?v=46"></script>
-  <script src="music-theme.js?v=46"></script>
-  <script src="music-sleep-mode.js?v=46"></script>
-  <script src="music-brute-force.js?v=46"></script>
-  <script src="music-deep-web.js?v=46"></script>
-  <script src="music-zero-day.js?v=46"></script>
-  <script src="music-system-restore.js?v=46"></script>
-  <script src="music.js?v=46"></script>
-  <script src="puzzles.js?v=46"></script>
-  <script src="fx.js?v=46"></script>
-  <script src="viz.js?v=46"></script>
-  <script src="script.js?v=47"></script>
-  <script src="grid-bg.js?v=46"></script>
+  <script src="unlocks.js?v=48"></script>
+  <script src="progress.js?v=48"></script>
+  <script src="sfx.js?v=48"></script>
+  <script src="music-theme.js?v=48"></script>
+  <script src="music-sleep-mode.js?v=48"></script>
+  <script src="music-brute-force.js?v=48"></script>
+  <script src="music-deep-web.js?v=48"></script>
+  <script src="music-zero-day.js?v=48"></script>
+  <script src="music-system-restore.js?v=48"></script>
+  <script src="music.js?v=48"></script>
+  <script src="puzzles.js?v=48"></script>
+  <script src="fx.js?v=48"></script>
+  <script src="viz.js?v=48"></script>
+  <script src="script.js?v=48"></script>
+  <script src="grid-bg.js?v=48"></script>
 </body>
 </html>

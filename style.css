@@ -1023,16 +1023,31 @@ h1 span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
 
 .hack-item.held h3 { color: var(--accent); }
 
-/* Bonus exploits and tracks without Full Access (preview with ?free) */
-.hack-item .lock-tag { display: none; }
-.hack-item.locked { opacity: 0.45; }
-.hack-item.locked .lock-tag {
-  display: block;
-  margin-top: 4px;
-  font-size: 9px;
-  letter-spacing: 2px;
-  color: var(--accent);
+/* Exploit loadout: tap an unlocked card to equip or remove it */
+.slot-info { margin: 0 0 8px; font-size: 11px; letter-spacing: 1px; color: var(--accent); }
+.hack-item.unlocked { cursor: pointer; }
+.hack-item.unlocked:not(.equipped) { opacity: 0.7; }
+.hack-item.unlocked:hover { border-color: var(--fg-dim); }
+.hack-item.equipped { border: 1px solid var(--fg); }
+.hack-item.equipped h3::after { content: 'EQUIPPED'; margin-left: 8px; font-size: 9px; letter-spacing: 1px; color: var(--fg); order: 3; }
+.hack-item .lock-tag { display: block; margin-top: 4px; font-size: 9px; letter-spacing: 2px; color: var(--fg-dim); }
+.hack-item.locked .lock-tag { color: var(--accent); }
+
+/* LOGIC BOMB and HONEYPOT sit on the board as armed blocks */
+.cell.hack.armed { animation: armed-pulse 1s ease-in-out infinite; }
+.cell.hack.armed.bomb { font-size: clamp(10px, 3.2vw, 16px); }
+@keyframes armed-pulse {
+  0%, 100% { box-shadow: 0 0 0 rgba(var(--danger-rgb), 0); }
+  50% { box-shadow: 0 0 10px rgba(var(--danger-rgb), 0.7); }
 }
+
+/* PACKET SNIFFER: the CURRENT bit can be changed */
+.stat.sniffing { border-color: var(--accent); }
+.stat.sniffing .label { color: var(--accent); }
+.stat.sniffing .next-disc { cursor: pointer; border-color: var(--accent); }
+
+/* Bonus exploits and tracks without Full Access (preview with ?free) */
+.hack-item.locked { opacity: 0.45; }
 .settings button.locked::after { content: attr(data-need); margin-left: auto; font-size: 9px; letter-spacing: 0; color: var(--accent); }
 .settings .theme-option { position: relative; min-width: 0; }
 .settings .theme-option.locked::after {
