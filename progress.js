@@ -70,6 +70,13 @@ const Progress = (() => {
     rageQuit: 0, // restarted 10 live sessions in one sitting
     snakeEyes: 0, // lost with 0 points
     leet: 0, // finished on exactly 1,337
+    bestClassicDrops: 0, // longest CLASSIC session, in drops
+    dailyDay: { date: '', kinds: {} }, // daily games played on the latest UTC day
+    dailySweeps: 0, // days all four daily games were played
+    breaches: 0, // BREACH boards cleared
+    sundaySolves: 0, // Sunday (hardest) daily puzzles solved
+    dailyFirstTries: 0, // daily puzzles solved on the first try
+    secrets: {}, // hidden achievement id -> true (reported by script.js)
   });
 
   let d = fresh();
@@ -154,13 +161,13 @@ const Progress = (() => {
 
   // group: where it shows in the UNLOCKS list. value() / goal drive its tracker.
   const UNLOCKS = [
-    { id: 'mode-hard', group: 'MODE', name: 'HARD MODE', need: 'Score 1,500 on Normal', value: () => best('normal'), goal: 1500 },
+    { id: 'mode-hard', group: 'MODE', name: 'HARD MODE', need: 'Score 2,000 on Normal', value: () => best('normal'), goal: 2000 },
     ...TRACK_BITS.map((goal, i) => ({
       id: `track-${i + 3}`, group: 'TRACKS', name: `TRACK ${String(i + 3).padStart(2, '0')}`,
       need: `Decrypt ${goal.toLocaleString('en-US')} bits`, value: () => d.bits, goal,
     })),
     ...THEME_ORDER.map(([id, name], i) => ({
-      id: `theme-${id}`, group: 'THEMES', name, need: `Reach prestige ${i + 1}`, value: () => d.prestige, goal: i + 1,
+      id: `theme-${id}`, group: 'THEMES', name, need: `Reach DECRYPTOR ${i + 1}`, value: () => d.prestige, goal: i + 1,
     })),
   ];
 
@@ -170,6 +177,8 @@ const Progress = (() => {
   let trackCount = 7; // set by script.js from Music.tracks()
   let themeCount = 10; // set by script.js from THEMES
   let sittingRestarts = 0; // live sessions restarted since the page loaded
+  let sittingThemes = 0; // theme changes since the page loaded
+  let sittingTracks = 0; // tracks picked since the page loaded
   const count = (obj) => Object.keys(obj).length;
 
   const ACHIEVEMENTS = [
@@ -203,9 +212,9 @@ const Progress = (() => {
     { id: 'daily-driver', name: 'DAILY DRIVER', desc: 'Play a Daily game 7 days in a row', value: () => d.bestDailyStreak, goal: 7 },
     { id: 'locksmith', name: 'LOCKSMITH', desc: 'Solve 10 puzzles', value: () => Object.keys(d.puzzles).length, goal: 10 },
     { id: 'master-key', name: 'MASTER KEY', desc: 'Solve every puzzle', value: () => Object.keys(d.puzzles).length, goal: () => puzzleCount },
-    { id: 'maxed-out', name: 'MAXED OUT', desc: 'Fill Lv 80: a kilobyte of bits in one prestige', value: () => (levelInfo().maxed || d.prestige > 0 ? 1 : 0), goal: 1 },
-    { id: 'rollover', name: 'ROLLOVER', desc: 'Prestige for the first time', value: () => d.prestige, goal: 1 },
-    { id: 'full-spectrum', name: 'FULL SPECTRUM', desc: 'Reach prestige 9', value: () => d.prestige, goal: 9 },
+    { id: 'maxed-out', name: 'MAXED OUT', desc: 'Fill Lv 80: a kilobyte of bits in one DECRYPTOR rank', value: () => (levelInfo().maxed || d.prestige > 0 ? 1 : 0), goal: 1 },
+    { id: 'rollover', name: 'ROLLOVER', desc: 'Rank up to DECRYPTOR 1', value: () => d.prestige, goal: 1 },
+    { id: 'full-spectrum', name: 'FULL SPECTRUM', desc: 'Reach DECRYPTOR 9', value: () => d.prestige, goal: 9 },
     { id: 'collector', name: 'COLLECTOR', desc: 'Unlock every theme', value: () => themeIds.filter(isUnlocked).length, goal: themeIds.length },
     // Skill
     { id: 'zero-day', name: 'ZERO-DAY', desc: 'Decrypt a bit with the first drop of a session', value: () => d.firstDropClears, goal: 1 },
@@ -243,6 +252,49 @@ const Progress = (() => {
     { id: 'rage-quit', name: 'RAGE QUIT', desc: 'Restart 10 sessions in one sitting', value: () => d.rageQuit, goal: 1, hidden: true },
     { id: 'snake-eyes', name: 'SNAKE EYES', desc: 'Lose a session with 0 points', value: () => d.snakeEyes, goal: 1, hidden: true },
     { id: '1337', name: '1337', desc: 'Finish a session on exactly 1,337 points', value: () => d.leet, goal: 1, hidden: true },
+    // More: skill, totals and modes
+    { id: 'lifer', name: 'LIFER', desc: 'Play 500 sessions', value: () => d.games, goal: 500 },
+    { id: 'marathon', name: 'MARATHON', desc: 'Last 250 drops in one Classic session', value: () => d.bestClassicDrops, goal: 250 },
+    { id: 'supernova', name: 'SUPERNOVA', desc: 'Get a 10x chain', value: () => d.bestChain, goal: 10 },
+    { id: 'byte-array', name: 'BYTE ARRAY', desc: 'Decrypt 100 bytes', value: () => d.bytes, goal: 100 },
+    { id: 'triple-byte', name: 'TRIPLE BYTE', desc: 'Decrypt 3 bytes with one drop', value: () => d.bestDropBytes, goal: 3 },
+    { id: 'onion-core', name: 'ONION CORE', desc: 'Peel 10,000 encryption layers', value: () => d.peeled, goal: 10000 },
+    { id: 'demolition', name: 'DEMOLITION', desc: 'Break 500 encryption layers all the way open', value: () => d.broken, goal: 500 },
+    { id: 'apt', name: 'ADVANCED PERSISTENT THREAT', desc: 'Run 500 exploits', value: () => d.exploits, goal: 500 },
+    { id: 'hypervisor', name: 'HYPERVISOR', desc: 'Score 20,000 in one session', value: () => d.bestScore, goal: 20000 },
+    { id: 'hard-target', name: 'HARD TARGET', desc: 'Score 5,000 on Hard', value: () => best('hard'), goal: 5000 },
+    { id: 'full-range', name: 'FULL RANGE', desc: 'Decrypt 100 of every number from [1] to [7]', value: () => Math.min(...[1, 2, 3, 4, 5, 6, 7].map((n) => d.bitsByValue[n] || 0)), goal: 100 },
+    { id: 'lucky-sevens', name: 'LUCKY SEVENS', desc: 'Decrypt 1,000 [7]s', value: () => d.bitsByValue[7] || 0, goal: 1000 },
+    { id: 'lightspeed', name: 'LIGHTSPEED', desc: 'Score 5,000 in one Blitz', value: () => d.bestBlitz, goal: 5000 },
+    { id: 'daily-sweep', name: 'DAILY SWEEP', desc: 'Play all four daily games on the same day', value: () => d.dailySweeps, goal: 1 },
+    { id: 'breached', name: 'BREACHED', desc: 'Clear the whole board in BREACH', value: () => d.breaches, goal: 1 },
+    { id: 'one-shot', name: 'ONE SHOT', desc: 'Solve a daily puzzle on the first try', value: () => d.dailyFirstTries, goal: 1 },
+    { id: 'sunday-best', name: 'SUNDAY BEST', desc: "Solve a Sunday daily puzzle (the week's hardest)", value: () => d.sundaySolves, goal: 1 },
+    { id: 'safecracker', name: 'SAFECRACKER', desc: 'Solve 30 puzzles', value: () => count(d.puzzles), goal: 30 },
+    { id: 'century', name: 'CENTURY', desc: 'Play a Daily game 100 days in a row', value: () => d.bestDailyStreak, goal: 100 },
+    { id: 'triple-crown', name: 'TRIPLE CROWN', desc: 'Reach DECRYPTOR 3', value: () => d.prestige, goal: 3 },
+    // More hidden ones
+    ...[
+      ['konami', 'KONAMI', 'Enter the Konami code'],
+      ['not-found', 'NOT FOUND', 'Finish a session on exactly 404 points'],
+      ['deep-thought', 'DEEP THOUGHT', 'Finish a session with exactly 42 bits decrypted'],
+      ['jackpot', 'JACKPOT', 'Decrypt seven [7]s with one drop'],
+      ['silent-running', 'SILENT RUNNING', 'Play a full session (10+ drops) with the sound and music off'],
+      ['stubborn', 'STUBBORN', 'Try the same daily puzzle 10 times'],
+      ['so-close', 'SO CLOSE', 'End a BREACH with one layer left'],
+      ['full-house', 'FULL HOUSE', 'Survive a drop with every column one block from the line or higher'],
+      ['theme-park', 'THEME PARK', 'Change the theme 10 times in one sitting'],
+      ['channel-surfer', 'CHANNEL SURFER', 'Pick a track 10 times in one sitting'],
+      ['last-second', 'LAST SECOND', 'Decrypt a bit in Blitz with under a second left'],
+      ['palindrome', 'PALINDROME', 'Finish a session on a score that reads the same backwards (4+ digits)'],
+      ['overkill', 'OVERKILL', 'Run an exploit on an empty board'],
+      ['double-trouble', 'DOUBLE TROUBLE', 'Have a Logic Bomb and a Honeypot armed at the same time'],
+      ['friday-13th', 'FRIDAY THE 13TH', 'Play on a Friday the 13th'],
+      ['pi-day', 'PI DAY', 'Play on March 14'],
+    ].map(([id, name, desc]) => ({ id, name, desc, value: () => (d.secrets[id] ? 1 : 0), goal: 1, hidden: true })),
+    // Impossible (or nearly): lifetime points. Listed on their own, outside the EARNED count.
+    { id: 'gigabyte', name: 'GIGABYTE', desc: 'Earn 8,000,000,000 points in total', value: () => d.points, goal: 8e9, impossible: true },
+    { id: 'terabyte', name: 'TERABYTE', desc: 'Earn 8,000,000,000,000 points in total', value: () => d.points, goal: 8e12, impossible: true },
   ];
 
   const goalOf = (item) => (typeof item.goal === 'function' ? item.goal() : item.goal);
@@ -374,27 +426,41 @@ const Progress = (() => {
     startRun(difficulty, mode = 'classic', puzzle = null, daily = false) {
       run = {
         difficulty, mode, puzzle, daily, drops: 0, started: false, bits: 0, chain: 0, bytes: 0,
-        exploits: 0, closeCalls: 0, clearStreak: 0, dropBits: 0, dropBroken: 0, pivoted: false, fullCols: new Set(),
+        exploits: 0, closeCalls: 0, clearStreak: 0, dropBits: 0, dropSevens: 0, dropBroken: 0, pivoted: false, fullCols: new Set(),
       };
     },
     drop() {
       if (!run.started) {
         run.started = true;
         if (run.mode !== 'puzzle') d.games++; // puzzle retries don't count as sessions
-        if (run.daily) playedDaily();
+        if (run.daily) {
+          playedDaily();
+          const today = new Date().toISOString().slice(0, 10);
+          if (d.dailyDay.date !== today) d.dailyDay = { date: today, kinds: {} };
+          if (!d.dailyDay.kinds[run.mode]) {
+            d.dailyDay.kinds[run.mode] = true;
+            if (count(d.dailyDay.kinds) === 4) d.dailySweeps++;
+          }
+        }
         if (run.mode === 'puzzle' && run.puzzle !== null) d.puzzleTries[run.puzzle] = (d.puzzleTries[run.puzzle] || 0) + 1;
       }
       run.drops++;
       d.drops++;
       if (run.difficulty === 'hard') d.bestHardDrops = Math.max(d.bestHardDrops, run.drops);
       if (run.mode === 'zen') d.bestZenDrops = Math.max(d.bestZenDrops, run.drops);
+      if (run.mode === 'classic') d.bestClassicDrops = Math.max(d.bestClassicDrops, run.drops);
       const now = new Date();
       if (now.getHours() >= 2 && now.getHours() < 4) d.lateNight = 1;
       if (now.getMonth() === 8 && now.getDate() === 23) d.birthday = 1;
+      if (now.getDay() === 5 && now.getDate() === 13) d.secrets['friday-13th'] = true;
+      if (now.getMonth() === 2 && now.getDate() === 14) d.secrets['pi-day'] = true;
       if (typeof Music !== 'undefined' && Music.isEnabled()) d.tracksHeard[Music.currentTrack()] = true;
     },
     // After a drop and everything it set off. heights: each column's height; over: the board overflowed.
-    endDrop({ hack, heights, rows, over }) {
+    endDrop({ hack, heights, rows, over, lastSecond }) {
+      if (run.dropSevens >= 7) d.secrets.jackpot = true;
+      if (lastSecond && run.dropBits > 0) d.secrets['last-second'] = true;
+      if (!over && heights.every((h) => h >= rows - 1)) d.secrets['full-house'] = true;
       if (run.dropBits > 0) run.clearStreak++;
       else if (!hack) run.clearStreak = 0;
       d.bestClearStreak = Math.max(d.bestClearStreak, run.clearStreak);
@@ -412,11 +478,16 @@ const Progress = (() => {
         });
       }
       run.dropBits = 0;
+      run.dropSevens = 0;
       run.dropBroken = 0;
       run.pivoted = false;
     },
     // A session ended (not PUZZLE): reason 'trace', 'time' or 'daily'
-    endRun({ score, reason, boardEmpty, track, theme }) {
+    endRun({ score, reason, boardEmpty, track, theme, silent }) {
+      if (score === 404) d.secrets['not-found'] = true;
+      if (run.bits === 42) d.secrets['deep-thought'] = true;
+      if (score >= 1000 && String(score) === [...String(score)].reverse().join('')) d.secrets.palindrome = true;
+      if (silent && run.drops >= 10) d.secrets['silent-running'] = true;
       if (run.mode === 'decrypt' && reason === 'daily' && boardEmpty) d.perfectDailies++;
       if (run.drops >= 10) {
         if (track) d.tracksPlayed[track] = true;
@@ -425,7 +496,20 @@ const Progress = (() => {
       if (reason === 'trace' && score === 0 && run.drops > 0) d.snakeEyes = 1;
       if (score === 1337) d.leet = 1;
     },
-    heardTrack(id) { d.tracksHeard[id] = true; },
+    heardTrack(id) {
+      d.tracksHeard[id] = true;
+      if (++sittingTracks >= 10) d.secrets['channel-surfer'] = true;
+    },
+    themeChanged() {
+      if (++sittingThemes >= 10) d.secrets['theme-park'] = true;
+    },
+    // Hidden achievements script.js spots itself (KONAMI, OVERKILL and the like)
+    secret(id) { d.secrets[id] = true; },
+    breached() { d.breaches++; },
+    dailyPuzzleSolved(weekday, tries) {
+      if (weekday === 6) d.sundaySolves++;
+      if (tries === 1) d.dailyFirstTries++;
+    },
     // A live session thrown away with RESTART or a difficulty switch
     restarted() {
       sittingRestarts++;
@@ -439,6 +523,7 @@ const Progress = (() => {
       d.xp += values.length;
       run.bits += values.length;
       run.dropBits += values.length;
+      run.dropSevens += values.filter((v) => v === 7).length;
       run.chain = Math.max(run.chain, chain);
       for (const v of values) d.bitsByValue[v] = (d.bitsByValue[v] || 0) + 1;
       d.bestChain = Math.max(d.bestChain, chain);

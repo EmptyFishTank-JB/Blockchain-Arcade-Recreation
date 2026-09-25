@@ -224,7 +224,7 @@
 
   <section id="dev">
     <h2><span class="sec-num">00</span> Dev Switches</h2>
-    <p class="sec-desc">For testing in this browser only. UNLOCK EVERYTHING works like owning Full Access (Hard, every track, theme and exploit) without touching your saved progress, and the game shows a DEV badge while it's on. While it's on, press and hold any exploit card in the game for 2 seconds to make it your next drop, slotted or not. The other two edit your saved progress so you can try levels, exploit slots and prestige quickly.</p>
+    <p class="sec-desc">For testing in this browser only. UNLOCK EVERYTHING works like owning Full Access (Hard, every track, theme and exploit) without touching your saved progress, and the game shows a DEV badge while it's on. While it's on, press and hold any exploit card in the game for 2 seconds to make it your next drop, slotted or not. The other two edit your saved progress so you can try levels, exploit slots and DECRYPTOR ranks quickly.</p>
     <div class="dev-switches">
       <button type="button" id="dev-unlock">UNLOCK EVERYTHING: OFF</button>
       <button type="button" id="dev-lv80">JUMP TO LV 80</button>
@@ -266,15 +266,15 @@
   <footer>GENERATED FROM SOURCE &mdash; NO AUDIO FILES, ALL SYNTHESIZED ON PLAY</footer>
 </div>
 
-<script src="../sfx.js?v=66"></script>
-<script src="../music-theme.js?v=66"></script>
-<script src="../music-sleep-mode.js?v=66"></script>
-<script src="../music-brute-force.js?v=66"></script>
-<script src="../music-deep-web.js?v=66"></script>
-<script src="../music-zero-day.js?v=66"></script>
-<script src="../music-system-restore.js?v=66"></script>
-<script src="../music-night-drive.js?v=66"></script>
-<script src="../viz.js?v=66"></script>
+<script src="../sfx.js?v=67"></script>
+<script src="../music-theme.js?v=67"></script>
+<script src="../music-sleep-mode.js?v=67"></script>
+<script src="../music-brute-force.js?v=67"></script>
+<script src="../music-deep-web.js?v=67"></script>
+<script src="../music-zero-day.js?v=67"></script>
+<script src="../music-system-restore.js?v=67"></script>
+<script src="../music-night-drive.js?v=67"></script>
+<script src="../viz.js?v=67"></script>
 <script>
 (() => {
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -741,7 +741,7 @@
       status.textContent = message;
     };
     // 100 bits per level; a full Lv 80 (8,000 bits, a kilobyte) opens PRESTIGE
-    document.getElementById('dev-lv80').addEventListener('click', () => editProgress((d) => { d.xp = Math.max(d.xp || 0, 8000); }, 'Lv 80 (full) saved. Reload the game, then PRESTIGE from RECORDS.'));
+    document.getElementById('dev-lv80').addEventListener('click', () => editProgress((d) => { d.xp = Math.max(d.xp || 0, 8000); }, 'Lv 80 (full) saved. Reload the game, then rank up to DECRYPTOR from RECORDS.'));
     document.getElementById('dev-levels').addEventListener('click', () => editProgress((d) => {
       d.xp = Math.min((d.xp || 0) + 1000, 8000);
     }, '+10 levels saved. Reload the game to see new exploits and slots unlock.'));

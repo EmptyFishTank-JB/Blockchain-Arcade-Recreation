@@ -15,7 +15,7 @@ const HACK_COMBO = 5;
 
 const BASE_INTERVAL = 8; // drops between firewall rows
 const HARD_MIN_INTERVAL = 4;
-const HARD_POINTS_PER_STEP = 500; // hard mode loses one drop per this many points
+const HARD_POINTS_PER_STEP = 700; // hard mode loses one drop per this many points
 const BYTE_BITS = 8; // Hard: every 8 bits decrypted by one drop is a byte...
 const BYTE_BONUS = 256; // ...worth 2^8 points
 
@@ -359,7 +359,10 @@ function setPuzzle(i) {
 function checkPuzzle() {
   if (daily && columns.every((c) => c.length === 0)) {
     const first = !storage.get(dailyPuzzleSolvedKey());
-    if (first) storage.set(dailyPuzzleSolvedKey(), storage.get(dailyPuzzleTriesKey()) || '1');
+    if (first) {
+      storage.set(dailyPuzzleSolvedKey(), storage.get(dailyPuzzleTriesKey()) || '1');
+      Progress.dailyPuzzleSolved(utcWeekday(), Number(storage.get(dailyPuzzleSolvedKey())));
+    }
     announce(Progress.check());
     showPuzzleResult(true, first);
   } else if (daily) {
@@ -712,7 +715,9 @@ async function attemptDrop(col) {
   columns[col].push(piece);
   if (daily && dailyOfficial) storage.set(dailyPlayedKey(), '1'); // this is today's official run
   if (daily && mode === 'puzzle' && Progress.runDrops() === 0) {
-    storage.set(dailyPuzzleTriesKey(), String((Number(storage.get(dailyPuzzleTriesKey())) || 0) + 1));
+    const tries = (Number(storage.get(dailyPuzzleTriesKey())) || 0) + 1;
+    storage.set(dailyPuzzleTriesKey(), String(tries));
+    if (tries >= 10) Progress.secret('stubborn');
   }
   Progress.drop();
   if (Progress.runDrops() === 1) refreshExploitCards(); // the loadout locks for this session
@@ -740,13 +745,17 @@ async function attemptDrop(col) {
   if (mode === 'breach' && !overflowed() && columns.every((c) => c.length === 0)) {
     score += BREACH_CLEAR_BONUS;
     breached = true;
+    Progress.breached();
   }
   if (!overflowed()) {
     if (wentOver) Progress.closeCall();
     if (piecesBefore >= 5 && Progress.runDrops() >= 10 && columns.every((c) => c.length === 0)) Progress.sweep();
     if (sniffedOut) Progress.wiretap();
   }
-  Progress.endDrop({ hack: piece.type === 'hack', heights: columns.map((c) => c.length), rows: ROWS, over: overflowed() });
+  Progress.endDrop({
+    hack: piece.type === 'hack', heights: columns.map((c) => c.length), rows: ROWS, over: overflowed(),
+    lastSecond: mode === 'blitz' && timeLeft <= 1,
+  });
   finishTurn();
 }
 
@@ -1017,6 +1026,7 @@ function occupied(row, col) {
 // The hack piece has just landed at (row, col) on top of its stack.
 async function runHack(id, row, col) {
   Progress.exploit(id);
+  if (columns.flat().filter(Boolean).length === 1) Progress.secret('overkill'); // nothing but the exploit
   setMessage(`${HACKS[id].name} // EXECUTING`);
   SFX.play('static');
 
@@ -1099,6 +1109,8 @@ async function runHack(id, row, col) {
   } else if (id === 'logicbomb' || id === 'honeypot') {
     // Both stay on the board as armed blocks where they landed
     columns[col][row] = id === 'logicbomb' ? { type: 'bomb', timer: BOMB_DROPS, fresh: true } : { type: 'honeypot' };
+    const armedTypes = columns.flat().map((cell) => cell && cell.type);
+    if (armedTypes.includes('bomb') && armedTypes.includes('honeypot')) Progress.secret('double-trouble');
     render();
     SFX.play('enter');
     await sleep(300);
@@ -1202,7 +1214,9 @@ function endGame(reason = 'trace') {
     Progress.endRun({
       score, reason, boardEmpty: columns.every((c) => c.length === 0),
       track: Music.isEnabled() ? Music.currentTrack() : null, theme: document.documentElement.dataset.theme || 'terminal',
+      silent: SFX.isMuted() && !Music.isEnabled(),
     });
+    if (mode === 'breach' && layersLeft() === 1) Progress.secret('so-close');
   }
   announce(Progress.check());
 
@@ -1212,6 +1226,19 @@ function endGame(reason = 'trace') {
     if (run === runId) overlayEl.classList.remove('hidden');
   }, 1200);
 }
+
+// KONAMI (hidden achievement): up up down down left right left right B A
+const KONAMI = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+let konamiAt = 0;
+document.addEventListener('keydown', (e) => {
+  const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+  konamiAt = key === KONAMI[konamiAt] ? konamiAt + 1 : key === KONAMI[0] ? 1 : 0;
+  if (konamiAt === KONAMI.length) {
+    konamiAt = 0;
+    Progress.secret('konami');
+    announce(Progress.check());
+  }
+});
 
 document.addEventListener('keydown', (e) => {
   const num = parseInt(e.key, 10);
@@ -1536,6 +1563,10 @@ function applyTheme() {
       });
     } else {
       btn.addEventListener('click', () => {
+        if (themeId !== t.id) {
+          Progress.themeChanged();
+          announce(Progress.check());
+        }
         themeId = t.id;
         storage.set('blockchain-theme', themeId);
         applyTheme();
@@ -1799,9 +1830,9 @@ function announce(earned) {
 const levelBarEl = document.getElementById('level-bar');
 function updateLevelBar() {
   const lv = Progress.levelInfo();
-  document.getElementById('level-label').textContent = `LV ${lv.level}${lv.prestige ? ` \u00b7 P${lv.prestige}` : ''}`;
+  document.getElementById('level-label').textContent = `LV ${lv.level}${lv.prestige ? ` \u00b7 D${lv.prestige}` : ''}`;
   document.getElementById('xp-fill').style.width = `${lv.maxed ? 100 : (lv.into / lv.need) * 100}%`;
-  document.getElementById('xp-label').textContent = lv.maxed ? 'PRESTIGE READY' : `${fmt(lv.into)} / ${fmt(lv.need)} BITS`;
+  document.getElementById('xp-label').textContent = lv.maxed ? 'DECRYPTOR READY' : `${fmt(lv.into)} / ${fmt(lv.need)} BITS`;
   levelBarEl.classList.toggle('maxed', lv.maxed);
 }
 levelBarEl.addEventListener('click', () => {
@@ -1848,10 +1879,10 @@ function renderRecords() {
     const box = document.createElement('div');
     box.className = 'rec-level';
     const row = recordRow({
-      name: `LV ${lv.level} // PRESTIGE ${lv.prestige}`,
+      name: `LV ${lv.level} // DECRYPTOR ${lv.prestige}`,
       desc: lv.maxed
-        ? 'A kilobyte decrypted. PRESTIGE to start again at Lv 1: exploits and slots lock again (you keep one more of each for good), and the next theme unlocks for good.'
-        : `100 bits per level. Fill Lv 80 (${fmt(lv.xp)} / ${fmt(lv.prestigeBits)} bits, a kilobyte) to prestige.`,
+        ? 'A kilobyte decrypted. Rank up to the next DECRYPTOR rank to start again at Lv 1: exploits and slots lock again (you keep one more of each for good), and the next theme unlocks for good.'
+        : `100 bits per level. Fill Lv 80 (${fmt(lv.xp)} / ${fmt(lv.prestigeBits)} bits, a kilobyte) to rank up to DECRYPTOR ${lv.prestige + 1}.`,
       current: lv.maxed ? 1 : lv.into,
       goal: lv.maxed ? 1 : lv.need,
       done: lv.maxed,
@@ -1865,7 +1896,7 @@ function renderRecords() {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'rec-prestige';
-      btn.textContent = `PRESTIGE TO ${lv.prestige + 1}?`;
+      btn.textContent = `RANK UP TO DECRYPTOR ${lv.prestige + 1}?`;
       // Each press arms the next warning (for a few seconds); the fourth one prestiges
       const warnings = ['CONFIRM? EXPLOITS LOCK AGAIN', 'NO GOING BACK. ARE YOU SURE?', 'YES, ENCRYPT MY PROGRESS!!'];
       let stage = 0;
@@ -1877,7 +1908,7 @@ function renderRecords() {
         }
         disarmReset();
         if (Progress.prestige()) {
-          showToast(`PRESTIGE ${Progress.levelInfo().prestige} // BACK TO LV 1`);
+          showToast(`DECRYPTOR ${Progress.levelInfo().prestige} // BACK TO LV 1`);
           announce(Progress.check());
           applyUnlocks();
           renderRecords();
@@ -1890,14 +1921,14 @@ function renderRecords() {
     // This prestige's exploit unlocks
     const exHead = document.createElement('p');
     exHead.className = 'rec-group';
-    exHead.textContent = `// EXPLOITS (PRESTIGE ${lv.prestige})`;
+    exHead.textContent = `// EXPLOITS (DECRYPTOR ${lv.prestige})`;
     recordsBodyEl.appendChild(exHead);
     const exList = document.createElement('ul');
     exList.className = 'rec-list';
     const slotsNow = Progress.slotInfo();
     exList.appendChild(recordRow({
       name: `EXPLOIT SLOTS ${slotsNow.slots} / ${slotsNow.max}`,
-      desc: slotsNow.nextLevel ? `Next slot at Lv ${slotsNow.nextLevel}. Each prestige keeps one more.` : 'Each prestige keeps one more, up to 6.',
+      desc: slotsNow.nextLevel ? `Next slot at Lv ${slotsNow.nextLevel}. Each DECRYPTOR rank keeps one more.` : 'Each DECRYPTOR rank keeps one more, up to 6.',
       current: slotsNow.slots,
       goal: slotsNow.max,
       done: slotsNow.slots >= slotsNow.max,
@@ -1906,7 +1937,7 @@ function renderRecords() {
       const info = Progress.exploitInfo(id);
       exList.appendChild(recordRow({
         name: HACKS[id].name,
-        desc: info.kept ? 'Kept for good by your prestige' : `Unlocks at Lv ${info.level}`,
+        desc: info.kept ? 'Kept for good by your DECRYPTOR rank' : `Unlocks at Lv ${info.level}`,
         current: info.kept ? 1 : Math.min(lv.level, info.level),
         goal: info.kept ? 1 : info.level,
         done: info.unlocked,
@@ -1933,26 +1964,36 @@ function renderRecords() {
       list.appendChild(recordRow({ name, desc: u.need, current: u.current, goal: u.goal, done: u.done }));
     }
   } else if (recordsTab === 'achievements') {
+    // The IMPOSSIBLE ones get their own section at the bottom and stay out of the count
     const all = Progress.achievements();
+    const counted = [...all.filter((a) => !a.impossible && !a.hidden), ...all.filter((a) => a.hidden)]; // hidden ones last
     const summary = document.createElement('p');
     summary.className = 'rec-summary';
-    summary.textContent = `${all.filter((a) => a.done).length} / ${all.length} EARNED`;
+    summary.textContent = `${counted.filter((a) => a.done).length} / ${counted.length} EARNED`;
     recordsBodyEl.appendChild(summary);
-    const list = document.createElement('ul');
-    list.className = 'rec-list';
-    for (const a of all) {
-      // Hidden ones stay a mystery until earned
-      const secret = a.hidden && !a.done;
-      list.appendChild(recordRow({ name: secret ? '???' : a.name, desc: secret ? 'Hidden: keep playing to find it' : a.desc, current: a.current, goal: a.goal, done: a.done }));
-    }
-    recordsBodyEl.appendChild(list);
+    const listOf = (items) => {
+      const list = document.createElement('ul');
+      list.className = 'rec-list';
+      for (const a of items) {
+        // Hidden ones stay a mystery until earned
+        const secret = a.hidden && !a.done;
+        list.appendChild(recordRow({ name: secret ? '???' : a.name, desc: secret ? 'Hidden: keep playing to find it' : a.desc, current: a.current, goal: a.goal, done: a.done }));
+      }
+      return list;
+    };
+    recordsBodyEl.appendChild(listOf(counted));
+    const head = document.createElement('p');
+    head.className = 'rec-group';
+    head.textContent = '// IMPOSSIBLE ACHIEVEMENTS';
+    recordsBodyEl.appendChild(head);
+    recordsBodyEl.appendChild(listOf(all.filter((a) => a.impossible)));
   } else {
     const s = Progress.stats();
     const favorite = Object.entries(s.exploitUses).sort((a, b) => b[1] - a[1])[0];
     const lv = Progress.levelInfo();
     const rows = [
       ['LEVEL', `${lv.level}`],
-      ['PRESTIGE', `${lv.prestige}`],
+      ['DECRYPTOR RANK', `${lv.prestige}`],
       ['SESSIONS PLAYED', fmt(s.games)],
       ['TOTAL DROPS', fmt(s.drops)],
       ['BITS DECRYPTED', fmt(s.bits)],
@@ -2047,7 +2088,7 @@ function refreshExploitCards() {
     slotInfoEl.textContent = mode === 'puzzle' ? 'DAILY PUZZLE // NO EXPLOITS' : 'DAILY // THE SAME FIVE EXPLOITS FOR EVERYONE';
   } else {
     slotInfoEl.textContent = `SLOTS ${equipped.length} / ${slots}`
-      + (slots < max ? (nextLevel ? ` // NEXT SLOT AT LV ${nextLevel}` : ' // MORE SLOTS WITH PRESTIGE') : '')
+      + (slots < max ? (nextLevel ? ` // NEXT SLOT AT LV ${nextLevel}` : ' // MORE SLOTS WITH DECRYPTOR RANKS') : '')
       + (editable ? '' : ' // LOCKED UNTIL THE SESSION ENDS');
   }
   for (const id of Progress.exploitOrder()) {
@@ -2061,7 +2102,7 @@ function refreshExploitCards() {
     el.classList.toggle('equipped', on);
     let tag;
     if (daily) tag = on ? '' : 'NOT USED IN THE DAILY';
-    else if (!info.unlocked) tag = `UNLOCKS AT LV ${info.level} THIS PRESTIGE`;
+    else if (!info.unlocked) tag = `UNLOCKS AT LV ${info.level} THIS RANK`;
     else if (!editable) tag = on ? '' : 'NOT EQUIPPED THIS SESSION';
     else if (on) tag = 'TAP TO REMOVE';
     else tag = equipped.length < slots ? 'TAP TO EQUIP' : 'SLOTS FULL // REMOVE ONE TO SWAP';

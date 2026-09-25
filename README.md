@@ -71,7 +71,7 @@ own best score.
 |---|---|
 | Easy | Shows the next bit, and exploits unlock at 3x–5x depending on the exploit |
 | Normal | New encryption layer every 8 drops |
-| Hard | A full byte: 8×8 grid with bits 1-8; new layer every 8 drops, minus one per 500 points, down to every 4; BYTE bonus |
+| Hard | A full byte: 8×8 grid with bits 1-8; new layer every 8 drops, minus one per 700 points, down to every 4; BYTE bonus |
 
 On Hard, every 8 bits a single drop decrypts, chains included, make a byte:
 **BYTE DECRYPTED** adds a 256-point (2^8) bonus per byte.
@@ -79,17 +79,18 @@ On Hard, every 8 bits a single drop decrypts, chains included, make a byte:
 High scores are saved in your browser, one per difficulty (Hard's started
 fresh when it moved to 8×8).
 
-## Levels, prestige and unlocks
+## Levels, DECRYPTOR ranks and unlocks
 
 **Levels.** Every bit you decrypt is XP: **100 bits (12.5 bytes) per level**,
-Lv 1 to **Lv 80**. Lv 80's bar fills at 8,000 bits, so a full prestige is
-exactly **1 kilobyte**. The level bar sits under the title; tapping it opens
+Lv 1 to **Lv 80**. Lv 80's bar fills at 8,000 bits, so a full DECRYPTOR rank
+is exactly **1 kilobyte**. The level bar sits under the title; tapping it opens
 RECORDS.
 
-**Prestige.** With Lv 80 full, PRESTIGE (in RECORDS → UNLOCKS, four presses)
-starts you again at Lv 1 with prestige +1. Exploits and slots lock again, but
-prestige N keeps N slots (up to 6) and the first N exploits for good, and the
-rest unlock sooner. Each prestige also permanently unlocks the next theme.
+**DECRYPTOR ranks** (the game's prestige). With Lv 80 full, RANK UP TO
+DECRYPTOR (in RECORDS → UNLOCKS, four presses) starts you again at Lv 1 one
+rank higher. Exploits and slots lock again, but DECRYPTOR N keeps N slots (up
+to 6) and the first N exploits for good, and the rest unlock sooner. Each rank
+also permanently unlocks the next theme.
 
 **Exploit slots (loadout).** Only exploits equipped in a slot are awarded.
 Slots unlock at Lv 5, 15, 30, 45, 60 and 75 (6 at most). Exploits unlock by
@@ -97,21 +98,21 @@ level in this order: RNG (3), BITFLIP (8), BUFFER OVERFLOW (13), TROJAN (18),
 PIVOT (23), WORM VIRUS (29), KEYLOGGER (35), PACKET SNIFFER (41), BACKDOOR
 (47), LOGIC BOMB (53), HONEYPOT (59), DICTIONARY ATTACK (65), RAINBOW TABLE
 (70); with a
-prestige's kept exploits, the rest move down this list. A new unlock drops
+rank's kept exploits, the rest move down this list. A new unlock drops
 into a free slot by itself; tap an exploit card to remove or equip it. The loadout
 is locked during a session: change it before the first drop or after the game ends. The
 daily games always use the five standard exploits, so they're the same for
 everyone.
 
-**Themes** unlock by prestige, for good: CIPHER (1), AMBER CRT (2), MONOCHROME
+**Themes** unlock by DECRYPTOR rank, for good: CIPHER (1), AMBER CRT (2), MONOCHROME
 (3), REDLINE (4), SYNTHWAVE (5), DOT MATRIX (6), DAYLIGHT (7), GLYPH (8),
 SPECTRUM (9).
 
-**Permanent unlocks:** Hard mode (score 1,500 on Normal) and tracks 03-10
+**Permanent unlocks:** Hard mode (score 2,000 on Normal) and tracks 03-10
 (300 / 750 / 1,500 / 3,000 / 5,000 / 7,500 / 10,000 / 15,000 bits decrypted in
 total; 07-10 are still to come).
 
-The trophy icon opens **RECORDS**: level and prestige, every unlock and
+The trophy icon opens **RECORDS**: level and DECRYPTOR rank, every unlock and
 achievement with a progress tracker, and lifetime stats. New unlocks, level-ups
 and achievements pop up as they happen. Progress is saved in the browser
 (`bytefall-progress`).
@@ -121,7 +122,7 @@ reports each drop, decrypt, peel, byte, exploit and point to it.
 
 **Dev switches.** The `</>` dev page has UNLOCK EVERYTHING (like owning Full
 Access, for this browser; the game shows a DEV badge while it's on), JUMP TO
-LV 80 and +10 LEVELS for testing prestige, slots and exploit unlocks. With UNLOCK EVERYTHING on,
+LV 80 and +10 LEVELS for testing DECRYPTOR ranks, slots and exploit unlocks. With UNLOCK EVERYTHING on,
 press and hold any exploit card for 2 seconds to make it your next drop.
 
 ## App view on a phone
