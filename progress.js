@@ -275,6 +275,23 @@ const Progress = (() => {
     { id: 'safecracker', name: 'SAFECRACKER', desc: 'Solve 30 puzzles', value: () => count(d.puzzles), goal: 30 },
     { id: 'century', name: 'CENTURY', desc: 'Play a Daily game 100 days in a row', value: () => d.bestDailyStreak, goal: 100 },
     { id: 'triple-crown', name: 'TRIPLE CROWN', desc: 'Reach DECRYPTOR 3', value: () => d.prestige, goal: 3 },
+    // Nibbles (Easy and Normal: 4 bits decrypted by one drop)
+    ...[
+      ['just-a-crumb', 'JUST A CRUMB', 'Decrypt your first nibble', 1],
+      ['a-full-byte', 'A FULL BYTE', 'Decrypt 2 nibbles (8 bits: one byte)', 2],
+      ['64-bit-architecture', '64-BIT ARCHITECTURE', 'Decrypt 16 nibbles (64 bits)', 16],
+      ['snack-attack', 'SNACK ATTACK', 'Decrypt 100 nibbles', 100],
+      ['nibbling', 'NIBBLING', 'Decrypt 250 nibbles (1,000 bits: a kilobit)', 250],
+      ['kilonibble', 'KILONIBBLE', 'Decrypt 1,000 nibbles', 1000],
+      ['kibinibble', 'KIBINIBBLE', 'Decrypt 1,024 nibbles', 1024],
+      ['kibibyte', 'KIBIBYTE', 'Decrypt 2,048 nibbles (1,024 bytes)', 2048],
+      ['dial-up-speeds', 'DIAL-UP SPEEDS', 'Decrypt 16,384 nibbles (65,536 bits)', 16384],
+      ['16-bit-era', 'THE 16-BIT ERA', 'Decrypt 65,536 nibbles (2^16)', 65536],
+      ['64k-memory-limit', '64K MEMORY LIMIT', 'Decrypt 131,072 nibbles (65,536 bytes: 64 KiB)', 131072],
+      ['meganibble', 'MEGANIBBLE', 'Decrypt 1,000,000 nibbles', 1000000],
+      ['mebinibble', 'MEBINIBBLE', 'Decrypt 1,048,576 nibbles (1,024 x 1,024)', 1048576],
+      ['mebibyte', 'MEBIBYTE', 'Decrypt 2,097,152 nibbles (1,048,576 bytes: 1 MiB)', 2097152],
+    ].map(([id, name, desc, goal]) => ({ id, name, desc, value: () => d.nibbles, goal })),
     // More hidden ones
     ...[
       ['konami', 'KONAMI', 'Enter the Konami code'],
@@ -295,6 +312,7 @@ const Progress = (() => {
       ['pi-day', 'PI DAY', 'Play on March 14'],
     ].map(([id, name, desc]) => ({ id, name, desc, value: () => (d.secrets[id] ? 1 : 0), goal: 1, hidden: true })),
     // Impossible (or nearly): lifetime points. Listed on their own, outside the EARNED count.
+    { id: '32-bit-overflow', name: '32-BIT OVERFLOW', desc: 'Decrypt 8,388,608 nibbles', value: () => d.nibbles, goal: 8388608, impossible: true },
     { id: 'gigabyte', name: 'GIGABYTE', desc: 'Earn 8,000,000,000 points in total', value: () => d.points, goal: 8e9, impossible: true },
     { id: 'terabyte', name: 'TERABYTE', desc: 'Earn 8,000,000,000,000 points in total', value: () => d.points, goal: 8e12, impossible: true },
   ];

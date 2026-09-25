@@ -44,6 +44,20 @@ Hard mode and bytes,DOUBLE BYTE,Decrypt 2 bytes with one drop,2,Standard,double-
 Hard mode and bytes,TRIPLE BYTE,Decrypt 3 bytes with one drop,3,Standard,triple-byte
 Hard mode and bytes,BYTE STREAM,Decrypt 10 bytes,10,Standard,byte-stream
 Hard mode and bytes,BYTE ARRAY,Decrypt 100 bytes,100,Standard,byte-array
+Nibbles,JUST A CRUMB,Decrypt your first nibble,1,Standard,just-a-crumb
+Nibbles,A FULL BYTE,Decrypt 2 nibbles (8 bits: one byte),2,Standard,a-full-byte
+Nibbles,64-BIT ARCHITECTURE,Decrypt 16 nibbles (64 bits),16,Standard,64-bit-architecture
+Nibbles,SNACK ATTACK,Decrypt 100 nibbles,100,Standard,snack-attack
+Nibbles,NIBBLING,"Decrypt 250 nibbles (1,000 bits: a kilobit)",250,Standard,nibbling
+Nibbles,KILONIBBLE,"Decrypt 1,000 nibbles","1,000",Standard,kilonibble
+Nibbles,KIBINIBBLE,"Decrypt 1,024 nibbles","1,024",Standard,kibinibble
+Nibbles,KIBIBYTE,"Decrypt 2,048 nibbles (1,024 bytes)","2,048",Standard,kibibyte
+Nibbles,DIAL-UP SPEEDS,"Decrypt 16,384 nibbles (65,536 bits)","16,384",Standard,dial-up-speeds
+Nibbles,THE 16-BIT ERA,"Decrypt 65,536 nibbles (2^16)","65,536",Standard,16-bit-era
+Nibbles,64K MEMORY LIMIT,"Decrypt 131,072 nibbles (65,536 bytes: 64 KiB)","131,072",Standard,64k-memory-limit
+Nibbles,MEGANIBBLE,"Decrypt 1,000,000 nibbles","1,000,000",Standard,meganibble
+Nibbles,MEBINIBBLE,"Decrypt 1,048,576 nibbles (1,024 x 1,024)","1,048,576",Standard,mebinibble
+Nibbles,MEBIBYTE,"Decrypt 2,097,152 nibbles (1,048,576 bytes: 1 MiB)","2,097,152",Standard,mebibyte
 Encryption layers,LAYER PEELER,Peel 100 encryption layers,100,Standard,layer-peeler
 Encryption layers,ONION ROUTER,"Peel 1,000 encryption layers","1,000",Standard,onion-router
 Encryption layers,ONION CORE,"Peel 10,000 encryption layers","10,000",Standard,onion-core
@@ -99,6 +113,7 @@ Dates and times,BIRTHDAY,"Play on September 23, ByteFall's birthday",1,Hidden,bi
 Dates and times,FRIDAY THE 13TH,Play on a Friday the 13th,1,Hidden,friday-13th
 Dates and times,PI DAY,Play on March 14,1,Hidden,pi-day
 Secrets,KONAMI,Enter the Konami code,1,Hidden,konami
+Impossible (not counted),32-BIT OVERFLOW,"Decrypt 8,388,608 nibbles","8,388,608",Impossible,32-bit-overflow
 Impossible (not counted),GIGABIT,"Decrypt 1,000,000,000 bits","1,000,000,000",Impossible,gigabit
 Impossible (not counted),GIGABYTE,"Earn 8,000,000,000 points in total","8,000,000,000",Impossible,gigabyte
 Impossible (not counted),TERABYTE,"Earn 8,000,000,000,000 points in total","8,000,000,000,000",Impossible,terabyte
