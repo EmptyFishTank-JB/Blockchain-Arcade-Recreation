@@ -116,6 +116,7 @@ const MODES = {
   },
 };
 Progress.setPuzzleCount(PUZZLES.length);
+Progress.setTrackCount(Music.tracks().length);
 // PUZZLE: the first unsolved one, or the one you were on
 const firstUnsolved = () => {
   const i = PUZZLES.findIndex((_, n) => !Progress.puzzleSolved(n));
@@ -212,7 +213,7 @@ function initGame() {
   difficulty = mode === 'classic' ? classicDifficulty : 'normal';
   dailyOfficial = !storage.get(dailyPlayedKey());
   setupDice();
-  Progress.startRun(difficulty, mode);
+  Progress.startRun(difficulty, mode, mode === 'puzzle' ? puzzleIndex : null);
   timeLeft = BLITZ_SECONDS;
   clockRunning = false;
   timeUp = false;
@@ -304,6 +305,7 @@ function showPuzzleResult(solved, firstTime = false) {
   busy = true;
   setMessage('');
   SFX.play(solved ? 'egg' : 'denied');
+  if (!solved) Progress.puzzleFailed();
   const last = puzzleIndex === PUZZLES.length - 1;
   overlayNext = solved && !last ? 'next' : 'retry';
   document.querySelector('.overlay-box').classList.toggle('win', solved);
@@ -617,6 +619,7 @@ async function attemptDrop(col) {
   const piece = queue.shift();
   refillQueue();
   if (keyloggerDrops > 0) keyloggerDrops--;
+  const sniffedOut = snifferBits === 1 && piece.type === 'number'; // the Packet Sniffer's last bit
   if (snifferBits > 0 && piece.type === 'number') snifferBits--;
   updateHud();
   const landing = columns[col].length;
@@ -653,7 +656,9 @@ async function attemptDrop(col) {
   if (!overflowed()) {
     if (wentOver) Progress.closeCall();
     if (piecesBefore >= 5 && Progress.runDrops() >= 10 && columns.every((c) => c.length === 0)) Progress.sweep();
+    if (sniffedOut) Progress.wiretap();
   }
+  Progress.endDrop({ hack: piece.type === 'hack', heights: columns.map((c) => c.length), rows: ROWS, over: overflowed() });
   finishTurn();
 }
 
@@ -788,6 +793,7 @@ async function resolveChains() {
         const values = pops.filter((p) => Math.abs(p.row - r) + Math.abs(p.col - c) === 1).map((p) => grid[p.row][p.col].val);
         if (!values.length) continue;
         sprung.push({ row: r, col: c });
+        Progress.sting();
         for (let dr = -BLAST_RADIUS; dr <= BLAST_RADIUS; dr++) {
           for (let dc = -BLAST_RADIUS; dc <= BLAST_RADIUS; dc++) {
             const cell = grid[r + dr] && grid[r + dr][c + dc];
@@ -892,6 +898,7 @@ async function tickBombs() {
   await sleep(260);
   for (const h of hits) columns[h.col][h.row] = null;
   score += (hits.length - blasts.length) * 10;
+  Progress.bombHits(hits.length - blasts.length);
   await collapse();
   await resolveChains();
 }
@@ -1097,6 +1104,15 @@ function endGame(reason = 'trace') {
   shareBtn.hidden = mode !== 'daily';
   shareBtn.textContent = 'SHARE';
 
+  if (mode === 'puzzle') Progress.puzzleFailed();
+  else {
+    Progress.endRun({
+      score, reason, boardEmpty: columns.every((c) => c.length === 0),
+      track: Music.isEnabled() ? Music.currentTrack() : null, theme: document.documentElement.dataset.theme || 'terminal',
+    });
+  }
+  announce(Progress.check());
+
   const run = runId;
   meltBoard(run);
   setTimeout(() => {
@@ -1164,6 +1180,7 @@ function requestReset(btn, confirmText, apply = () => {}) {
   }
   if (busy) return; // stays armed; mid-drop the board can't be wiped yet
   disarmReset();
+  Progress.restarted();
   busy = true;
   updateColumnButtons();
   Music.setIntensity(0);
@@ -1357,6 +1374,7 @@ const themeListEl = document.getElementById('theme-list');
 const themeNoteEl = document.getElementById('theme-note');
 const themeMeta = document.querySelector('meta[name="theme-color"]');
 // The saved choice is kept even while locked, so it comes back once unlocked.
+Progress.setThemeCount(THEMES.length);
 let themeId = THEMES.some((t) => t.id === storage.get('blockchain-theme')) ? storage.get('blockchain-theme') : 'terminal';
 
 function applyTheme() {
@@ -1794,7 +1812,11 @@ function renderRecords() {
     recordsBodyEl.appendChild(summary);
     const list = document.createElement('ul');
     list.className = 'rec-list';
-    for (const a of all) list.appendChild(recordRow({ name: a.name, desc: a.desc, current: a.current, goal: a.goal, done: a.done }));
+    for (const a of all) {
+      // Hidden ones stay a mystery until earned
+      const secret = a.hidden && !a.done;
+      list.appendChild(recordRow({ name: secret ? '???' : a.name, desc: secret ? 'Hidden: keep playing to find it' : a.desc, current: a.current, goal: a.goal, done: a.done }));
+    }
     recordsBodyEl.appendChild(list);
   } else {
     const s = Progress.stats();

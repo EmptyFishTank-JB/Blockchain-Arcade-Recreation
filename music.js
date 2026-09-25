@@ -168,6 +168,7 @@ const Music = (() => {
       trackId = id;
       stop();
       setEnabled(true);
+      Progress.heardTrack(id);
     },
     getMode: () => mode,
     // Cycles repeat → sequence → shuffle. Switching mid-track keeps the current track going.

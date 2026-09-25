@@ -42,6 +42,34 @@ const Progress = (() => {
     lastLevel: 1, // for LEVEL UP announcements
     exploitsSeen: {}, // exploit id -> true once announced this prestige
     slotsSeen: 0, // slots announced this prestige
+    firstDropClears: 0, // sessions where the first drop decrypted something
+    bestClearStreak: 0, // most drops in a row that each decrypted a bit
+    bestNoToolsScore: 0, // best score in a session with no exploit run
+    bestDropBits: 0, // most bits decrypted by one drop
+    bestDropBroken: 0, // most layers broken open by one drop
+    fullStacks: 0, // columns filled to the line, then brought down to half height
+    bestRunCloseCalls: 0,
+    bestBlitz: 0,
+    bestZenDrops: 0,
+    perfectDailies: 0, // Daily Decrypts ended with the board empty
+    puzzleTries: {}, // puzzle index -> attempts (runs with at least one drop)
+    firstTries: 0, // puzzles solved on the first attempt
+    puzzleStreak: 0, // solves since the last failed puzzle
+    bestPuzzleStreak: 0,
+    bestBombHits: 0, // most blocks one Logic Bomb blast wiped
+    stings: 0, // Honeypots sprung
+    wiretaps: 0, // Packet Sniffers used up without losing the run
+    pivotChains: 0, // PIVOT drops that decrypted bits
+    bestRunExploits: 0,
+    bestEquipped: 0, // most loadout slots filled at once
+    tracksHeard: {}, // track id -> true once played
+    tracksPlayed: {}, // track id -> true after a full session (10+ drops) on it
+    themesPlayed: {}, // theme id -> true after a full session in it
+    lateNight: 0, // dropped a bit between 2 and 4 AM
+    birthday: 0, // dropped a bit on Sep 23
+    rageQuit: 0, // restarted 10 live sessions in one sitting
+    snakeEyes: 0, // lost with 0 points
+    leet: 0, // finished on exactly 1,337
   });
 
   let d = fresh();
@@ -139,6 +167,10 @@ const Progress = (() => {
   const themeIds = UNLOCKS.filter((u) => u.group === 'THEMES').map((u) => u.id);
   let exploitCount = 7; // set by script.js from HACKS
   let puzzleCount = 30; // set by script.js from PUZZLES
+  let trackCount = 7; // set by script.js from Music.tracks()
+  let themeCount = 10; // set by script.js from THEMES
+  let sittingRestarts = 0; // live sessions restarted since the page loaded
+  const count = (obj) => Object.keys(obj).length;
 
   const ACHIEVEMENTS = [
     { id: 'first-contact', name: 'FIRST CONTACT', desc: 'Start your first session', value: () => d.games, goal: 1 },
@@ -175,6 +207,42 @@ const Progress = (() => {
     { id: 'rollover', name: 'ROLLOVER', desc: 'Prestige for the first time', value: () => d.prestige, goal: 1 },
     { id: 'full-spectrum', name: 'FULL SPECTRUM', desc: 'Reach prestige 9', value: () => d.prestige, goal: 9 },
     { id: 'collector', name: 'COLLECTOR', desc: 'Unlock every theme', value: () => themeIds.filter(isUnlocked).length, goal: themeIds.length },
+    // Skill
+    { id: 'zero-day', name: 'ZERO-DAY', desc: 'Decrypt a bit with the first drop of a session', value: () => d.firstDropClears, goal: 1 },
+    { id: 'surgical', name: 'SURGICAL', desc: '20 drops in a row that each decrypt a bit (exploit drops skip)', value: () => d.bestClearStreak, goal: 20 },
+    { id: 'no-tools', name: 'NO TOOLS', desc: 'Score 2,000 in one session without running an exploit', value: () => d.bestNoToolsScore, goal: 2000 },
+    { id: 'heap-spray', name: 'HEAP SPRAY', desc: 'Decrypt 15 bits with one drop', value: () => d.bestDropBits, goal: 15 },
+    { id: 'full-stack', name: 'FULL STACK', desc: 'Fill a column to the line, then bring it back down to half height', value: () => d.fullStacks, goal: 1 },
+    { id: 'firewall-breach', name: 'FIREWALL BREACH', desc: 'Break 3 encryption layers open with one drop', value: () => d.bestDropBroken, goal: 3 },
+    { id: 'second-wind', name: 'SECOND WIND', desc: 'Get two CLOSE CALLs in one session', value: () => d.bestRunCloseCalls, goal: 2 },
+    // Modes
+    { id: 'speed-run', name: 'SPEED RUN', desc: 'Score 1,000 in one Blitz', value: () => d.bestBlitz, goal: 1000 },
+    { id: 'blitzkrieg', name: 'BLITZKRIEG', desc: 'Score 3,000 in one Blitz', value: () => d.bestBlitz, goal: 3000 },
+    { id: 'zen-master', name: 'ZEN MASTER', desc: 'Last 300 drops in one Zen session', value: () => d.bestZenDrops, goal: 300 },
+    { id: 'daily-grind', name: 'DAILY GRIND', desc: 'Play 30 Daily Decrypts', value: () => d.dailies, goal: 30 },
+    { id: 'streak', name: 'STREAK', desc: 'Play the Daily Decrypt 30 days in a row', value: () => d.bestDailyStreak, goal: 30 },
+    { id: 'perfect-daily', name: 'PERFECT DAILY', desc: 'Finish a Daily Decrypt with the board empty', value: () => d.perfectDailies, goal: 1 },
+    { id: 'first-try', name: 'FIRST TRY', desc: 'Solve a puzzle on your first attempt', value: () => d.firstTries, goal: 1 },
+    { id: 'pickpocket', name: 'PICKPOCKET', desc: 'Solve 5 puzzles in a row without failing one', value: () => d.bestPuzzleStreak, goal: 5 },
+    // Exploits
+    { id: 'time-bomb', name: 'TIME BOMB', desc: 'Wipe 5 blocks with one Logic Bomb blast', value: () => d.bestBombHits, goal: 5 },
+    { id: 'sting', name: 'STING', desc: 'Spring a Honeypot', value: () => d.stings, goal: 1 },
+    { id: 'wiretap', name: 'WIRETAP', desc: 'Use all 3 Packet Sniffer bits without losing the session', value: () => d.wiretaps, goal: 1 },
+    { id: 'lateral-movement', name: 'LATERAL MOVEMENT', desc: 'Start a chain with a PIVOT', value: () => d.pivotChains, goal: 1 },
+    { id: 'chained-exploits', name: 'CHAINED EXPLOITS', desc: 'Run 3 exploits in one session', value: () => d.bestRunExploits, goal: 3 },
+    { id: 'arsenal', name: 'ARSENAL', desc: 'Fill all 6 exploit slots', value: () => d.bestEquipped, goal: MAX_SLOTS },
+    // Collection and progress
+    { id: 'dj', name: 'DJ', desc: 'Listen to every track', value: () => count(d.tracksHeard), goal: () => trackCount },
+    { id: 'audiophile', name: 'AUDIOPHILE', desc: 'Play a full session (10+ drops) on every track', value: () => count(d.tracksPlayed), goal: () => trackCount },
+    { id: 'chameleon', name: 'CHAMELEON', desc: 'Play a full session (10+ drops) in every theme', value: () => count(d.themesPlayed), goal: () => themeCount },
+    { id: 'lv-40', name: 'LV 40', desc: 'Reach level 40', value: () => (d.prestige > 0 ? 40 : levelInfo().level), goal: 40 },
+    { id: 'gigabit', name: 'GIGABIT', desc: 'Decrypt 1,000,000,000 bits', value: () => d.bits, goal: 1000000000 },
+    { id: 'insomniac', name: 'INSOMNIAC', desc: 'Play between 2 and 4 AM', value: () => d.lateNight, goal: 1 },
+    { id: 'birthday', name: 'BIRTHDAY', desc: "Play on September 23, ByteFall's birthday", value: () => d.birthday, goal: 1 },
+    // Hidden until earned
+    { id: 'rage-quit', name: 'RAGE QUIT', desc: 'Restart 10 sessions in one sitting', value: () => d.rageQuit, goal: 1, hidden: true },
+    { id: 'snake-eyes', name: 'SNAKE EYES', desc: 'Lose a session with 0 points', value: () => d.snakeEyes, goal: 1, hidden: true },
+    { id: '1337', name: '1337', desc: 'Finish a session on exactly 1,337 points', value: () => d.leet, goal: 1, hidden: true },
   ];
 
   const goalOf = (item) => (typeof item.goal === 'function' ? item.goal() : item.goal);
@@ -225,6 +293,7 @@ const Progress = (() => {
     }
     if (opened) fillLoadout();
     else tidyLoadout();
+    d.bestEquipped = Math.max(d.bestEquipped, d.equipped.length);
     for (const a of ACHIEVEMENTS) {
       if (!d.achieved[a.id] && a.value() >= goalOf(a)) {
         d.achieved[a.id] = true;
@@ -285,26 +354,81 @@ const Progress = (() => {
       return true;
     },
     setPuzzleCount(n) { puzzleCount = n; },
+    setTrackCount(n) { trackCount = n; },
+    setThemeCount(n) { themeCount = n; },
     puzzleSolved: (i) => !!d.puzzles[i],
-    solvePuzzle(i) { d.puzzles[i] = true; },
+    solvePuzzle(i) {
+      if (!d.puzzles[i] && d.puzzleTries[i] === 1) d.firstTries++;
+      d.puzzles[i] = true;
+      d.puzzleStreak++;
+      d.bestPuzzleStreak = Math.max(d.bestPuzzleStreak, d.puzzleStreak);
+    },
+    puzzleFailed() { d.puzzleStreak = 0; },
     // Lists for the RECORDS panel
     unlocks: () => UNLOCKS.map((u) => ({ ...u, goal: goalOf(u), current: u.value(), done: isUnlocked(u.id) })),
     achievements: () => ACHIEVEMENTS.map((a) => ({ ...a, goal: goalOf(a), current: a.value(), done: !!d.achieved[a.id] })),
     stats: () => ({ ...d, bestNormal: best('normal'), bestEasy: best('easy'), bestHard: best('hard') }),
 
     // Run events from script.js
-    startRun(difficulty, mode = 'classic') {
-      run = { difficulty, mode, drops: 0, started: false, bits: 0, chain: 0, bytes: 0 };
+    startRun(difficulty, mode = 'classic', puzzle = null) {
+      run = {
+        difficulty, mode, puzzle, drops: 0, started: false, bits: 0, chain: 0, bytes: 0,
+        exploits: 0, closeCalls: 0, clearStreak: 0, dropBits: 0, dropBroken: 0, pivoted: false, fullCols: new Set(),
+      };
     },
     drop() {
       if (!run.started) {
         run.started = true;
         if (run.mode !== 'puzzle') d.games++; // puzzle retries don't count as sessions
         if (run.mode === 'daily') playedDaily();
+        if (run.mode === 'puzzle' && run.puzzle !== null) d.puzzleTries[run.puzzle] = (d.puzzleTries[run.puzzle] || 0) + 1;
       }
       run.drops++;
       d.drops++;
       if (run.difficulty === 'hard') d.bestHardDrops = Math.max(d.bestHardDrops, run.drops);
+      if (run.mode === 'zen') d.bestZenDrops = Math.max(d.bestZenDrops, run.drops);
+      const now = new Date();
+      if (now.getHours() >= 2 && now.getHours() < 4) d.lateNight = 1;
+      if (now.getMonth() === 8 && now.getDate() === 23) d.birthday = 1;
+      if (typeof Music !== 'undefined' && Music.isEnabled()) d.tracksHeard[Music.currentTrack()] = true;
+    },
+    // After a drop and everything it set off. heights: each column's height; over: the board overflowed.
+    endDrop({ hack, heights, rows, over }) {
+      if (run.dropBits > 0) run.clearStreak++;
+      else if (!hack) run.clearStreak = 0;
+      d.bestClearStreak = Math.max(d.bestClearStreak, run.clearStreak);
+      if (run.drops === 1 && run.dropBits > 0 && run.mode !== 'puzzle') d.firstDropClears++;
+      d.bestDropBits = Math.max(d.bestDropBits, run.dropBits);
+      d.bestDropBroken = Math.max(d.bestDropBroken, run.dropBroken);
+      if (run.pivoted && run.dropBits > 0) d.pivotChains++;
+      if (!over) {
+        heights.forEach((h, c) => {
+          if (h >= rows) run.fullCols.add(c);
+          else if (run.fullCols.has(c) && h <= Math.floor(rows / 2)) {
+            run.fullCols.delete(c);
+            d.fullStacks++;
+          }
+        });
+      }
+      run.dropBits = 0;
+      run.dropBroken = 0;
+      run.pivoted = false;
+    },
+    // A session ended (not PUZZLE): reason 'trace', 'time' or 'daily'
+    endRun({ score, reason, boardEmpty, track, theme }) {
+      if (run.mode === 'daily' && reason === 'daily' && boardEmpty) d.perfectDailies++;
+      if (run.drops >= 10) {
+        if (track) d.tracksPlayed[track] = true;
+        d.themesPlayed[theme] = true;
+      }
+      if (reason === 'trace' && score === 0 && run.drops > 0) d.snakeEyes = 1;
+      if (score === 1337) d.leet = 1;
+    },
+    heardTrack(id) { d.tracksHeard[id] = true; },
+    // A live session thrown away with RESTART or a difficulty switch
+    restarted() {
+      sittingRestarts++;
+      if (sittingRestarts >= 10) d.rageQuit = 1;
     },
     runDrops: () => run.drops,
     runStats: () => ({ ...run }),
@@ -313,6 +437,7 @@ const Progress = (() => {
       d.bits += values.length;
       d.xp += values.length;
       run.bits += values.length;
+      run.dropBits += values.length;
       run.chain = Math.max(run.chain, chain);
       for (const v of values) d.bitsByValue[v] = (d.bitsByValue[v] || 0) + 1;
       d.bestChain = Math.max(d.bestChain, chain);
@@ -324,22 +449,37 @@ const Progress = (() => {
     },
     peeled(broken) {
       d.peeled++;
-      if (broken) d.broken++;
+      if (broken) {
+        d.broken++;
+        run.dropBroken++;
+      }
     },
     exploit(id) {
       d.exploits++;
       d.exploitUses[id] = (d.exploitUses[id] || 0) + 1;
+      run.exploits++;
+      d.bestRunExploits = Math.max(d.bestRunExploits, run.exploits);
+      if (id === 'pivot') run.pivoted = true;
     },
     score(points) {
       d.bestScore = Math.max(d.bestScore, points);
+      if (run.mode === 'blitz') d.bestBlitz = Math.max(d.bestBlitz, points);
+      if (run.exploits === 0 && run.mode !== 'puzzle') d.bestNoToolsScore = Math.max(d.bestNoToolsScore, points);
     },
+    bombHits(n) { d.bestBombHits = Math.max(d.bestBombHits, n); },
+    sting() { d.stings++; },
+    wiretap() { d.wiretaps++; },
     addPoints(n) {
       if (n <= 0) return;
       d.points += n;
       d.prestigePoints += n;
     },
     sweep() { d.sweeps++; },
-    closeCall() { d.closeCalls++; },
+    closeCall() {
+      d.closeCalls++;
+      run.closeCalls++;
+      d.bestRunCloseCalls = Math.max(d.bestRunCloseCalls, run.closeCalls);
+    },
     check,
   };
 })();
