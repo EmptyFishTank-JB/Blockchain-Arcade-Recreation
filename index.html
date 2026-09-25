@@ -22,11 +22,11 @@
   } catch (e) {}
 </script>
 <title>BYTEFALL // decryption terminal</title>
-<link rel="stylesheet" href="style.css?v=109">
+<link rel="stylesheet" href="style.css?v=112">
 </head>
 <body>
   <main class="cabinet">
-    <aside class="panel panel-rules">
+    <aside class="panel panel-rules" id="rules-panel">
       <h2>RULES</h2>
       <p>Encrypted bits fall into the terminal. Drop each one into a column.</p>
       <p>A bit decrypts when its number matches the length of the unbroken line it sits in, across or down. Decrypting can bring more bits down into new matches for a chain.</p>
@@ -192,19 +192,39 @@
         <div id="column-buttons" class="column-buttons"></div>
       </div>
 
-      <div id="message" class="message hidden"></div>
-
-      <div class="controls">
-        <button id="restart-btn">RESTART</button>
-        <button type="button" class="vs-quit" id="vs-quit">QUIT</button>
-        <button id="free-exploit-btn" class="free-exploit-btn" hidden><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 10-13h-7z"/></svg>FREE EXPLOIT</button>
+      <!-- Before a session starts, START sits over the message line (so nothing moves when it goes) -->
+      <div class="message-slot">
+        <div id="message" class="message hidden"></div>
+        <button type="button" class="start-btn" id="start-btn" hidden>START</button>
       </div>
+
+      <!-- Lower corners: RESTART (QUIT in VS) during a session, and the exploit button -->
+      <button type="button" class="corner-btn restart-icon" id="restart-btn" aria-label="Restart" title="Restart (press twice)" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M23 4v6h-6"/>
+          <path d="M1 20v-6h6"/>
+          <path d="M3.5 9a9 9 0 0 1 14.9-3.4L23 10"/>
+          <path d="M1 14l4.6 4.4A9 9 0 0 0 20.5 15"/>
+        </svg>
+      </button>
+      <button type="button" class="corner-btn quit-icon" id="vs-quit" aria-label="Quit VS" title="Quit (press twice)" hidden>
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M14 4H5v16h9" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M10 12h11M17 8l4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <button type="button" class="corner-btn exploit-icon" id="exploit-btn" aria-label="Exploits">
+        <span class="exploit-glyph" id="exploit-glyph"></span>
+        <span class="exploit-count" id="exploit-count" hidden></span>
+        <span class="exploit-free" id="exploit-free" hidden>FREE!</span>
+      </button>
     </div>
 
-    <aside class="panel panel-hacks">
+
+    <aside class="panel panel-hacks" id="hacks-panel">
       <h2>EXPLOITS</h2>
       <p class="slot-info" id="slot-info"></p>
-      <p><span id="hack-intro">Chain 5 decrypts in one drop to unlock a random exploit.</span> It becomes your next drop and runs wherever it lands.</p>
+      <p><span id="hack-intro">Chain 5 decrypts in one drop to unlock a random exploit.</span> It waits in the exploit button (lower right): tap it to arm the exploit as your next drop, then drop it like a bit and it runs wherever it lands. Once armed, there's no taking it back.</p>
       <div class="hack-item" data-hack="worm-virus">
         <h3><span class="icon">§</span> WORM VIRUS<span class="combo"></span></h3>
         <p>Burrows down the column it lands in and wipes out every block there.</p>
@@ -307,24 +327,24 @@
     </div>
   </div>
 
-  <script src="unlocks.js?v=109"></script>
-  <script src="progress.js?v=109"></script>
-  <script src="sfx.js?v=109"></script>
-  <script src="music-bytefall-theme.js?v=109"></script>
-  <script src="music-sleep-mode.js?v=109"></script>
-  <script src="music-brute-force.js?v=109"></script>
-  <script src="music-deep-web.js?v=109"></script>
-  <script src="music-zero-day.js?v=109"></script>
-  <script src="music-system-restore.js?v=109"></script>
-  <script src="music-night-drive.js?v=109"></script>
-  <script src="music-standby-mode.js?v=109"></script>
-  <script src="music.js?v=109"></script>
-  <script src="puzzles.js?v=109"></script>
-  <script src="daily-puzzles.js?v=109"></script>
-  <script src="cpu.js?v=109"></script>
-  <script src="fx.js?v=109"></script>
-  <script src="viz.js?v=109"></script>
-  <script src="script.js?v=109"></script>
-  <script src="grid-bg.js?v=109"></script>
+  <script src="unlocks.js?v=112"></script>
+  <script src="progress.js?v=112"></script>
+  <script src="sfx.js?v=112"></script>
+  <script src="music-bytefall-theme.js?v=112"></script>
+  <script src="music-sleep-mode.js?v=112"></script>
+  <script src="music-brute-force.js?v=112"></script>
+  <script src="music-deep-web.js?v=112"></script>
+  <script src="music-zero-day.js?v=112"></script>
+  <script src="music-system-restore.js?v=112"></script>
+  <script src="music-night-drive.js?v=112"></script>
+  <script src="music-standby-mode.js?v=112"></script>
+  <script src="music.js?v=112"></script>
+  <script src="puzzles.js?v=112"></script>
+  <script src="daily-puzzles.js?v=112"></script>
+  <script src="cpu.js?v=112"></script>
+  <script src="fx.js?v=112"></script>
+  <script src="viz.js?v=112"></script>
+  <script src="script.js?v=112"></script>
+  <script src="grid-bg.js?v=112"></script>
 </body>
 </html>

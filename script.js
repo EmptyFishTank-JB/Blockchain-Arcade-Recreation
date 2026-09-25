@@ -82,6 +82,9 @@ let snifferBits = 0; // bits left whose number the player can pick
 let pivotFrom = null; // PIVOT: column picked, waiting for the player to pick a neighbor
 let pivotWith = null; // PIVOT: the neighbor the landing pivot swaps with
 let breached = false; // BREACH: the board was cleared
+let started = false; // START pressed (PUZZLE starts right away; VS has its own START)
+let heldHacks = []; // earned exploits waiting in the exploit button
+let armedHack = null; // the exploit armed as the next drop (no taking it back)
 
 const storage = {
   get(key) {
@@ -318,6 +321,9 @@ function initGame() {
   pivotFrom = null;
   pivotWith = null;
   breached = false;
+  started = mode === 'puzzle';
+  heldHacks = [];
+  armedHack = null;
   pulseInterval = DIFFICULTIES[difficulty].interval(0);
   gameOver = false;
   busy = false;
@@ -714,7 +720,7 @@ async function attemptDrop(col) {
       return;
     }
   }
-  if (mode === 'vs' && !vsStarted) {
+  if ((mode === 'vs' && !vsStarted) || (mode !== 'vs' && !started)) {
     SFX.play('denied');
     return;
   }
@@ -730,6 +736,7 @@ async function attemptDrop(col) {
   const piecesBefore = columns.reduce((n, c) => n + c.length, 0);
   const scoreBefore = score;
   const piece = queue.shift();
+  if (piece.type === 'hack') armedHack = null;
   refillQueue();
   if (keyloggerDrops > 0) keyloggerDrops--;
   const sniffedOut = snifferBits === 1 && piece.type === 'number'; // the Packet Sniffer's last bit
@@ -888,11 +895,13 @@ async function awardPackets(kind, count) {
   await sleep(150);
 }
 
+// An earned exploit waits in the exploit button until the player arms it
 function awardHack(id) {
-  queue.unshift({ type: 'hack', id });
+  heldHacks.push(id);
   setMessage(`EXPLOIT READY // ${HACKS[id].name}`);
   SFX.play('egg');
   updateHud();
+  updateFreeBtn();
 }
 
 async function resolveChains() {
@@ -1283,6 +1292,15 @@ document.addEventListener('keydown', (e) => {
 });
 
 document.addEventListener('keydown', (e) => {
+  if (mode !== 'vs' && !started && !gameOver && (e.key === 'Enter' || e.key === ' ')) {
+    e.preventDefault();
+    startSession();
+    return;
+  }
+  if (e.key === 'e' || e.key === 'E') {
+    if (nextExploit()) armExploit();
+    return;
+  }
   if (mode === 'vs' && !vsStarted && !gameOver && (e.key === 'Enter' || e.key === ' ')) {
     e.preventDefault();
     startMatch();
@@ -1317,15 +1335,17 @@ let armed = null; // { btn, label, timer }
 function disarmReset() {
   if (!armed) return;
   clearTimeout(armed.timer);
-  armed.btn.textContent = armed.label;
+  if (!armed.icon) armed.btn.textContent = armed.label;
   armed.btn.classList.remove('danger');
   armed = null;
 }
 
 function armReset(btn, confirmText) {
   disarmReset();
-  armed = { btn, label: btn.textContent, timer: setTimeout(disarmReset, RESET_CONFIRM_MS) };
-  btn.textContent = confirmText;
+  // Icon buttons (RESTART, QUIT) keep their icon and ask with an amber glow pulse instead
+  const icon = btn.classList.contains('corner-btn');
+  armed = { btn, icon, label: btn.textContent, timer: setTimeout(disarmReset, RESET_CONFIRM_MS) };
+  if (!icon) btn.textContent = confirmText;
   btn.classList.add('danger');
   SFX.play('alert');
 }
@@ -1362,7 +1382,7 @@ function requestReset(btn, confirmText, apply = () => {}) {
 }
 
 const restartBtn = document.getElementById('restart-btn');
-restartBtn.addEventListener('click', () => requestReset(restartBtn, 'CONFIRM RESTART?'));
+restartBtn.addEventListener('click', () => requestReset(restartBtn, 'TAP AGAIN TO RESTART'));
 
 document.querySelectorAll('#difficulty-row button').forEach((btn) => {
   btn.addEventListener('click', () => {
@@ -1691,7 +1711,7 @@ document.getElementById('vs-start').addEventListener('click', startMatch);
 // QUIT: back to the mode you came from (two presses mid-match, like RESTART)
 const vsQuitBtn = document.getElementById('vs-quit');
 vsQuitBtn.addEventListener('click', () => {
-  requestReset(vsQuitBtn, 'CONFIRM QUIT?', () => {
+  requestReset(vsQuitBtn, 'TAP AGAIN TO QUIT', () => {
     const back = storage.get('bytefall-before-vs');
     topMode = TOP_MODES.includes(back) && back !== 'vs' ? back : 'classic';
     storage.set('bytefall-mode', topMode);
@@ -2150,7 +2170,6 @@ updateFullscreenBtn();
 // PUZZLE, which stay the same for everyone.
 const FREE_KEY = 'bytefall-free-exploit';
 const localDay = () => new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD in local time
-const freeBtn = document.getElementById('free-exploit-btn');
 let freeExploit = { day: '', ready: false };
 try { freeExploit = { ...freeExploit, ...JSON.parse(storage.get(FREE_KEY)) }; } catch (e) {}
 const saveFree = () => storage.set(FREE_KEY, JSON.stringify(freeExploit));
@@ -2160,22 +2179,119 @@ if (freeExploit.day !== localDay()) {
   saveFree();
   freeGrantedNow = true;
 }
-function updateFreeBtn() {
-  freeBtn.hidden = !freeExploit.ready || daily || mode === 'puzzle' || mode === 'vs';
-  freeBtn.disabled = gameOver || busy || pivotFrom !== null;
-}
-freeBtn.addEventListener('click', () => {
-  if (!freeExploit.ready || gameOver || busy || pivotFrom !== null || daily || mode === 'puzzle' || mode === 'vs') return;
+const freeAllowed = () => freeExploit.ready && !daily && mode !== 'puzzle' && mode !== 'vs';
+// Which one it'll be is picked once (so the button can show its icon), from the first five
+function freeExploitId() {
   const ids = Progress.exploitOrder().slice(0, 5);
-  const id = ids[Math.floor(Math.random() * ids.length)];
-  freeExploit.ready = false;
-  saveFree();
+  if (!ids.includes(freeExploit.id)) {
+    freeExploit.id = ids[Math.floor(Math.random() * ids.length)];
+    saveFree();
+  }
+  return freeExploit.id;
+}
+
+// Phones and the app: the RULES and EXPLOITS cards (and the footer) live inside SETTINGS so
+// the game page never scrolls. Wide screens keep them beside the game.
+const rulesPanelEl = document.getElementById('rules-panel');
+const hacksPanelBox = document.getElementById('hacks-panel');
+const footerEl = document.querySelector('footer');
+const wideLayout = window.matchMedia('(min-width: 1000px)');
+function placeCards() {
+  const cabinet = document.querySelector('.cabinet');
+  if (wideLayout.matches) {
+    cabinet.insertBefore(rulesPanelEl, crtEl);
+    cabinet.appendChild(hacksPanelBox);
+    cabinet.after(footerEl);
+  } else {
+    settingsEl.append(hacksPanelBox, rulesPanelEl, footerEl);
+  }
+  document.body.classList.toggle('cards-in-settings', !wideLayout.matches);
+}
+wideLayout.addEventListener('change', () => {
+  placeCards();
+  requestAnimationFrame(fitBoard);
+});
+placeCards();
+// The exploit button with nothing to arm shows the EXPLOITS card
+function showExploitsCard() {
+  if (!wideLayout.matches) {
+    setSettingsOpen(true);
+    hacksPanelBox.scrollIntoView({ block: 'start' });
+  }
+  hacksPanelBox.classList.remove('flash');
+  void hacksPanelBox.offsetWidth;
+  hacksPanelBox.classList.add('flash');
+}
+
+// START (before a session) and the lower corners: RESTART (QUIT in VS) once a session is going,
+// and the exploit button
+const startBtn = document.getElementById('start-btn');
+const exploitBtn = document.getElementById('exploit-btn');
+const LIGHTNING_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 10-13h-7z" fill="currentColor"/></svg>';
+function startSession() {
+  if (mode === 'vs' || started || gameOver) return;
+  started = true;
+  FX.burst([{ el: startBtn, type: 'warning' }]);
+  SFX.play('static');
+  updateFreeBtn();
+}
+startBtn.addEventListener('click', startSession);
+
+// The exploit button: dim lightning when there's nothing to arm; glowing green (showing that
+// exploit's icon) when one is ready; glowing, pulsing amber once armed as the next drop
+function nextExploit() {
+  if (heldHacks.length) return heldHacks[0];
+  return freeAllowed() && started ? freeExploitId() : null;
+}
+function updateFreeBtn() {
+  const inVs = mode === 'vs';
+  startBtn.hidden = inVs || started || gameOver;
+  restartBtn.hidden = inVs || !started || gameOver;
+  vsQuitBtn.hidden = !inVs;
+  const ready = nextExploit();
+  const shown = armedHack || ready;
+  document.getElementById('exploit-glyph').innerHTML = shown ? iconHtml(shown) : LIGHTNING_SVG;
+  exploitBtn.classList.toggle('armed', !!armedHack);
+  exploitBtn.classList.toggle('ready', !armedHack && !!ready);
+  exploitBtn.title = armedHack ? `${HACKS[armedHack].name} // ARMED: drop it`
+    : ready ? `${HACKS[ready].name} // tap to arm it as your next drop` : 'Exploits';
+  // FREE! beside the button when the ready one is the daily free exploit
+  document.getElementById('exploit-free').hidden = !!armedHack || heldHacks.length > 0 || !ready;
+  const count = heldHacks.length + (freeAllowed() && started ? 1 : 0);
+  const countEl = document.getElementById('exploit-count');
+  countEl.hidden = count < 2 || !!armedHack;
+  countEl.textContent = `x${count}`;
+}
+
+// Arm the ready exploit as the next drop. Committed: it can't be taken back.
+function armExploit() {
+  if (armedHack || gameOver || busy || pivotFrom !== null || !started) return false;
+  let id = heldHacks.shift();
+  let free = false;
+  if (!id) {
+    if (!freeAllowed()) return false;
+    id = freeExploitId();
+    freeExploit.ready = false;
+    freeExploit.id = null;
+    saveFree();
+    free = true;
+  }
+  armedHack = id;
   queue.unshift({ type: 'hack', id });
-  setMessage(`FREE EXPLOIT // ${HACKS[id].name}`);
+  setMessage(`${free ? 'FREE EXPLOIT' : 'ARMED'} // ${HACKS[id].name}`);
   burstMessage('warning');
   SFX.play('egg');
   updateHud();
   updateFreeBtn();
+  return true;
+}
+exploitBtn.addEventListener('click', () => {
+  if (armedHack) return; // armed: drop it
+  if (nextExploit()) {
+    if (!armExploit()) SFX.play('denied');
+    return;
+  }
+  showExploitsCard();
 });
 
 // UNLOCKED / ACHIEVEMENT pop-ups, shown one at a time: each pops in, holds, bursts apart, and

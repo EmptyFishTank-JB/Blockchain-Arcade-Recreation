@@ -29,8 +29,11 @@ Mechanically it's a Drop7-style puzzle:
 
 On Normal and Hard, a 5x chain unlocks a random exploit. On Easy, each exploit
 has its own chain length, so shorter chains unlock the weaker ones. The exploit
-becomes your next drop; drop it into a column like a bit and it runs where it
-lands:
+waits in the exploit button (the game card's lower-right corner), which glows
+green and shows the exploit's icon (with a count if more are waiting). Tap it
+(or press E) to arm the exploit: the button pulses amber and the exploit is
+your next drop, with no taking it back. Drop it into a column like a bit and it
+runs where it lands. With nothing to arm, the button shows the EXPLOITS card:
 
 | Exploit | Easy chain | Effect |
 |---|---|---|
@@ -60,7 +63,7 @@ A drop earns at most one exploit, picked from the longest chain it set off.
 | DAILY | Four daily games, picked on a second row under the modes. Each is the same for everyone that UTC day, and each keeps a daily streak. **DECRYPT**: a fixed stack of 40 bits dealt from a seed of the date (Normal rules, the five standard exploits); it ends when the stack runs out. **PUZZLE**: a new puzzle every day (from `daily-puzzles.js`), harder through the week: Monday is 1 bit, Sunday 4 bits with layers; retries are free and your tries are counted. **BLITZ**: the same bits for everyone against a 60-second clock. **BREACH** (daily only): the board starts with a 3-row firewall of level 1 and 2 layers and you get 30 bits to break through; each layer broken is +25 and clearing the whole board is +1,000. For DECRYPT, BLITZ and BREACH your first run each day is the official score and later runs are practice. SHARE on the results screen sends or copies your result |
 | BLITZ | Normal rules against a 2-minute clock that starts on your first drop (paused while the tab is hidden) |
 | ZEN | Normal rules with no encryption layers and no clock |
-| VS | VS CPU (`cpu.js`): you against an EASY / NORMAL / HARD computer opponent (faster and smarter up the levels), on Normal rules with no exploits and the same bits in the same order. A setup screen over your board picks the level and, below it, ENCRYPTED LAYERS: ON / OFF (the usual layer row every 8 drops, on both boards); START bursts it apart and starts the CPU's clock, and it comes back after the win / loss screen. Every 30 points a drop scores sends one encrypted block (a one-peel layer hiding a random bit) onto the other board, dropping onto the top of random columns after its next move; your chains cancel blocks headed your way first. The first to overflow loses. In a match the header gives way to the VS info, your stats and the CPU's board (with its numbers; press and hold it to see it full size over yours), laid out so your board keeps its regular size and place; QUIT takes RESTART's place and goes back to your previous mode. The CPU pauses while a panel is open. RECORDS → STATS keeps wins and losses per level |
+| VS | VS CPU (`cpu.js`): you against an EASY / NORMAL / HARD computer opponent (faster and smarter up the levels), on Normal rules with no exploits and the same bits in the same order. A setup screen over your board picks the level and, below it, ENCRYPTED LAYERS: ON / OFF (the usual layer row every 8 drops, on both boards); START bursts it apart and starts the CPU's clock, and it comes back after the win / loss screen. Every 30 points a drop scores sends one encrypted block (a one-peel layer hiding a random bit) onto the other board, dropping onto the top of random columns after its next move; your chains cancel blocks headed your way first. The first to overflow loses. In a match the header gives way to the VS info, your stats and the CPU's board (with its numbers; press and hold it to see it full size over yours), laid out so your board keeps its regular size and place; QUIT (the lower-left corner) goes back to your previous mode. The CPU pauses while a panel is open. RECORDS → STATS keeps wins and losses per level |
 | PUZZLE | 60 set boards (in `puzzles.js`): decrypt every block using exactly the bits given, in order. Solving one opens the next; the arrow buttons move between them. No new layers rise and no exploits drop; puzzle layers hide a fixed bit |
 
 Switching modes mid-run asks to confirm, like RESTART. Each mode keeps its
@@ -148,8 +151,8 @@ press and hold any exploit card for 2 seconds to make it your next drop.
 ## Daily bonus, vibration and resetting
 
 - **Daily bonus:** the first time the game opens each day (local date), one
-  free exploit is banked behind the FREE EXPLOIT button (lightning icon) next to RESTART.
-  Tapping it makes one of the first five exploits (RNG, BITFLIP, BUFFER OVERFLOW, TROJAN, WORM VIRUS) your next drop, even if you haven't unlocked it yet, so new players get to try them. It doesn't stack
+  free exploit waits in the exploit button once a session starts, marked FREE!.
+  Arming it makes one of the first five exploits (RNG, BITFLIP, BUFFER OVERFLOW, TROJAN, WORM VIRUS) your next drop, even if you haven't unlocked it yet, so new players get to try them. It doesn't stack
   if unused, and it's hidden in DAILY and PUZZLE so those stay equal for
   everyone.
 - **Vibration:** on devices that support it (Android), drops, decrypts,
@@ -202,10 +205,20 @@ Every color in `style.css` is a named role in `:root`; a theme is a
 `THEMES` in `script.js` and in the small theme script in `index.html`'s
 head. All but TERMINAL are unlocked by playing (see below).
 
-RESTART and the difficulty buttons ask for a second press mid-run (CONFIRM
-RESTART? / CONFIRM?, which cancels itself after a few seconds), then the
-board melts down like a traced run before the new one starts. Once a run is
-over, or before the first drop, they act straight away.
+**START and the corners.** Each session begins with START (under the column
+buttons, or Enter); drops wait until then (PUZZLE starts right away, VS has
+its own START). During a session, RESTART is the arrows icon in the game card's
+lower-left corner (QUIT in VS) and the exploit button is in the lower-right.
+
+**No scrolling on phones.** Below 1000px wide (phones and the app) the EXPLOITS
+and RULES cards and the footer move inside SETTINGS, so the game page never
+scrolls; wider screens keep them beside the game.
+
+RESTART and the difficulty buttons ask for a second press mid-run (RESTART
+glows and pulses amber; the text buttons read CONFIRM?; either cancels itself
+after a few seconds), then the board melts down like a traced run before the
+new one starts. Once a run is over, or before the first drop, they act straight
+away.
 
 ## Files
 
