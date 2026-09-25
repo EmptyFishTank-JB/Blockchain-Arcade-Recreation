@@ -1264,32 +1264,33 @@ body.vs-mode header #mode-info { display: none; }
 .stat.sniffing .bit-sq { cursor: pointer; border-color: var(--accent); }
 
 /* Bonus exploits and tracks without Full Access (preview with ?free) */
-.hack-item.locked { opacity: 0.45; }
 .settings button .need { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; font-size: 9px; letter-spacing: 0; color: var(--accent); }
 .settings .theme-option { position: relative; min-width: 0; }
-.settings .theme-option.locked::after {
+/* Every locked item (theme, font, HARD, track, exploit card): its content dims behind a lock
+   centered on it */
+.settings .theme-option.locked::after,
+.difficulty button.locked::after,
+.settings #playlist-tracks button.locked::after,
+.hack-item.locked::after {
   content: '';
   position: absolute;
-  top: 5px;
-  right: 5px;
-  width: 9px;
-  height: 10px;
-  background: currentColor;
+  top: 50%;
+  left: 50%;
+  width: 14px;
+  height: 16px;
+  transform: translate(-50%, -50%);
+  background: var(--fg);
   -webkit-mask: var(--icon-lock) center / contain no-repeat;
   mask: var(--icon-lock) center / contain no-repeat;
+  pointer-events: none;
 }
+.settings .theme-option.locked > *,
+.hack-item.locked > *:not(.lock-tag) { opacity: 0.3; }
+.difficulty button.locked { position: relative; color: rgba(var(--fg-rgb), 0.3); }
+.settings #playlist-tracks button.locked { position: relative; color: rgba(var(--fg-rgb), 0.3); opacity: 1; }
+.hack-item.locked { position: relative; }
+.hack-item.unused { opacity: 0.45; }
 .settings .theme-option.locked { cursor: help; }
-.difficulty button.locked { opacity: 0.45; }
-.difficulty button.locked::after {
-  content: '';
-  display: inline-block;
-  width: 9px;
-  height: 10px;
-  margin-left: 6px;
-  background: currentColor;
-  -webkit-mask: var(--icon-lock) center / contain no-repeat;
-  mask: var(--icon-lock) center / contain no-repeat;
-}
 
 .stat.keylogger { border-color: var(--accent); }
 .stat.keylogger .label { color: var(--accent); }
@@ -1543,8 +1544,7 @@ body.vs-mode header #mode-info { display: none; }
 /* Font picker: each name in its own font, centered both ways (clear of the lock icon) */
 .settings .font-list .theme-option { justify-content: center; align-items: center; text-align: center; min-height: 34px; padding-left: 8px; padding-right: 8px; letter-spacing: 0.5px; }
 /* Locked font: its name dims behind a lock centered on the button */
-.settings .font-list .theme-option.locked > span { opacity: 0.3; }
-.settings .font-list .theme-option.locked::after { top: 50%; left: 50%; right: auto; width: 14px; height: 16px; transform: translate(-50%, -50%); color: var(--fg); }
+
 /* Each swatch carries its theme's data-theme, so it shows that theme's bit, layer and accent colors */
 /* The theme's colors as three short, wide bars under its name */
 .swatches { display: flex; gap: 3px; width: 100%; }
@@ -1552,7 +1552,7 @@ body.vs-mode header #mode-info { display: none; }
 .swatches i:nth-child(1) { background: var(--fg); }
 .swatches i:nth-child(2) { background: var(--layer-border); }
 .swatches i:nth-child(3) { background: var(--accent); }
-.settings .theme-option.locked .swatches { opacity: 0.4; }
+
 
 .settings-row .toggle-btn { justify-content: center; }
 

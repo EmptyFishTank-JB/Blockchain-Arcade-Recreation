@@ -1883,7 +1883,9 @@ function applyTheme() {
     btn.className = 'theme-option';
     btn.classList.toggle('active', t.id === shown.id);
     btn.setAttribute('aria-pressed', String(t.id === shown.id));
-    btn.textContent = t.label;
+    const name = document.createElement('span');
+    name.textContent = t.label;
+    btn.appendChild(name);
     const swatches = document.createElement('span');
     swatches.className = 'swatches';
     swatches.dataset.theme = t.id;
@@ -1999,7 +2001,7 @@ function renderPlaylist() {
       btn.classList.add('locked');
       const need = document.createElement('span');
       need.className = 'need';
-      need.innerHTML = `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>${Progress.unlock(`track-${n + 1}`).goal.toLocaleString('en-US')}`;
+      need.textContent = `${Progress.unlock(`track-${n + 1}`).goal.toLocaleString('en-US')} BITS`;
       btn.appendChild(need);
       btn.title = `${track.need} to unlock`;
     } else if (track) {
@@ -2539,7 +2541,8 @@ function refreshExploitCards() {
     hacksPanelEl.appendChild(el); // keep the cards in unlock order
     const info = Progress.exploitInfo(id);
     const on = daily ? DAILY_EXPLOITS.includes(id) : equipped.includes(id);
-    el.classList.toggle('locked', daily ? !on : !info.unlocked);
+    el.classList.toggle('locked', !daily && !info.unlocked);
+    el.classList.toggle('unused', daily && !on); // not one of the Daily's five (not locked)
     el.classList.toggle('unlocked', !daily && info.unlocked && editable);
     el.classList.toggle('equipped', on);
     let tag;
