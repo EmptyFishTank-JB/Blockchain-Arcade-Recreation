@@ -1105,8 +1105,9 @@ h1 span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
 .settings .theme-option.locked::after {
   content: '\1F512';
   position: absolute;
-  right: 6px;
-  font-size: 10px;
+  top: 5px;
+  right: 5px;
+  font-size: 9px;
 }
 .settings .theme-option.locked { cursor: help; }
 .difficulty button.locked { opacity: 0.45; }
@@ -1325,17 +1326,20 @@ h1 span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
 
 .theme-list { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .settings .theme-option {
-  align-items: center;
-  gap: 4px;
-  padding: 6px 5px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 5px;
+  padding: 6px 7px;
   font-size: 10px;
+  white-space: nowrap;
   color: var(--fg-dim);
   border-color: var(--grid-line);
 }
 .settings .theme-option.active { color: var(--fg); border-color: var(--fg); }
 /* Each swatch carries its theme's data-theme, so it shows that theme's bit, layer and accent colors */
-.swatches { display: flex; gap: 2px; margin-left: auto; }
-.swatches i { display: block; width: 5px; height: 11px; border-radius: 1px; }
+/* The theme's colors as three short, wide bars under its name */
+.swatches { display: flex; gap: 3px; width: 100%; }
+.swatches i { display: block; flex: 1; height: 5px; border-radius: 3px; }
 .swatches i:nth-child(1) { background: var(--fg); }
 .swatches i:nth-child(2) { background: var(--layer-border); }
 .swatches i:nth-child(3) { background: var(--accent); }
