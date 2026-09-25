@@ -108,7 +108,7 @@ daily games always use the five standard exploits, so they're the same for
 everyone.
 
 **Themes** unlock by DECRYPTOR rank, for good: CIPHER (1), AMBER CRT (2), MONOCHROME
-(3), REDLINE (4), SYNTHWAVE (5), DOT MATRIX (6), DAYLIGHT (7), GLYPH (8),
+(3), REDLINE (4), SYNTHWAVE (5), DOT MATRIX (6), PAPER (7), GLYPH (8),
 SPECTRUM (9).
 
 **Permanent unlocks:** Hard mode (score 2,000 on Normal) and tracks 02-10
@@ -179,7 +179,7 @@ Themes (picked from the swatch grid in settings):
 | REDLINE | red | steel blue | yellow | white |
 | SYNTHWAVE | pink | purple | orange | cyan |
 | DOT MATRIX | olive green | dark green | pale green | red |
-| DAYLIGHT | near-black ink on paper | grey | dark amber (gold) | red |
+| PAPER | near-black ink on paper | grey | dark amber (gold) | red |
 | GLYPH | shapes on blueprint blue | slate | amber | red |
 | SPECTRUM | each bit cycles the rainbow on its own | grey (still) | near-white (still) | cycles |
 

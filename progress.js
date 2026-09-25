@@ -162,7 +162,7 @@ const Progress = (() => {
 
   // Each prestige permanently unlocks the next theme
   const THEME_ORDER = [['cipher', 'CIPHER'], ['amber', 'AMBER CRT'], ['mono', 'MONOCHROME'], ['redline', 'REDLINE'],
-    ['synthwave', 'SYNTHWAVE'], ['dotmatrix', 'DOT MATRIX'], ['daylight', 'DAYLIGHT'], ['glyph', 'GLYPH'], ['spectrum', 'SPECTRUM']];
+    ['synthwave', 'SYNTHWAVE'], ['dotmatrix', 'DOT MATRIX'], ['daylight', 'PAPER'], ['glyph', 'GLYPH'], ['spectrum', 'SPECTRUM']];
 
   // group: where it shows in the UNLOCKS list. value() / goal drive its tracker.
   const UNLOCKS = [
