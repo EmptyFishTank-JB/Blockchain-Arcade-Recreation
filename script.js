@@ -1875,7 +1875,9 @@ function recordRow({ name, desc, current, goal, done }) {
   li.innerHTML = '<div class="rec-head"><span class="rec-name"></span><span class="rec-state"></span></div>'
     + '<p class="rec-desc"></p><div class="rec-bar"><i></i></div>';
   li.querySelector('.rec-name').textContent = name;
-  li.querySelector('.rec-state').textContent = done ? '✓' : `${fmt(shown)} / ${fmt(goal)}`;
+  if (done) li.querySelector('.rec-name').insertAdjacentHTML('beforeend', ' <span class="rec-check">✓</span>');
+  // Done: the full goal shows (in amber), e.g. 25 / 25
+  li.querySelector('.rec-state').textContent = `${fmt(done ? goal : shown)} / ${fmt(goal)}`;
   li.querySelector('.rec-desc').textContent = desc;
   li.querySelector('.rec-bar i').style.width = `${done ? 100 : (shown / goal) * 100}%`;
   return li;
@@ -1914,7 +1916,7 @@ function renderRecords() {
     });
     row.style.borderBottom = 'none';
     // Bright green labels with amber numbers
-    row.querySelector('.rec-name').innerHTML = `LV <em>${lv.level}</em> // DECRYPTOR <em>${lv.prestige}</em>`;
+    row.querySelector('.rec-name').innerHTML = `LV <em>${lv.level}</em> // DECRYPTOR <em>${lv.prestige}</em>${lv.maxed ? ' <span class="rec-check">✓</span>' : ''}`;
     row.querySelector('.rec-state').innerHTML = `<em>${fmt(lv.maxed ? lv.need : lv.into)}</em> / <em>${fmt(lv.need)}</em>`;
     const rowList = document.createElement('ul');
     rowList.className = 'rec-list';
