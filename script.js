@@ -38,7 +38,7 @@ const HACKS = {
   overflow: { name: 'BUFFER OVERFLOW', icon: '+', easyCombo: 4 },
   trojan: { name: 'TROJAN', icon: '◈', easyCombo: 4 },
   rng: { name: 'RNG', icon: '?', easyCombo: 3 },
-  bitflip: { name: 'BITFLIP', icon: '↕', easyCombo: 3 },
+  bitflip: { name: 'BITFLIP', icon: '\u2195', easyCombo: 3 },
   dictionary: { name: 'DICTIONARY ATTACK', icon: '#', easyCombo: 4 },
   keylogger: { name: 'KEYLOGGER', icon: '@', easyCombo: 3 },
   backdoor: { name: 'BACKDOOR', icon: '_', easyCombo: 4 },
@@ -420,6 +420,14 @@ function spinBit(el, cell) {
   el.style.setProperty('--bit-h', String(Math.round(phase * 360))); // still hue under reduced motion
 }
 
+// Exploit icons are text, except where a phone could turn the character into an emoji: those
+// are drawn as SVG (BITFLIP's up/down arrow). iconHtml() is for places that render markup.
+const ICON_SVG = {
+  bitflip: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M7 8l5-5 5 5M7 16l5 5 5-5"/></svg>',
+};
+const iconHtml = (id) => ICON_SVG[id] || HACKS[id].icon;
+const UPDOWN_SVG = ICON_SVG.bitflip;
+
 function pieceLabel(piece) {
   return piece.type === 'hack' ? `[${HACKS[piece.id].icon}]` : `[${piece.val}]`;
 }
@@ -430,7 +438,7 @@ function showPiece(el, piece) {
     fillBit(el, piece.val);
     if (!themeIs('glyph')) el.textContent = String(piece.val);
   } else {
-    el.textContent = HACKS[piece.id].icon;
+    el.innerHTML = iconHtml(piece.id);
   }
   el.classList.toggle('hack', piece.type === 'hack');
   el.title = piece.type === 'hack' ? HACKS[piece.id].name : '';
@@ -465,7 +473,7 @@ function render(popped = [], falling = null) {
           spinBit(div, cell);
         } else if (cell.type === 'hack') {
           div.classList.add('hack');
-          div.textContent = pieceLabel(cell);
+          div.innerHTML = `[${iconHtml(cell.id)}]`;
         } else if (cell.type === 'bomb') {
           div.classList.add('hack', 'armed', 'bomb');
           div.textContent = `[!${cell.timer}]`;
@@ -540,7 +548,7 @@ function updateHud() {
   if (pivotFrom !== null && !(queue[0] && queue[0].id === 'pivot')) clearPivotChoice();
   const sniffing = snifferBits > 0 && queue[0] && queue[0].type === 'number';
   currentEl.closest('.stat').classList.toggle('sniffing', !!sniffing);
-  document.getElementById('current-label').textContent = sniffing ? `SNIFF ${snifferBits} \u2195` : 'CURRENT';
+  document.getElementById('current-label').innerHTML = sniffing ? `SNIFF ${snifferBits} ${UPDOWN_SVG}` : 'CURRENT';
   currentEl.title = sniffing ? 'Tap (or press up / down) to change this bit' : '';
   const heldHack = queue[0] && queue[0].type === 'hack' ? queue[0].id : null;
   document.querySelectorAll('.hack-item').forEach((el) => {
@@ -1412,7 +1420,10 @@ function renderPlaylist() {
       btn.textContent = `${num}  ${track.title}`;
       btn.disabled = true;
       btn.classList.add('locked');
-      btn.dataset.need = `\u{1F512} ${Progress.unlock(`track-${n + 1}`).goal.toLocaleString('en-US')}`;
+      const need = document.createElement('span');
+      need.className = 'need';
+      need.innerHTML = `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>${Progress.unlock(`track-${n + 1}`).goal.toLocaleString('en-US')}`;
+      btn.appendChild(need);
       btn.title = `${track.need} to unlock`;
     } else if (track) {
       btn.textContent = `${num}  ${track.title}`;

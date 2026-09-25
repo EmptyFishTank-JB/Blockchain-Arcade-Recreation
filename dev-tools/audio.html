@@ -264,14 +264,14 @@
   <footer>GENERATED FROM SOURCE &mdash; NO AUDIO FILES, ALL SYNTHESIZED ON PLAY</footer>
 </div>
 
-<script src="../sfx.js?v=56"></script>
-<script src="../music-theme.js?v=56"></script>
-<script src="../music-sleep-mode.js?v=56"></script>
-<script src="../music-brute-force.js?v=56"></script>
-<script src="../music-deep-web.js?v=56"></script>
-<script src="../music-zero-day.js?v=56"></script>
-<script src="../music-system-restore.js?v=56"></script>
-<script src="../viz.js?v=56"></script>
+<script src="../sfx.js?v=59"></script>
+<script src="../music-theme.js?v=59"></script>
+<script src="../music-sleep-mode.js?v=59"></script>
+<script src="../music-brute-force.js?v=59"></script>
+<script src="../music-deep-web.js?v=59"></script>
+<script src="../music-zero-day.js?v=59"></script>
+<script src="../music-system-restore.js?v=59"></script>
+<script src="../viz.js?v=59"></script>
 <script>
 (() => {
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -345,7 +345,7 @@
           <div class="card-desc">${esc(fx.desc)}</div>
           <div class="chips">${fx.params.map((p) => `<span class="chip">${esc(p)}</span>`).join('')}</div>
         </div>
-        <button class="play" type="button">&#9654; PLAY</button>
+        <button class="play" type="button"><svg viewBox="0 0 24 24" width="11" height="11" aria-hidden="true" style="vertical-align:-1px"><path d="M7 4l12 8-12 8z" fill="currentColor"/></svg> PLAY</button>
       </div>
       <div class="uses"><h4>// PLAYS WHEN</h4><ul>${fx.uses.map((u) => `<li>${esc(u)}</li>`).join('')}</ul></div>`;
     card.querySelector('button').addEventListener('click', () => SFX.preview(fx.id));
@@ -446,7 +446,7 @@
     session.gain.setTargetAtTime(0, ctx.currentTime, 0.08);
     setTimeout(() => session.disconnect(), 600);
     ui.btn.classList.remove('playing');
-    ui.btn.innerHTML = '&#9654; PLAY';
+    ui.btn.innerHTML = '<svg viewBox="0 0 24 24" width="11" height="11" aria-hidden="true" style="vertical-align:-1px"><path d="M7 4l12 8-12 8z" fill="currentColor"/></svg> PLAY';
     ui.rows.forEach((r) => r.classList.remove('active'));
     ui.now.textContent = '';
     ui.meter.style.width = '0';
@@ -493,7 +493,7 @@
     }, 25);
     player = p;
     ui.btn.classList.add('playing');
-    ui.btn.innerHTML = '&#9632; STOP';
+    ui.btn.innerHTML = '<svg viewBox="0 0 24 24" width="11" height="11" aria-hidden="true" style="vertical-align:-1px"><rect x="5" y="5" width="14" height="14" rx="1" fill="currentColor"/></svg> STOP';
     ui.media.classList.add('live');
     document.getElementById('scope-label').textContent = `// SCOPE — ${track.title}`;
   }
@@ -563,7 +563,7 @@
           <div class="card-desc">${esc(track.desc)}</div>
           <div class="chips">${track.meta.map((m) => `<span class="chip">${esc(m)}</span>`).join('')}</div>
         </div>
-        <button class="play" type="button">&#9654; PLAY</button>
+        <button class="play" type="button"><svg viewBox="0 0 24 24" width="11" height="11" aria-hidden="true" style="vertical-align:-1px"><path d="M7 4l12 8-12 8z" fill="currentColor"/></svg> PLAY</button>
       </div>
       <div class="sections">${track.sections.map(([time, name, what]) => `
         <div class="sec-row"><span class="time">${esc(time)}</span><span><b>${esc(name)}</b> — ${esc(what)}</span></div>`).join('')}

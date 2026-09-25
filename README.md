@@ -31,7 +31,7 @@ lands:
 | Buffer Overflow `[+]` | 4x | Adds 1 to every bit; the top number (7, or 8 on Hard) is re-encrypted under two layers |
 | Trojan `[◈]` | 4x | Wipes out every block touching the spot where it lands |
 | RNG `[?]` | 3x | Scrambles every bit to a random number |
-| Bitflip `[↕]` | 3x | Turns every column upside down |
+| Bitflip `[↕]` (drawn as an arrow icon) | 3x | Turns every column upside down |
 | Dictionary Attack `[#]` * | 4x | Every encryption layer on the board loses one level at once |
 | Keylogger `[@]` * | 3x | Shows your next 3 bits for the next 10 drops |
 | Backdoor `[_]` * | 4x | Deletes the entire bottom row, layers included; everything drops by one |
@@ -53,7 +53,7 @@ A drop earns at most one exploit, picked from the longest chain it set off.
 | DAILY | The Daily Decrypt: a fixed stack of 40 bits dealt from a seed of the UTC date, so everyone gets the same bits (Normal rules, the five standard exploits). It ends when the stack runs out. Your first run each day is the official score; later runs are practice. SHARE on the results screen sends or copies your result. Keeps a daily streak |
 | BLITZ | Normal rules against a 2-minute clock that starts on your first drop (paused while the tab is hidden) |
 | ZEN | Normal rules with no encryption layers and no clock |
-| PUZZLE | 30 set boards (in `puzzles.js`): decrypt every block using exactly the bits given, in order. Solving one opens the next; ◀ ▶ move between them. No new layers rise and no exploits drop; puzzle layers hide a fixed bit |
+| PUZZLE | 30 set boards (in `puzzles.js`): decrypt every block using exactly the bits given, in order. Solving one opens the next; the arrow buttons move between them. No new layers rise and no exploits drop; puzzle layers hide a fixed bit |
 
 Switching modes mid-run asks to confirm, like RESTART. Each mode keeps its
 own best score.
@@ -129,7 +129,7 @@ press and hold any exploit card for 2 seconds to make it your next drop.
 ## Daily bonus, vibration and resetting
 
 - **Daily bonus:** the first time the game opens each day (local date), one
-  free exploit is banked behind the ⚡ FREE EXPLOIT button next to RESTART.
+  free exploit is banked behind the FREE EXPLOIT button (lightning icon) next to RESTART.
   Tapping it makes one of the first five exploits (RNG, BITFLIP, BUFFER OVERFLOW, TROJAN, WORM VIRUS) your next drop, even if you haven't unlocked it yet, so new players get to try them. It doesn't stack
   if unused, and it's hidden in DAILY and PUZZLE so those stay equal for
   everyone.
