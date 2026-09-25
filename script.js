@@ -744,7 +744,10 @@ async function attemptDrop(col) {
     if (tries >= 10) Progress.secret('stubborn');
   }
   Progress.drop();
-  if (Progress.runDrops() === 1) refreshExploitCards(); // the loadout locks for this session
+  if (Progress.runDrops() === 1) {
+    refreshExploitCards(); // the loadout locks for this session
+    updateVsChrome();
+  }
   if (mode === 'blitz') clockRunning = true;
   let wentOver = overflowed();
   render();
@@ -1231,6 +1234,8 @@ function endGame(reason = 'trace') {
     if (reason === 'trace') endings.trace = ['CPU WINS', `The ${CpuBoard.LEVELS[vsLevel].label} CPU traced you first.`];
     Progress.vsResult(vsLevel, reason === 'win');
     stopVs();
+    holdCpu(false);
+    updateVsChrome();
   }
   document.getElementById('overlay-title').textContent = endings[reason][0];
   document.getElementById('overlay-sub').textContent = endings[reason][1];
@@ -1374,6 +1379,7 @@ document.querySelectorAll('.modes button').forEach((btn) => {
     const next = btn.dataset.mode;
     if (next === topMode) return;
     requestReset(btn, 'CONFIRM?', () => {
+      if (next === 'vs') storage.set('bytefall-before-vs', topMode); // QUIT comes back here
       topMode = next;
       storage.set('bytefall-mode', next);
       setModeFromChoice();
@@ -1429,7 +1435,7 @@ function applyModeUi() {
   info.textContent = mode === 'classic' ? '' : MODES[mode].info(todayKey());
   document.getElementById('difficulty-row').hidden = mode !== 'classic';
   document.getElementById('daily-kinds').hidden = !daily;
-  document.getElementById('vs-levels').hidden = mode !== 'vs';
+  updateVsChrome();
   document.querySelectorAll('#vs-levels button[data-vs]').forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.vs === vsLevel);
   });
@@ -1489,7 +1495,6 @@ let cpuPending = 0; // blocks headed for the CPU
 let cpuDown = false; // the CPU overflowed (the win shows once your drop finishes)
 let cpuClock = 0;
 const cpuStatEl = document.getElementById('cpu-stat');
-const cpuCanvas = document.getElementById('cpu-grid');
 const incomingEl = document.getElementById('incoming');
 const vsBlocks = (points) => Math.min(VS_MAX_BLOCKS, Math.floor(points / VS_POINTS_PER_BLOCK));
 
@@ -1585,41 +1590,99 @@ setInterval(() => {
   }
 }, 100);
 
-// The CPU's board in miniature, plus the blocks headed each way
+// The CPU's board beside your stats (numbers and layers), plus the blocks headed each way
+const cpuGridEl = document.getElementById('cpu-grid');
+const cpuFullEl = document.getElementById('cpu-full');
 function drawCpu() {
   if (!cpu) return;
-  const dpr = window.devicePixelRatio || 1;
-  const cell = 9;
-  const w = CpuBoard.COLS * cell;
-  const h = CpuBoard.MAX_ROWS * cell;
-  if (cpuCanvas.width !== w * dpr) {
-    cpuCanvas.width = w * dpr;
-    cpuCanvas.height = h * dpr;
+  const cols = cpu.columns();
+  const cells = [];
+  for (let r = CpuBoard.MAX_ROWS - 1; r >= 0; r--) {
+    for (let c = 0; c < CpuBoard.COLS; c++) {
+      const b = cols[c][r];
+      let cls = r >= CpuBoard.ROWS ? 'over' : '';
+      let text = '';
+      if (b && b.type === 'number') {
+        cls += ' bit';
+        text = b.val;
+      } else if (b) {
+        cls += ' layer';
+        text = b.level < 2 ? '-' : '=';
+      }
+      if (r === CpuBoard.ROWS) cls += ' over-edge';
+      cells.push(`<i class="${cls.trim()}">${text}</i>`);
+    }
   }
-  const g = cpuCanvas.getContext('2d');
-  g.setTransform(dpr, 0, 0, dpr, 0, 0);
-  g.clearRect(0, 0, w, h);
-  const css = getComputedStyle(document.documentElement);
-  const fg = css.getPropertyValue('--fg').trim();
-  const accent = css.getPropertyValue('--accent').trim();
-  const line = css.getPropertyValue('--grid-line').trim();
-  const danger = css.getPropertyValue('--danger').trim();
-  g.fillStyle = line;
-  g.globalAlpha = 0.35;
-  for (let r = 0; r < CpuBoard.MAX_ROWS; r++) for (let c = 0; c < CpuBoard.COLS; c++) g.fillRect(c * cell + 1, r * cell + 1, cell - 2, cell - 2);
-  g.globalAlpha = 1;
-  g.fillStyle = danger;
-  g.fillRect(0, cell - 1, w, 1); // the overflow line
-  cpu.columns().forEach((col, c) => col.forEach((b, r) => {
-    const y = (CpuBoard.MAX_ROWS - 1 - r) * cell;
-    g.fillStyle = b.type === 'number' ? fg : accent;
-    g.globalAlpha = b.type === 'number' ? 0.7 + b.val * 0.04 : 1;
-    g.fillRect(c * cell + 1, y + 1, cell - 2, cell - 2);
-  }));
-  g.globalAlpha = 1;
-  const tallest = Math.max(...cpu.columns().map((col) => col.length));
+  cpuGridEl.innerHTML = cells.join('');
+  const tallest = Math.max(...cols.map((col) => col.length));
   cpuStatEl.classList.toggle('low', tallest >= CpuBoard.ROWS - 1);
+  if (!cpuFullEl.hidden) drawCpuFull();
 }
+
+// Held: the CPU's board at full size, drawn like yours
+function drawCpuFull() {
+  const cols = cpu.columns();
+  cpuFullEl.innerHTML = '';
+  cpuFullEl.style.setProperty('--cols', CpuBoard.COLS);
+  for (let r = CpuBoard.MAX_ROWS - 1; r >= 0; r--) {
+    for (let c = 0; c < CpuBoard.COLS; c++) {
+      const b = cols[c][r];
+      const div = document.createElement('div');
+      div.className = 'cell';
+      if (r >= CpuBoard.ROWS) div.classList.add('overflow');
+      if (b && b.type === 'number') {
+        div.classList.add('disc');
+        fillBit(div, b.val);
+      } else if (b) {
+        div.classList.add('firewall');
+        if (b.level < 2) div.classList.add('cracked');
+        div.textContent = b.level < 2 ? '[-]' : '[=]';
+      }
+      cpuFullEl.appendChild(div);
+    }
+    if (r === CpuBoard.ROWS) {
+      const line = document.createElement('div');
+      line.className = 'overflow-line';
+      line.textContent = '='.repeat(80);
+      cpuFullEl.appendChild(line);
+    }
+  }
+}
+function holdCpu(on) {
+  if (!cpu || mode !== 'vs') on = false;
+  cpuFullEl.hidden = !on;
+  if (on) drawCpuFull();
+}
+cpuStatEl.addEventListener('pointerdown', (e) => {
+  if (!cpu) return;
+  cpuStatEl.setPointerCapture(e.pointerId);
+  holdCpu(true);
+});
+for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) cpuStatEl.addEventListener(type, () => holdCpu(false));
+cpuStatEl.addEventListener('contextmenu', (e) => e.preventDefault()); // a long press shouldn't open a menu
+
+// QUIT: back to the mode you came from (two presses mid-match, like RESTART)
+const vsQuitBtn = document.getElementById('vs-quit');
+vsQuitBtn.addEventListener('click', () => {
+  requestReset(vsQuitBtn, 'CONFIRM QUIT?', () => {
+    const back = storage.get('bytefall-before-vs');
+    topMode = TOP_MODES.includes(back) && back !== 'vs' ? back : 'classic';
+    storage.set('bytefall-mode', topMode);
+    setModeFromChoice();
+  });
+});
+
+// In VS the level row shows before your first drop and after the match, not during it
+function updateVsChrome() {
+  const levels = document.getElementById('vs-levels');
+  const hide = mode !== 'vs' || (Progress.runDrops() > 0 && !gameOver);
+  if (levels.hidden !== hide) {
+    levels.hidden = hide;
+    requestAnimationFrame(fitBoard);
+  }
+  vsQuitBtn.hidden = mode !== 'vs';
+}
+
 function showVs() {
   const vs = mode === 'vs' && !!cpu;
   cpuStatEl.hidden = !vs;
