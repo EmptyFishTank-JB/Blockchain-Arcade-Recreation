@@ -242,6 +242,10 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
   Each track lists its intensity layers (`LAYERS`) with the level each fades
   in at: hi-hats from 5% (stack 4), heavier drums/guitars from 40% (stack 5),
   the alarm layer from 72% (stack 6+); the brightening grows the whole way
+- `music-night-drive.js` — track 07, NIGHT DRIVE: original synthwave / outrun
+  at 100 BPM in F♯ minor (pumping octave bass ducking under the kick, detuned
+  saw pads, gated-reverb snare and tom fills, arpeggio and gliding lead through
+  a dotted-8th echo; ignition, cruise, neon, overdrive). Unlocked at 5,000 bits.
 - `dev-tools/audio.html` — the audio compendium, opened by the `</>` icon in
   the footer: every sound effect and track with a play button, where each is
   used in the game, a seekable progress line and a live intensity slider for

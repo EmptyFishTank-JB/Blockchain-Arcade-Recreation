@@ -250,7 +250,7 @@
       <table>
         <thead><tr><th>TALLEST STACK</th><th>INTENSITY</th><th>WHAT YOU HEAR</th></tr></thead>
         <tbody>
-          <tr><td>0&ndash;3 rows</td><td>0%</td><td>The track as written.</td></tr>
+          <tr><td>0–3 rows</td><td>0%</td><td>The track as written.</td></tr>
           <tr><td>4 rows</td><td>33%</td><td>16th-note hi-hats come in and the tone starts brightening (layers from 5%).</td></tr>
           <tr><td>5 rows</td><td>67%</td><td>The low end thickens: a kick on every beat in the theme, extra chugs and double-kick fills in SLEEP MODE (layers from 40%).</td></tr>
           <tr><td>6+ rows</td><td>100%</td><td>The alarm layer: the tension saw in the theme, the square-wave alarm in SLEEP MODE (layers from 72%). Two rows from the line or closer.</td></tr>
@@ -271,6 +271,7 @@
 <script src="../music-deep-web.js?v=59"></script>
 <script src="../music-zero-day.js?v=59"></script>
 <script src="../music-system-restore.js?v=59"></script>
+<script src="../music-night-drive.js?v=60"></script>
 <script src="../viz.js?v=59"></script>
 <script>
 (() => {
@@ -418,6 +419,17 @@
         ['0:22', 'Restore', 'The full swung beat, with an extra piano comp on the "and" of 3.'],
         ['0:45', 'Recovery', 'New chords (Fm7–B♭7–E♭maj7–Cm7–A♭maj7–Gm7) and the flute melody.'],
         ['1:07', 'Reboot', 'A half-time dip for 4 bars, then the full beat returns into the loop.'],
+      ],
+    },
+    {
+      id: 'night-drive', num: '07', title: 'NIGHT DRIVE', create: createNightDrive, file: 'music-night-drive.js',
+      meta: ['synthwave / outrun', '100 BPM', 'F♯ minor', '32 bars', '~77s loop'],
+      desc: 'Original synthwave: a pumping 16th-note octave bass that ducks under every kick, wide detuned saw pads, an 80s gated-reverb snare with tom fills, and a bright arpeggio and gliding lead through a dotted-8th echo.',
+      sections: [
+        ['0:00', 'Ignition', 'F♯m–D–A–E. Pads and a sparse arpeggio; the pumping bass and kick come in at bar 5, with a tom fill into the next section.'],
+        ['0:19', 'Cruise', 'The full drive: gated snare on 2 and 4, 8th-note hats and the 16th arpeggio.'],
+        ['0:38', 'Neon', 'New chords (D–E–C♯m–F♯m–D–E–A–E) and the gliding lead melody.'],
+        ['0:58', 'Overdrive', 'The lead doubled an octave down and the arpeggio an octave up, then a tom fill back into the loop.'],
       ],
     },
   ];
@@ -590,7 +602,7 @@
       </div>
       <div class="uses"><h4>// INTENSITY LAYERS &mdash; WHEN EACH COMES IN</h4><ul class="layers">${track.layers.map((l) => `
         <li><span class="at">${esc(layerWhen(l))}</span><span>${esc(l.label)}</span><span class="lvl"><span></span></span><button type="button" class="solo" data-layer="${esc(l.id)}">SOLO</button></li>`).join('')}</ul>
-        <p class="layers-note">SOLO mutes the rest of the track and plays just what that layer adds, at full strength. Layers that fill gaps go quiet where the track already plays that part: the theme's extra hi-hats and kick in section B and the climax; SLEEP MODE's extra chugs in the drop and breakdown, and its double-kick fills in the drop; BRUTE FORCE's octave double in the boot (no melody yet) and its hi-hats in the boss; ZERO DAY's extra break hits wherever its drums drop out (first half of the intro, and the breakdown); SYSTEM RESTORE's distorted bass until the bass enters (first half of standby).</p></div>`;
+        <p class="layers-note">SOLO mutes the rest of the track and plays just what that layer adds, at full strength. Layers that fill gaps go quiet where the track already plays that part: the theme's extra hi-hats and kick in section B and the climax; SLEEP MODE's extra chugs in the drop and breakdown, and its double-kick fills in the drop; BRUTE FORCE's octave double in the boot (no melody yet) and its hi-hats in the boss; ZERO DAY's extra break hits wherever its drums drop out (first half of the intro, and the breakdown); SYSTEM RESTORE's distorted bass until the bass enters (first half of standby); NIGHT DRIVE's hats, tambourine and turbo kicks until the drums enter (first half of ignition).</p></div>`;
     const ui = {
       btn: card.querySelector('button.play'),
       rows: [...card.querySelectorAll('.sec-row')],
