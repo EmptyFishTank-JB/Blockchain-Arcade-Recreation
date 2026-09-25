@@ -258,8 +258,8 @@
   --heat-peak-bg: #4d7a1c;
 }
 
-/* PAPER (id daylight, kept so saved choices and unlocks carry over): dark ink on pale paper */
-[data-theme="daylight"] {
+/* PAPER: dark ink on pale paper, for bright rooms and outdoors */
+[data-theme="paper"] {
   --inset-bg: rgba(90, 70, 30, 0.06);
   --bg: #efeadf;
   --bg-solid: #e9e3d6;
@@ -296,10 +296,10 @@
 }
 
 /* Glows smudge on paper: PAPER's text stays crisp */
-[data-theme="daylight"] * { text-shadow: none !important; }
+[data-theme="paper"] * { text-shadow: none !important; }
 /* PAPER: the chosen mode (and daily game / CPU level) is filled in ink; the rest get a firmer outline */
-[data-theme="daylight"] .modes button { border-color: var(--layer-border); color: var(--panel-text); }
-[data-theme="daylight"] .modes button.active { background: var(--fg); border: 2px solid var(--fg); color: var(--panel); font-weight: bold; box-shadow: none; }
+[data-theme="paper"] .modes button { border-color: var(--layer-border); color: var(--panel-text); }
+[data-theme="paper"] .modes button.active { background: var(--fg); border: 2px solid var(--fg); color: var(--panel); font-weight: bold; box-shadow: none; }
 
 /* GLYPH: bits drawn as shapes, one corner per point of their number, on blueprint blue */
 [data-theme="glyph"] {
