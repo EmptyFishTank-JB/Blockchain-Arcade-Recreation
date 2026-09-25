@@ -46,7 +46,7 @@ A drop earns at most one exploit, picked from the longest chain it set off.
 | Mode | What changes |
 |---|---|
 | CLASSIC | The main game, on EASY / NORMAL / HARD |
-| DAILY | The Daily Decrypt: bits dealt from a seed of the UTC date, so everyone gets the same sequence that day (Normal rules). Keeps a best per day and a daily streak |
+| DAILY | The Daily Decrypt: a fixed stack of 40 bits dealt from a seed of the UTC date, so everyone gets the same bits (Normal rules, the five standard exploits). It ends when the stack runs out. Your first run each day is the official score; later runs are practice. SHARE on the results screen sends or copies your result. Keeps a daily streak |
 | BLITZ | Normal rules against a 2-minute clock that starts on your first drop (paused while the tab is hidden) |
 | ZEN | Normal rules with no encryption layers and no clock |
 | PUZZLE | 30 set boards (in `puzzles.js`): decrypt every block using exactly the bits given, in order. Solving one opens the next; ◀ ▶ move between them. No new layers rise and no exploits drop; puzzle layers hide a fixed bit |

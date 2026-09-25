@@ -78,9 +78,21 @@ if (classicDifficulty === 'hard' && !Progress.isUnlocked('mode-hard')) classicDi
 let difficulty = classicDifficulty;
 
 const BLITZ_SECONDS = 120;
+const DAILY_BITS = 40; // the Daily Decrypt deals a fixed stack of bits, then ends
+let dealt = 0; // bits dealt so far this run (DAILY)
+// DAILY: the first run each day is the official one (its score is today's); the rest are practice
+let dailyOfficial = true;
+const dailyKey = () => `bytefall-daily-${todayKey()}`;
+const dailyPlayedKey = () => `bytefall-daily-played-${todayKey()}`;
+let reportedScore = 0; // points already added to lifetime data extracted
 const MODES = {
   classic: { label: 'CLASSIC' },
-  daily: { label: 'DAILY', info: (date) => `DAILY DECRYPT // ${date} (UTC): the same bits for everyone today, on Normal rules.` },
+  daily: {
+    label: 'DAILY',
+    info: (date) => (dailyOfficial
+      ? `DAILY DECRYPT // ${date} (UTC): the same ${DAILY_BITS} bits for everyone. Your first attempt today is the official one.`
+      : `DAILY DECRYPT // ${date} // PRACTICE: your official score today is ${fmt(Number(storage.get(dailyKey())) || 0)}.`),
+  },
   blitz: { label: 'BLITZ', info: () => 'BLITZ // 2 minutes on the clock, starting with your first drop. Score all you can.' },
   zen: { label: 'ZEN', noLayers: true, info: () => 'ZEN // no encryption layers and no clock. Just decrypt.' },
   puzzle: {
@@ -163,9 +175,9 @@ function newFirewall(level = 2) {
 }
 
 // Hard moved to 8x8, so it keeps a fresh best apart from old 7x7 Hard scores.
-// Other modes keep their own bests; DAILY keeps one per day.
+// Other modes keep their own bests; DAILY keeps today's official score (practice runs save nothing).
 function bestKey() {
-  if (mode === 'daily') return `bytefall-daily-${todayKey()}`;
+  if (mode === 'daily') return dailyOfficial ? dailyKey() : null;
   if (mode !== 'classic') return `bytefall-best-${mode}`;
   return difficulty === 'hard' ? 'blockchain-best-hard-8x8' : `blockchain-best-${difficulty}`;
 }
@@ -173,12 +185,19 @@ function bestKey() {
 // Always enough upcoming bits for the widest preview (the keylogger's). PUZZLE has a fixed list.
 function refillQueue() {
   if (mode === 'puzzle') return;
-  while (queue.length < 1 + KEYLOGGER_PREVIEW) queue.push(newPacket('queue'));
+  while (queue.length < 1 + KEYLOGGER_PREVIEW && (mode !== 'daily' || dealt < DAILY_BITS)) {
+    queue.push(newPacket('queue'));
+    dealt++;
+  }
 }
+
+// DAILY: bits still to drop (dealt-but-waiting plus not yet dealt)
+const dailyBitsLeft = () => DAILY_BITS - dealt + queue.filter((p) => p.type === 'number').length;
 
 function initGame() {
   runId++;
   difficulty = mode === 'classic' ? classicDifficulty : 'normal';
+  dailyOfficial = !storage.get(dailyPlayedKey());
   setupDice();
   Progress.startRun(difficulty, mode);
   timeLeft = BLITZ_SECONDS;
@@ -192,10 +211,12 @@ function initGame() {
   boardEl.classList.remove('meltdown');
   columns = Array.from({ length: COLS }, () => []);
   queue = [];
+  dealt = 0;
+  reportedScore = 0;
   refillQueue();
   if (mode === 'puzzle') loadPuzzle();
   score = 0;
-  best = Number(storage.get(bestKey())) || 0;
+  best = Number(storage.get(mode === 'daily' ? dailyKey() : bestKey())) || 0;
   bestAtStart = best;
   dropsSinceLastPulse = 0;
   keyloggerDrops = 0;
@@ -432,7 +453,7 @@ function dangerLevel() {
 }
 
 function updateHud() {
-  if (score > best) {
+  if (score > best && bestKey()) {
     best = score;
     storage.set(bestKey(), String(best));
   }
@@ -458,6 +479,7 @@ function updateHud() {
     nextEl.title = '';
   }
   pulseCounterEl.textContent = mode === 'puzzle' ? queue.length : pulseInterval - dropsSinceLastPulse;
+  if (mode === 'daily') showClock();
   pulseCounterEl.closest('.stat').classList.toggle('danger', !gameOver && !MODES[mode].noLayers && pulseInterval - dropsSinceLastPulse === 1);
   const heldHack = queue[0] && queue[0].type === 'hack' ? queue[0].id : null;
   document.querySelectorAll('.hack-item').forEach((el) => {
@@ -501,6 +523,7 @@ async function attemptDrop(col) {
     await sleep(STEP_MS);
   }
   columns[col].push(piece);
+  if (mode === 'daily' && dailyOfficial) storage.set(dailyPlayedKey(), '1'); // this is today's official run
   Progress.drop();
   if (mode === 'blitz') clockRunning = true;
   let wentOver = overflowed();
@@ -534,9 +557,12 @@ function finishTurn() {
   busy = false;
   render();
   Progress.score(score);
+  Progress.addPoints(score - reportedScore);
+  reportedScore = score;
   announce(Progress.check());
   if (overflowed()) endGame();
   else if (timeUp) endGame('time');
+  else if (mode === 'daily' && !queue.length) endGame('daily');
   else if (mode === 'puzzle') checkPuzzle();
   // One drop until a firewall row: warn until the player drops (unless a hack message is showing)
   else if (!MODES[mode].noLayers && pulseInterval - dropsSinceLastPulse === 1 && messageEl.classList.contains('hidden')) {
@@ -860,11 +886,21 @@ function endGame(reason = 'trace') {
   setMessage('');
   finalScoreEl.textContent = score;
   newBestEl.hidden = !(score > bestAtStart);
-  document.getElementById('overlay-title').textContent = reason === 'time' ? "TIME'S UP" : 'TRACE COMPLETE';
-  document.getElementById('overlay-sub').textContent = reason === 'time' ? 'The connection timed out.' : 'They found you.';
+  const endings = {
+    trace: ['TRACE COMPLETE', 'They found you.'],
+    time: ["TIME'S UP", 'The connection timed out.'],
+    daily: ['DAILY COMPLETE', `All ${DAILY_BITS} bits dropped.`],
+  };
+  document.getElementById('overlay-title').textContent = endings[reason][0];
+  document.getElementById('overlay-sub').textContent = endings[reason][1];
   const note = document.getElementById('overlay-note');
   note.hidden = mode === 'classic';
-  note.textContent = mode === 'daily' ? `DAILY DECRYPT // ${todayKey()} // TODAY'S BEST ${best}` : `${MODES[mode].label} // BEST ${best}`;
+  note.textContent = mode === 'daily'
+    ? (dailyOfficial ? `OFFICIAL SCORE // ${todayKey()}` : `PRACTICE // OFFICIAL SCORE TODAY ${fmt(best)}`)
+    : `${MODES[mode].label} // BEST ${best}`;
+  if (mode === 'daily') newBestEl.hidden = true;
+  shareBtn.hidden = mode !== 'daily';
+  shareBtn.textContent = 'SHARE';
 
   const run = runId;
   meltBoard(run);
@@ -991,12 +1027,19 @@ function applyModeUi() {
   overlayNext = null;
   document.querySelector('.overlay-box').classList.remove('win');
   document.getElementById('overlay-restart-btn').textContent = mode === 'puzzle' ? 'RETRY' : 'NEW SESSION';
-  document.getElementById('time-stat').hidden = mode !== 'blitz';
+  document.getElementById('time-stat').hidden = mode !== 'blitz' && mode !== 'daily';
+  document.getElementById('time-label').textContent = mode === 'daily' ? 'BITS LEFT' : 'TIME';
+  shareBtn.hidden = true;
   showClock();
 }
 
 const timeLeftEl = document.getElementById('time-left');
 function showClock() {
+  if (mode === 'daily') {
+    timeLeftEl.textContent = dailyBitsLeft();
+    timeLeftEl.closest('.stat').classList.remove('time-low');
+    return;
+  }
   const secs = Math.ceil(timeLeft);
   timeLeftEl.textContent = `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
   timeLeftEl.closest('.stat').classList.toggle('time-low', clockRunning && secs <= 10);
@@ -1015,6 +1058,43 @@ setInterval(() => {
     if (!busy) endGame('time'); // mid-drop: finishTurn ends it once the drop resolves
   }
 }, 200);
+
+// SHARE (DAILY): the phone's share sheet where there is one, otherwise copy to the clipboard.
+const shareBtn = document.getElementById('overlay-share-btn');
+function dailyShareText() {
+  const run = Progress.runStats();
+  const filled = Math.round((Math.min(run.bits, DAILY_BITS) / DAILY_BITS) * 10);
+  return [
+    `BYTEFALL // DAILY DECRYPT ${todayKey()}${dailyOfficial ? '' : ' (practice)'}`,
+    `${fmt(score)} pts // ${run.chain}x best chain // ${run.bits} bits decrypted`,
+    `${'\u25AE'.repeat(filled)}${'\u25AF'.repeat(10 - filled)}`,
+    location.href.split(/[?#]/)[0],
+  ].join('\n');
+}
+function copyText(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(text);
+  const area = document.createElement('textarea');
+  area.value = text;
+  document.body.appendChild(area);
+  area.select();
+  document.execCommand('copy');
+  area.remove();
+  return Promise.resolve();
+}
+shareBtn.addEventListener('click', async () => {
+  const text = dailyShareText();
+  try {
+    if (navigator.share) {
+      await navigator.share({ text });
+      return;
+    }
+    await copyText(text);
+    shareBtn.textContent = 'COPIED';
+  } catch (e) {
+    if (e && e.name === 'AbortError') return; // closed the share sheet
+    shareBtn.textContent = 'COPY FAILED';
+  }
+});
 
 document.getElementById('overlay-restart-btn').addEventListener('click', () => {
   if (mode === 'puzzle' && overlayNext === 'next') setPuzzle(Math.min(puzzleIndex + 1, PUZZLES.length - 1));
@@ -1330,6 +1410,12 @@ const recordsEl = document.getElementById('records');
 const recordsBodyEl = document.getElementById('records-body');
 let recordsTab = 'unlocks';
 const fmt = (n) => Number(n).toLocaleString('en-US');
+// Lifetime points as data extracted: 1 point = 1 KB
+function fmtData(points) {
+  if (points < 1024) return `${fmt(points)} KB`;
+  if (points < 1048576) return `${(points / 1024).toFixed(1)} MB`;
+  return `${(points / 1048576).toFixed(2)} GB`;
+}
 
 function recordRow({ name, desc, current, goal, done }) {
   const li = document.createElement('li');
@@ -1399,7 +1485,8 @@ function renderRecords() {
       ['CLOSE CALLS', fmt(s.closeCalls)],
       ['DAILY DECRYPTS PLAYED', fmt(s.dailies)],
       ['DAILY STREAK', `${fmt(s.lastDaily === todayKey() || s.lastDaily === new Date(Date.now() - 86400000).toISOString().slice(0, 10) ? s.dailyStreak : 0)} (best ${fmt(s.bestDailyStreak)})`],
-      ['BEST // DAILY TODAY', fmt(Number(storage.get(`bytefall-daily-${todayKey()}`)) || 0)],
+      ['DAILY TODAY (OFFICIAL)', storage.get(dailyPlayedKey()) ? fmt(Number(storage.get(dailyKey())) || 0) : 'not played'],
+      ['DATA EXTRACTED', fmtData(s.points)],
       ['BEST // BLITZ', fmt(Number(storage.get('bytefall-best-blitz')) || 0)],
       ['BEST // ZEN', fmt(Number(storage.get('bytefall-best-zen')) || 0)],
     ];

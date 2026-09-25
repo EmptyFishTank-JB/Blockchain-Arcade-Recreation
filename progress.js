@@ -16,6 +16,7 @@ const Progress = (() => {
     exploitUses: {}, // per exploit id
     bestChain: 0,
     bestScore: 0, // any difficulty
+    points: 0, // lifetime points, shown as data extracted (1 point = 1 KB)
     bestHardDrops: 0, // longest Hard session, in drops
     bestDropBytes: 0, // most bytes from a single drop
     sweeps: 0, // board cleared completely (after 10+ drops)
@@ -85,6 +86,9 @@ const Progress = (() => {
     { id: 'handshake', name: 'HANDSHAKE', desc: 'Decrypt 100 bits', value: () => d.bits, goal: 100 },
     { id: 'kilobyte', name: 'KILOBYTE', desc: 'Decrypt 1,024 bits', value: () => d.bits, goal: 1024 },
     { id: 'data-miner', name: 'DATA MINER', desc: 'Decrypt 10,000 bits', value: () => d.bits, goal: 10000 },
+    // Data extracted: every point is 1 KB, so 1,024 points is a megabyte
+    { id: 'megabyte', name: 'MEGABYTE', desc: 'Extract 1 MB of data (1,024 points in total)', value: () => d.points, goal: 1024 },
+    { id: 'gigabyte', name: 'GIGABYTE', desc: 'Extract 1 GB of data (1,048,576 points in total)', value: () => d.points, goal: 1048576 },
     { id: 'chain-reaction', name: 'CHAIN REACTION', desc: 'Get a 4x chain', value: () => d.bestChain, goal: 4 },
     { id: 'cascade', name: 'CASCADE', desc: 'Get a 6x chain', value: () => d.bestChain, goal: 6 },
     { id: 'overclocked', name: 'OVERCLOCKED', desc: 'Get an 8x chain', value: () => d.bestChain, goal: 8 },
@@ -116,7 +120,7 @@ const Progress = (() => {
   }
 
   // The current run, reset by startRun()
-  let run = { difficulty: 'normal', mode: 'classic', drops: 0, started: false };
+  let run = { difficulty: 'normal', mode: 'classic', drops: 0, started: false, bits: 0, chain: 0, bytes: 0 };
 
   // One Daily Decrypt per UTC day counts toward the streak
   function playedDaily() {
@@ -166,7 +170,7 @@ const Progress = (() => {
 
     // Run events from script.js
     startRun(difficulty, mode = 'classic') {
-      run = { difficulty, mode, drops: 0, started: false };
+      run = { difficulty, mode, drops: 0, started: false, bits: 0, chain: 0, bytes: 0 };
     },
     drop() {
       if (!run.started) {
@@ -179,14 +183,18 @@ const Progress = (() => {
       if (run.difficulty === 'hard') d.bestHardDrops = Math.max(d.bestHardDrops, run.drops);
     },
     runDrops: () => run.drops,
+    runStats: () => ({ ...run }),
     // values: the numbers of the bits decrypted
     decrypted(values, chain) {
       d.bits += values.length;
+      run.bits += values.length;
+      run.chain = Math.max(run.chain, chain);
       for (const v of values) d.bitsByValue[v] = (d.bitsByValue[v] || 0) + 1;
       d.bestChain = Math.max(d.bestChain, chain);
     },
     bytes(count) {
       d.bytes += count;
+      run.bytes += count;
       d.bestDropBytes = Math.max(d.bestDropBytes, count);
     },
     peeled(broken) {
@@ -199,6 +207,9 @@ const Progress = (() => {
     },
     score(points) {
       d.bestScore = Math.max(d.bestScore, points);
+    },
+    addPoints(n) {
+      if (n > 0) d.points += n;
     },
     sweep() { d.sweeps++; },
     closeCall() { d.closeCalls++; },
