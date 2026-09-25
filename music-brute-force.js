@@ -162,12 +162,14 @@ function createBruteForce(ctx, out) {
     step: STEP,
     loopSteps: 32 * 16,
     layers: LAYERS,
-    // solo: a layer id to hear that layer alone at full strength (dev page)
-    schedule(step, t, intensity = 0, solo = null) {
+    // solo: a layer id to hear that layer alone at full strength; muted: layer ids to leave out
+    // (both from the dev page)
+    schedule(step, t, intensity = 0, solo = null, muted = null) {
       const L = {};
       for (const { id, from, span } of LAYERS) {
         L[id] = solo ? Number(id === solo) : Math.max(0, Math.min(1, (intensity - from) / span));
       }
+      if (muted && !solo) for (const id of muted) L[id] = 0; // dev page MUTE buttons
       const base = !solo;
       const bar = Math.floor(step / 16) % 32;
       const section = Math.floor(bar / 8); // 0 boot, 1 level 1, 2 level 2, 3 boss

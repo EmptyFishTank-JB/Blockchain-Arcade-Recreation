@@ -33,8 +33,17 @@ function createNightDrive(ctx, out) {
     { id: 'glow', label: 'The pads, bass and arpeggio open up and brighten', from: 0, span: 1 },
     { id: 'drive', label: 'Driving 16th-note hi-hats and a tambourine on 2 and 4', from: 0.05, span: 0.25 },
     { id: 'turbo', label: 'Four-on-the-floor kicks and an overdriven bass under the clean one', from: 0.4, span: 0.25 },
-    { id: 'siren', label: 'A wailing siren lead sweeping over the top', from: 0.72, span: 0.25 },
+    // Stack 6+ options: the game plays TOP_LAYER only; the dev page can audition all of them
+    { id: 'chase', label: 'Chase: a second arpeggio racing at 32nd notes, two octaves up', from: 0.72, span: 0.25, option: true },
+    { id: 'countdown', label: 'Countdown: a clock ticking every beat over a low heartbeat', from: 0.72, span: 0.25, option: true },
+    { id: 'brass', label: 'Brass: bright 80s synth-brass chord stabs on the offbeats', from: 0.72, span: 0.25, option: true },
+    { id: 'riser', label: 'Riser: a white-noise sweep building over two bars into a crash', from: 0.72, span: 0.25, option: true },
+    { id: 'choir', label: 'Choir: a swelling "ahh" choir pad behind everything', from: 0.72, span: 0.25, option: true },
+    { id: 'siren', label: 'The original: a wailing siren lead sweeping over the top', from: 0.72, span: 0.25, option: true },
   ];
+  const TOP_LAYER = 'chase';
+  // Without the dev page's own MUTE choices, every other option stays silent
+  const DEFAULT_MUTED = LAYERS.filter((l) => l.option && l.id !== TOP_LAYER).map((l) => l.id);
 
   const bus = ctx.createGain();
   bus.gain.value = 0.068; // level-matched to the other tracks
@@ -247,6 +256,115 @@ function createNightDrive(ctx, out) {
     if (remember) lastLead = m;
   }
 
+  // ---- Top-layer options (stack 6+). The game plays TOP_LAYER; the dev page can audition all five.
+
+  // Chase: a second arpeggio at 32nd notes racing two octaves up
+  function chase(t, chord, s, level) {
+    const tones = [...chord, chord[1] + 12, chord[2] + 12].map((m) => m + 24);
+    for (const half of [0, 1]) {
+      const at = t + half * (STEP / 2);
+      const osc = ctx.createOscillator();
+      osc.type = 'square';
+      osc.frequency.value = freq(tones[(s * 2 + half) % tones.length]);
+      const lp = filter('lowpass', 3800);
+      osc.connect(lp); lp.connect(envGain(at, 0.15 * level, STEP * 0.45, bus));
+      osc.start(at); osc.stop(at + STEP * 0.5);
+    }
+  }
+
+  // Countdown: a dry clock tick on every beat over a low heartbeat (lub-dub)
+  function tick(t, beat, level) {
+    const osc = ctx.createOscillator();
+    osc.type = 'square';
+    osc.frequency.value = beat % 2 ? 2400 : 1800; // tick, tock
+    const hp = filter('highpass', 1200);
+    osc.connect(hp); hp.connect(envGain(t, 0.05 * level, 0.03, bus));
+    osc.start(t); osc.stop(t + 0.04);
+  }
+  function heartbeat(t, level) {
+    for (const [at, amp] of [[0, 1], [0.16, 0.7]]) {
+      const osc = ctx.createOscillator();
+      osc.frequency.setValueAtTime(70, t + at);
+      osc.frequency.exponentialRampToValueAtTime(42, t + at + 0.12);
+      osc.connect(envGain(t + at, 0.5 * level * amp, 0.16, bus));
+      osc.start(t + at); osc.stop(t + at + 0.18);
+    }
+  }
+
+  // Brass: bright 80s synth-brass chord stabs with a quick filter swell
+  function brass(t, chord, level) {
+    const lp = filter('lowpass', 900, 1.5);
+    lp.frequency.setValueAtTime(900, t);
+    lp.frequency.linearRampToValueAtTime(4200, t + 0.03);
+    lp.frequency.exponentialRampToValueAtTime(1100, t + 0.3);
+    const g = envGain(t, 0.14 * level, 0.32, bus);
+    lp.connect(g);
+    for (const m of chord) {
+      for (const cents of [-9, 9]) {
+        const osc = ctx.createOscillator();
+        osc.type = 'sawtooth';
+        osc.detune.value = cents;
+        osc.frequency.value = freq(m + 12);
+        osc.connect(lp);
+        osc.start(t); osc.stop(t + 0.34);
+      }
+    }
+  }
+
+  // Riser: white noise sweeping up across two bars, then a crash on the next downbeat
+  function riser(t, level) {
+    const len = STEP * 32;
+    const src = ctx.createBufferSource();
+    src.buffer = noise;
+    src.loop = true;
+    const bp = filter('bandpass', 400, 3);
+    bp.frequency.setValueAtTime(400, t);
+    bp.frequency.exponentialRampToValueAtTime(9000, t + len);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.001, t);
+    g.gain.exponentialRampToValueAtTime(0.55 * level, t + len - 0.02);
+    g.gain.linearRampToValueAtTime(0, t + len);
+    src.connect(bp); bp.connect(g); g.connect(bus);
+    src.start(t); src.stop(t + len);
+  }
+  function crash(t, level) {
+    const src = ctx.createBufferSource();
+    src.buffer = noise;
+    const hp = filter('highpass', 5000);
+    src.connect(hp); hp.connect(envGain(t, 0.3 * level, 1.4, bus));
+    src.start(t); src.stop(t + 1.45);
+  }
+
+  // Choir: an "ahh" pad, buzzy saws shaped by vowel formant filters, swelling each bar
+  function choir(t, chord, dur, level) {
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(0.21 * level, t + 0.6);
+    g.gain.setValueAtTime(0.21 * level, t + dur - 0.3);
+    g.gain.linearRampToValueAtTime(0, t + dur);
+    g.connect(bus);
+    const formants = [[750, 1], [1200, 0.5], [2600, 0.25]].map(([f, amp]) => {
+      const bp = filter('bandpass', f, 8);
+      const fg = ctx.createGain();
+      fg.gain.value = amp;
+      bp.connect(fg); fg.connect(g);
+      return bp;
+    });
+    for (const m of chord) {
+      const osc = ctx.createOscillator();
+      osc.type = 'sawtooth';
+      osc.frequency.value = freq(m);
+      const vib = ctx.createOscillator();
+      vib.frequency.value = 4.6;
+      const depth = ctx.createGain();
+      depth.gain.value = freq(m) * 0.006;
+      vib.connect(depth); depth.connect(osc.frequency);
+      for (const bp of formants) osc.connect(bp);
+      osc.start(t); osc.stop(t + dur);
+      vib.start(t); vib.stop(t + dur);
+    }
+  }
+
   // Siren: a detuned saw wailing up and down a fifth over two bars
   function siren(t, m, level) {
     const len = STEP * 32;
@@ -273,12 +391,15 @@ function createNightDrive(ctx, out) {
     step: STEP,
     loopSteps: 32 * 16,
     layers: LAYERS,
-    // solo: a layer id to hear that layer alone at full strength (dev page)
-    schedule(step, t, intensity = 0, solo = null) {
+    defaultMuted: DEFAULT_MUTED,
+    // solo: a layer id to hear that layer alone at full strength; muted: layer ids to leave out
+    // (both from the dev page)
+    schedule(step, t, intensity = 0, solo = null, muted = null) {
       const L = {};
       for (const { id, from, span } of LAYERS) {
         L[id] = solo ? Number(id === solo) : Math.max(0, Math.min(1, (intensity - from) / span));
       }
+      for (const id of muted || DEFAULT_MUTED) if (!solo) L[id] = 0; // the game: TOP_LAYER only; dev page: its MUTE buttons
       const base = !solo;
       const bar = Math.floor(step / 16) % 32;
       const section = Math.floor(bar / 8); // 0 ignition, 1 cruise, 2 neon, 3 overdrive
@@ -329,6 +450,18 @@ function createNightDrive(ctx, out) {
         }
       }
 
+      // Stack 6+ options
+      if (L.chase > 0 && section + i > 0) chase(t, chord, s, L.chase);
+      if (L.countdown > 0 && s % 4 === 0) {
+        tick(t, s / 4, L.countdown);
+        if (s === 0 || s === 8) heartbeat(t, L.countdown);
+      }
+      if (L.brass > 0 && !ignition && (s === 2 || s === 6 || s === 10 || s === 14)) brass(t, chord, L.brass);
+      if (L.riser > 0 && s === 0 && bar % 2 === 0) {
+        crash(t, L.riser);
+        riser(t, L.riser);
+      }
+      if (L.choir > 0 && s === 0) choir(t, chord, STEP * 16, L.choir);
       if (L.siren > 0 && s === 0 && bar % 2 === 0) siren(t, root + 36, L.siren);
     },
   };

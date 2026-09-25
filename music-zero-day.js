@@ -29,8 +29,13 @@ function createZeroDay(ctx, out) {
     { id: 'bright', label: 'The reese bass filter opens and wobbles harder', from: 0, span: 1 },
     { id: 'hats', label: '16th-note hi-hats', from: 0.05, span: 0.25 },
     { id: 'rollers', label: 'Extra kick and ghost-snare hits for a busier, double-time break', from: 0.4, span: 0.25 },
-    { id: 'siren', label: 'An air-raid siren rising and falling each bar', from: 0.72, span: 0.25 },
+    // Stack 6+ options: the game plays TOP_LAYER only; the dev page can audition both
+    { id: 'rave', label: 'Rave stabs: syncopated minor chord hits over the break', from: 0.72, span: 0.25, option: true },
+    { id: 'siren', label: 'The original: an air-raid siren rising and falling each bar', from: 0.72, span: 0.25, option: true },
   ];
+  const TOP_LAYER = 'rave';
+  // Without the dev page's own MUTE choices, the other option stays silent
+  const DEFAULT_MUTED = LAYERS.filter((l) => l.option && l.id !== TOP_LAYER).map((l) => l.id);
 
   const bus = ctx.createGain();
   bus.gain.value = 0.19;
@@ -154,6 +159,26 @@ function createZeroDay(ctx, out) {
     osc.start(t); osc.stop(t + STEP * 2.6);
   }
 
+  // Rave stab: a punchy minor chord hit (detuned square + saw, fast filter drop), the classic
+  // jungle / drum & bass "hoover" stab
+  function raveStab(t, chord, level) {
+    const lp = filter('lowpass', 1200, 2);
+    lp.frequency.setValueAtTime(5200, t);
+    lp.frequency.exponentialRampToValueAtTime(1000, t + 0.14);
+    const g = envGain(t, 0.06 * level, 0.18, bus);
+    lp.connect(g);
+    for (const m of chord) {
+      for (const [type, cents] of [['square', -12], ['sawtooth', 12]]) {
+        const osc = ctx.createOscillator();
+        osc.type = type;
+        osc.detune.value = cents;
+        osc.frequency.value = freq(m + 12);
+        osc.connect(lp);
+        osc.start(t); osc.stop(t + 0.2);
+      }
+    }
+  }
+
   // Air-raid siren: one rise-and-fall sweep across the bar
   function siren(t, level) {
     const dur = STEP * 16;
@@ -176,12 +201,15 @@ function createZeroDay(ctx, out) {
     step: STEP,
     loopSteps: 32 * 16,
     layers: LAYERS,
-    // solo: a layer id to hear that layer alone at full strength (dev page)
-    schedule(step, t, intensity = 0, solo = null) {
+    defaultMuted: DEFAULT_MUTED,
+    // solo: a layer id to hear that layer alone at full strength; muted: layer ids to leave out
+    // (both from the dev page)
+    schedule(step, t, intensity = 0, solo = null, muted = null) {
       const L = {};
       for (const { id, from, span } of LAYERS) {
         L[id] = solo ? Number(id === solo) : Math.max(0, Math.min(1, (intensity - from) / span));
       }
+      for (const id of muted || DEFAULT_MUTED) if (!solo) L[id] = 0; // the game: TOP_LAYER only; dev page: its MUTE buttons
       const base = !solo;
       const bar = Math.floor(step / 16) % 32;
       const section = Math.floor(bar / 8); // 0 infiltrate, 1 payload, 2 exploit, 3 escape
@@ -220,6 +248,8 @@ function createZeroDay(ctx, out) {
       if (base && section === 2) {
         for (const [start, m] of LEAD[i]) if (start === s) stab(t, m);
       }
+      // 3-3-2 syncopation, with an extra push at the end of every other bar
+      if (L.rave > 0 && (s === 0 || s === 3 || s === 6 || (s === 14 && i % 2 === 1))) raveStab(t, chords[i], L.rave);
       if (L.siren > 0 && s === 0) siren(t, L.siren);
     },
   };

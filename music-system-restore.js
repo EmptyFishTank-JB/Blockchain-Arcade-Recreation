@@ -32,8 +32,13 @@ function createSystemRestore(ctx, out) {
     { id: 'wear', label: 'The tape warble deepens and the vinyl crackle gets louder', from: 0, span: 1 },
     { id: 'stutter', label: 'Glitch stutters: a chopped piano note retriggering at the end of each bar', from: 0.05, span: 0.25 },
     { id: 'grit', label: 'A distorted bass creeping in under the clean one', from: 0.4, span: 0.25 },
-    { id: 'error', label: 'An "error" chime: a dissonant tritone bell every two beats', from: 0.72, span: 0.25 },
+    // Stack 6+ options: the game plays TOP_LAYER only; the dev page can audition both
+    { id: 'strings', label: 'Tremolo strings: the chords bowed fast, an octave up', from: 0.72, span: 0.25, option: true },
+    { id: 'error', label: 'The original: a dissonant tritone "error" bell every two beats', from: 0.72, span: 0.25, option: true },
   ];
+  const TOP_LAYER = 'strings';
+  // Without the dev page's own MUTE choices, the other option stays silent
+  const DEFAULT_MUTED = LAYERS.filter((l) => l.option && l.id !== TOP_LAYER).map((l) => l.id);
 
   const bus = ctx.createGain();
   bus.gain.value = 0.27;
@@ -222,6 +227,32 @@ function createSystemRestore(ctx, out) {
     }
   }
 
+  // Tremolo strings: the chord bowed an octave up with a fast 16th-note tremolo, a warm
+  // saw ensemble (two detuned voices per note) through a soft lowpass
+  function strings(t, chord, level) {
+    const len = STEP * 16;
+    const lp = filter('lowpass', 2600, 0.7);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, t);
+    for (let k = 0; k < 16; k++) {
+      const at = t + k * STEP;
+      g.gain.linearRampToValueAtTime(0.024 * level, at + 0.02);
+      g.gain.linearRampToValueAtTime(0.0095 * level, at + STEP * 0.9);
+    }
+    g.gain.linearRampToValueAtTime(0, t + len);
+    lp.connect(g); g.connect(bus);
+    for (const m of chord) {
+      for (const cents of [-6, 6]) {
+        const osc = ctx.createOscillator();
+        osc.type = 'sawtooth';
+        osc.detune.value = cents;
+        osc.frequency.value = freq(m + 12);
+        osc.connect(lp);
+        osc.start(t); osc.stop(t + len);
+      }
+    }
+  }
+
   // Error chime: a bell on a tritone (A5 + Eb6)
   function errorChime(t, level) {
     for (const m of [81, 87]) {
@@ -238,12 +269,15 @@ function createSystemRestore(ctx, out) {
     step: STEP,
     loopSteps: 32 * 16,
     layers: LAYERS,
-    // solo: a layer id to hear that layer alone at full strength (dev page)
-    schedule(step, t, intensity = 0, solo = null) {
+    defaultMuted: DEFAULT_MUTED,
+    // solo: a layer id to hear that layer alone at full strength; muted: layer ids to leave out
+    // (both from the dev page)
+    schedule(step, t, intensity = 0, solo = null, muted = null) {
       const L = {};
       for (const { id, from, span } of LAYERS) {
         L[id] = solo ? Number(id === solo) : Math.max(0, Math.min(1, (intensity - from) / span));
       }
+      for (const id of muted || DEFAULT_MUTED) if (!solo) L[id] = 0; // the game: TOP_LAYER only; dev page: its MUTE buttons
       const base = !solo;
       const bar = Math.floor(step / 16) % 32;
       const section = Math.floor(bar / 8); // 0 standby, 1 restore, 2 recovery, 3 reboot
@@ -258,7 +292,7 @@ function createSystemRestore(ctx, out) {
       // Vinyl and piano carry the "wear" layer, so they also play when it's soloed
       const worn = base || solo === 'wear';
       if (worn && s === 0) {
-        crackle(t, STEP * 16, 0.35 * (1 + L.wear));
+        crackle(t, STEP * 16, 0.25 * (1 + L.wear)); // a little under the music
         piano(t, chords[i], STEP * 16, L.wear);
       }
       if (worn && s === 10 && (section === 1 || section === 2)) piano(sw, chords[i].slice(1), STEP * 6, L.wear, 0.6);
@@ -288,6 +322,7 @@ function createSystemRestore(ctx, out) {
       }
 
       if (L.stutter > 0 && s === 14) stutter(t, chords[i][chords[i].length - 1] + 12, L.stutter);
+      if (L.strings > 0 && s === 0) strings(t, chords[i], L.strings);
       if (L.error > 0 && (s === 0 || s === 8)) errorChime(t, L.error);
     },
   };

@@ -1,5 +1,5 @@
 // "DEEP WEB" — an original dark ambient techno track: a muffled four-on-the-
-// floor kick and rolling bass under a detuned drone, with modem bleeps and
+// floor kick and rolling bass under a detuned drone, with data bleeps and
 // data chirps drifting through an echo. Synthesized live with Web Audio.
 // 32-bar loop: connect, tunnel, deep, surface.
 // schedule() takes an intensity from 0 to 1 and an optional solo layer id.
@@ -23,8 +23,13 @@ function createDeepWeb(ctx, out) {
     { id: 'bright', label: 'The kick and rolling bass come out of the muffle (lowpass opens)', from: 0, span: 1 },
     { id: 'shaker', label: '16th-note shaker', from: 0.05, span: 0.25 },
     { id: 'acid', label: 'A squelchy acid synth line with accents', from: 0.4, span: 0.25 },
-    { id: 'modem', label: 'A dial-up modem screech on beat 3 of every bar', from: 0.72, span: 0.25 },
+    // Stack 6+ options: the game plays TOP_LAYER only; the dev page can audition both
+    { id: 'dub', label: 'Dub-techno chord stabs on the offbeats, echoing away', from: 0.72, span: 0.25, option: true },
+    { id: 'modem', label: 'The original: a dial-up modem screech on beat 3 of every bar', from: 0.72, span: 0.25, option: true },
   ];
+  const TOP_LAYER = 'dub';
+  // Without the dev page's own MUTE choices, the other option stays silent
+  const DEFAULT_MUTED = LAYERS.filter((l) => l.option && l.id !== TOP_LAYER).map((l) => l.id);
 
   const bus = ctx.createGain();
   bus.gain.value = 0.22;
@@ -164,6 +169,26 @@ function createDeepWeb(ctx, out) {
     osc.start(t); osc.stop(t + STEP);
   }
 
+  // Dub stab: a short, filtered minor chord that rings out through the dotted-8th echo
+  function dubStab(t, chord, level) {
+    const lp = filter('lowpass', 1500, 3);
+    lp.frequency.setValueAtTime(2200, t);
+    lp.frequency.exponentialRampToValueAtTime(700, t + 0.2);
+    const g = envGain(t, 0.065 * level, 0.22, bus);
+    lp.connect(g);
+    g.connect(delay);
+    for (const m of chord) {
+      for (const cents of [-8, 8]) {
+        const osc = ctx.createOscillator();
+        osc.type = 'sawtooth';
+        osc.detune.value = cents;
+        osc.frequency.value = freq(m + 12);
+        osc.connect(lp);
+        osc.start(t); osc.stop(t + 0.24);
+      }
+    }
+  }
+
   // Dial-up handshake: a warbling two-tone carrier with a hiss of noise
   function modem(t, level) {
     const dur = 0.32;
@@ -192,12 +217,15 @@ function createDeepWeb(ctx, out) {
     step: STEP,
     loopSteps: 32 * 16,
     layers: LAYERS,
-    // solo: a layer id to hear that layer alone at full strength (dev page)
-    schedule(step, t, intensity = 0, solo = null) {
+    defaultMuted: DEFAULT_MUTED,
+    // solo: a layer id to hear that layer alone at full strength; muted: layer ids to leave out
+    // (both from the dev page)
+    schedule(step, t, intensity = 0, solo = null, muted = null) {
       const L = {};
       for (const { id, from, span } of LAYERS) {
         L[id] = solo ? Number(id === solo) : Math.max(0, Math.min(1, (intensity - from) / span));
       }
+      for (const id of muted || DEFAULT_MUTED) if (!solo) L[id] = 0; // the game: TOP_LAYER only; dev page: its MUTE buttons
       const base = !solo;
       const loopStep = step % (32 * 16);
       const bar = Math.floor(loopStep / 16);
@@ -231,6 +259,7 @@ function createDeepWeb(ctx, out) {
         const [offset, accent] = ACID[s];
         acid(t, root + offset, accent, L.acid);
       }
+      if (L.dub > 0 && (s === 2 || s === 10 || (s === 7 && i % 2 === 1))) dubStab(t, chords[i], L.dub);
       if (L.modem > 0 && s === 8) modem(t, L.modem);
     },
   };

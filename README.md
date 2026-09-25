@@ -249,7 +249,12 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
 - `dev-tools/audio.html` — the audio compendium, opened by the `</>` icon in
   the footer: every sound effect and track with a play button, where each is
   used in the game, a seekable progress line and a live intensity slider for
-  each track, and a SOLO button per intensity layer to hear just what it adds
+  each track, a MUTE / PLAY button per intensity layer to hear the mix without
+  it, and a SOLO button to hear just what it adds. Some tracks have OPTION layers
+  for the stack 6+ slot (NIGHT DRIVE: chase, countdown, brass, riser, choir and
+  the original siren; DEEP WEB: dub stabs or the modem; ZERO DAY: rave stabs or
+  the air-raid siren; SYSTEM RESTORE: tremolo strings or the error chime): the
+  game plays one (`TOP_LAYER` in each track's file) and the rest start muted
 - `audio/` — offline WAV renders of the music for reference (not loaded by
   the game): `blockchain-theme-v1.wav` is the original 16-bar loop,
   `blockchain-theme-v2.wav` the current 32-bar version,
