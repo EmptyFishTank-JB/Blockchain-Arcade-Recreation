@@ -1851,7 +1851,7 @@ const THEMES = [
   { id: 'redline', label: 'REDLINE', desc: 'red-alert intrusion: steel-blue layers, yellow cracks, a white trace.' },
   { id: 'synthwave', label: 'SYNTHWAVE', desc: 'pink bits, purple layers, orange cracks and a cyan trace.' },
   { id: 'dotmatrix', label: 'DOT MATRIX', desc: 'four shades of olive green, like an old handheld game screen.' },
-  { id: 'daylight', label: 'DAYLIGHT', desc: 'dark ink on pale paper, for bright rooms and outdoors.' },
+  { id: 'daylight', label: 'DAYLIGHT', desc: 'near-black ink and grey on pale paper with gold accents, for bright rooms and outdoors.' },
   { id: 'glyph', label: 'GLYPH', desc: 'bits become shapes with one corner per point: a teardrop is 1, a triangle 3, an octagon 8.' },
   { id: 'spectrum', label: 'SPECTRUM', desc: 'every bit cycles through the rainbow on its own while the page drifts slowly behind them.' },
 ];

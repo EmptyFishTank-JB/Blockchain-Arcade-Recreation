@@ -271,29 +271,32 @@
   --grid-line: #d3cbb8;
   --board-bg: #ebe5d7;
   --cell-bg: #fffdf7;
-  --fg: #1c6b3c;
-  --fg-rgb: 28, 107, 60;
-  --fg-dim: #7c8f80;
+  --fg: #1b1d1c; /* near-black ink */
+  --fg-rgb: 27, 29, 28;
+  --fg-dim: #6a6a68; /* grey */
   --accent: #a35f00;
   --accent-rgb: 163, 95, 0;
   --danger: #c62828;
   --danger-rgb: 198, 40, 40;
-  --layer-a: #d6d0c2;
-  --layer-b: #c4bdad;
-  --layer-border: #8a8474;
-  --layer-text: #5f5a4c;
-  --layer-rgb: 120, 114, 100;
+  --layer-a: #d6d6d4;
+  --layer-b: #c3c3c1;
+  --layer-border: #7c7c7a;
+  --layer-text: #4a4a48;
+  --layer-rgb: 115, 115, 112;
   --exploit-bg: #fbefd6;
   --alarm-text: #6e3f00;
-  --byte-text: #0f4d26;
-  --hot-rgb: 60, 170, 100;
-  --burst-hot-rgb: 40, 150, 80;
-  --heat-text: #0f4d26;
-  --heat-bg: #cfe8d6;
-  --heat-peak-border: #0f4d26;
-  --heat-peak-text: #08331a;
-  --heat-peak-bg: #9fd4b0;
+  --byte-text: #111312;
+  --hot-rgb: 80, 82, 80;
+  --burst-hot-rgb: 40, 42, 40;
+  --heat-text: #111312;
+  --heat-bg: #dcdcda;
+  --heat-peak-border: #111312;
+  --heat-peak-text: #000000;
+  --heat-peak-bg: #bdbdbb;
 }
+
+/* Glows smudge on paper: DAYLIGHT's text stays crisp */
+[data-theme="daylight"] * { text-shadow: none !important; }
 
 /* GLYPH: bits drawn as shapes, one corner per point of their number, on blueprint blue */
 [data-theme="glyph"] {
