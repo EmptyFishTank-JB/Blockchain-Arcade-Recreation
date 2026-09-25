@@ -503,7 +503,7 @@ h1 span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
   font-size: 16px;
 }
 .bit-row { display: flex; justify-content: center; gap: 4px; }
-.bit-row .bit-sq { margin: 4px 0 0; color: var(--layer-text); text-shadow: none; } /* NEXT: dimmer, in the [=] layer color */
+.bit-row .bit-sq { margin: 4px 0 0; color: var(--layer-text); border-color: var(--layer-border); box-shadow: none; text-shadow: none; } /* NEXT: dimmer, in the [=] layer colors */
 .stat.keylogger .bit-row .bit-sq { width: 30px; height: 30px; font-size: 13px; }
 
 .board-wrap {
