@@ -546,7 +546,8 @@ function pieceLabel(piece) {
 function showPiece(el, piece) {
   if (piece.type === 'number') {
     fillBit(el, piece.val);
-    if (!themeIs('glyph')) el.textContent = String(piece.val);
+    // VS shows CURRENT as a bare [n] (no box); elsewhere the box shows just the number
+    if (!themeIs('glyph')) el.textContent = mode === 'vs' && el === currentEl ? `[${piece.val}]` : String(piece.val);
   } else {
     el.innerHTML = iconHtml(piece.id);
   }
@@ -1445,7 +1446,7 @@ function applyModeUi() {
   document.querySelectorAll('#vs-levels button[data-vs]').forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.vs === vsLevel);
   });
-  vsLayersBtn.textContent = `LAYERS: ${vsLayers ? 'ON' : 'OFF'}`;
+  vsLayersBtn.textContent = `ENCRYPTED LAYERS: ${vsLayers ? 'ON' : 'OFF'}`;
   vsLayersBtn.classList.toggle('active', vsLayers);
   document.body.classList.toggle('vs-mode', mode === 'vs'); // a slimmer header, room for the boards
   document.getElementById('pulse-stat').hidden = !!MODES[mode].noLayers && mode !== 'puzzle' && mode !== 'breach';
