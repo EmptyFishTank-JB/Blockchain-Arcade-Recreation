@@ -545,8 +545,8 @@ function pieceLabel(piece) {
 function showPiece(el, piece) {
   if (piece.type === 'number') {
     fillBit(el, piece.val);
-    // VS shows CURRENT as a bare [n] (no box); elsewhere the box shows just the number
-    if (!themeIs('glyph')) el.textContent = mode === 'vs' && el === currentEl ? `[${piece.val}]` : String(piece.val);
+    // CURRENT shows the bit as [n] (in VS without its box); the NEXT preview shows just the number
+    if (!themeIs('glyph')) el.textContent = el === currentEl ? `[${piece.val}]` : String(piece.val);
   } else {
     el.innerHTML = iconHtml(piece.id);
   }
