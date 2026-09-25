@@ -1390,10 +1390,13 @@ body.vs-mode header #mode-info { display: none; }
 
 /* Shown while the dev page's UNLOCK EVERYTHING switch is on */
 .dev-badge {
-  position: fixed;
-  left: 8px;
-  bottom: 8px;
-  z-index: 40;
+  /* In the game card, centered, its bottom edge level with the corner buttons' */
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  z-index: 3;
+  white-space: nowrap;
   padding: 3px 7px;
   border: 1px dashed var(--accent);
   border-radius: 4px;
@@ -1758,7 +1761,7 @@ footer p.accent { color: var(--accent); }
 .exploit-glyph svg { width: 20px; height: 20px; }
 .exploit-count { position: absolute; top: -7px; right: -7px; padding: 0 4px; border-radius: 6px; background: var(--fg); color: var(--panel); font-size: 10px; font-weight: bold; }
 .exploit-count[hidden] { display: none; }
-.exploit-free { position: absolute; right: calc(100% + 8px); top: 50%; transform: translateY(-50%); font-size: 12px; font-weight: bold; letter-spacing: 1px; white-space: nowrap; color: var(--accent); text-shadow: 0 0 6px rgba(var(--accent-rgb), 0.7); animation: warn-pulse 1.6s ease-in-out infinite; }
+.exploit-free { position: absolute; left: 50%; bottom: calc(100% + 4px); transform: translateX(-50%); font-size: 12px; font-weight: bold; letter-spacing: 1px; white-space: nowrap; color: var(--accent); text-shadow: 0 0 6px rgba(var(--accent-rgb), 0.7); animation: warn-pulse 1.6s ease-in-out infinite; }
 .exploit-free[hidden] { display: none; }
 /* An exploit to arm: bright green glow, showing that exploit's icon */
 .exploit-icon.ready { color: var(--fg); opacity: 1; border-color: var(--fg); box-shadow: 0 0 12px rgba(var(--fg-rgb), 0.7); text-shadow: 0 0 8px rgba(var(--fg-rgb), 0.9); }
