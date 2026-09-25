@@ -1893,7 +1893,50 @@ function refreshExploitCards() {
     el.querySelector('.lock-tag').textContent = tag;
   }
 }
+// DEV (the dev page's UNLOCK EVERYTHING switch): press and hold any exploit card for 2 seconds
+// to make it your next drop, slotted or not, to try it out.
+const DEV_HOLD_MS = 2000;
+let devHold = null; // { card, timer }
+let devHoldFired = false; // swallow the click that ends a successful hold
+function cancelDevHold() {
+  if (!devHold) return;
+  clearTimeout(devHold.timer);
+  devHold.card.classList.remove('dev-holding');
+  devHold = null;
+}
+hacksPanelEl.addEventListener('pointerdown', (e) => {
+  const card = e.target.closest('.hack-item');
+  if (!card || !Unlocks.isDevUnlock()) return;
+  cancelDevHold();
+  devHoldFired = false;
+  card.classList.add('dev-holding');
+  devHold = {
+    card,
+    timer: setTimeout(() => {
+      const id = card.dataset.hack;
+      cancelDevHold();
+      devHoldFired = true;
+      if (gameOver || busy || pivotFrom !== null) {
+        SFX.play('denied');
+        return;
+      }
+      queue.unshift({ type: 'hack', id });
+      setMessage(`DEV // ${HACKS[id].name} READY`);
+      SFX.play('egg');
+      updateHud();
+    }, DEV_HOLD_MS),
+  };
+});
+for (const type of ['pointerup', 'pointerleave', 'pointercancel']) hacksPanelEl.addEventListener(type, cancelDevHold);
+hacksPanelEl.addEventListener('contextmenu', (e) => {
+  if (Unlocks.isDevUnlock() && e.target.closest('.hack-item')) e.preventDefault(); // long-press menu on phones
+});
+
 hacksPanelEl.addEventListener('click', (e) => {
+  if (devHoldFired) {
+    devHoldFired = false;
+    return;
+  }
   const card = e.target.closest('.hack-item');
   if (!card || mode === 'daily' || !Progress.exploitInfo(card.dataset.hack).unlocked) return;
   if (!loadoutEditable()) {
@@ -1929,6 +1972,7 @@ function applyUnlocks() {
 Unlocks.onChange(applyUnlocks);
 applyUnlocks();
 document.getElementById('dev-badge').hidden = !Unlocks.isDevUnlock();
+document.body.classList.toggle('dev-unlock', Unlocks.isDevUnlock());
 
 initGame();
 updateFreeBtn();

@@ -1066,6 +1066,21 @@ h1 span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
 .hack-item.unlocked:not(.equipped) { opacity: 0.7; }
 .hack-item.unlocked:hover { border-color: var(--fg-dim); }
 .hack-item.equipped { border: 1px solid var(--fg); }
+
+/* DEV: holding a card fills a bar across it; at 2 seconds the exploit becomes the next drop */
+.hack-item { position: relative; overflow: hidden; }
+.hack-item.dev-holding::before {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 3px;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+  transform-origin: left;
+  animation: dev-hold 2s linear forwards;
+}
+@keyframes dev-hold { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.dev-unlock .hack-item { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 .hack-item.equipped h3::after { content: 'EQUIPPED'; margin-left: 8px; font-size: 9px; letter-spacing: 1px; color: var(--fg); order: 3; }
 .hack-item .lock-tag { display: block; margin-top: 4px; font-size: 9px; letter-spacing: 2px; color: var(--fg-dim); }
 .hack-item.locked .lock-tag { color: var(--accent); }

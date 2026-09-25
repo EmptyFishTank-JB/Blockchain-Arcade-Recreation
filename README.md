@@ -114,7 +114,8 @@ reports each drop, decrypt, peel, byte, exploit and point to it.
 
 **Dev switches.** The `</>` dev page has UNLOCK EVERYTHING (like owning Full
 Access, for this browser; the game shows a DEV badge while it's on), JUMP TO
-LV 80 and +10 LEVELS for testing prestige, slots and exploit unlocks.
+LV 80 and +10 LEVELS for testing prestige, slots and exploit unlocks. With UNLOCK EVERYTHING on,
+press and hold any exploit card for 2 seconds to make it your next drop.
 
 ## App view on a phone
 
