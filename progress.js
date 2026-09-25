@@ -22,7 +22,7 @@ const Progress = (() => {
     exploitUses: {}, // per exploit id
     bestChain: 0,
     bestScore: 0, // any difficulty
-    points: 0, // lifetime points, shown as data extracted (1 point = 1 KB)
+    points: 0, // lifetime points
     bestHardDrops: 0, // longest Hard session, in drops
     bestDropBytes: 0, // most bytes from a single drop
     sweeps: 0, // board cleared completely (after 10+ drops)
@@ -115,11 +115,11 @@ const Progress = (() => {
     { id: 'regular', name: 'REGULAR', desc: 'Play 25 sessions', value: () => d.games, goal: 25 },
     { id: 'veteran', name: 'VETERAN', desc: 'Play 100 sessions', value: () => d.games, goal: 100 },
     { id: 'handshake', name: 'HANDSHAKE', desc: 'Decrypt 100 bits', value: () => d.bits, goal: 100 },
-    { id: 'kilobyte', name: 'KILOBYTE', desc: 'Decrypt 1,024 bits', value: () => d.bits, goal: 1024 },
-    { id: 'data-miner', name: 'DATA MINER', desc: 'Decrypt 10,000 bits', value: () => d.bits, goal: 10000 },
-    // Data extracted: every point is 1 KB, so 1,024 points is a megabyte
-    { id: 'megabyte', name: 'MEGABYTE', desc: 'Extract 1 MB of data (1,024 points in total)', value: () => d.points, goal: 1024 },
-    { id: 'gigabyte', name: 'GIGABYTE', desc: 'Extract 1 GB of data (1,048,576 points in total)', value: () => d.points, goal: 1048576 },
+    // Data decrypted, in decimal units of bits decrypted (8 bits to a byte)
+    { id: 'kilobit', name: 'KILOBIT', desc: 'Decrypt 1,000 bits', value: () => d.bits, goal: 1000 },
+    { id: 'kilobyte-8k', name: 'KILOBYTE', desc: 'Decrypt 8,000 bits', value: () => d.bits, goal: 8000 },
+    { id: 'megabit', name: 'MEGABIT', desc: 'Decrypt 1,000,000 bits', value: () => d.bits, goal: 1000000 },
+    { id: 'megabyte-8m', name: 'MEGABYTE', desc: 'Decrypt 8,000,000 bits', value: () => d.bits, goal: 8000000 },
     { id: 'chain-reaction', name: 'CHAIN REACTION', desc: 'Get a 4x chain', value: () => d.bestChain, goal: 4 },
     { id: 'cascade', name: 'CASCADE', desc: 'Get a 6x chain', value: () => d.bestChain, goal: 6 },
     { id: 'overclocked', name: 'OVERCLOCKED', desc: 'Get an 8x chain', value: () => d.bestChain, goal: 8 },

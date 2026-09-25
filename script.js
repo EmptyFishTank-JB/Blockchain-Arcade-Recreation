@@ -1429,11 +1429,13 @@ const recordsEl = document.getElementById('records');
 const recordsBodyEl = document.getElementById('records-body');
 let recordsTab = 'unlocks';
 const fmt = (n) => Number(n).toLocaleString('en-US');
-// Lifetime points as data extracted: 1 point = 1 KB
-function fmtData(points) {
-  if (points < 1024) return `${fmt(points)} KB`;
-  if (points < 1048576) return `${(points / 1024).toFixed(1)} MB`;
-  return `${(points / 1048576).toFixed(2)} GB`;
+// Bits decrypted as data, in decimal units: 1 kilobit = 1,000 bits, 1 kilobyte = 8,000 bits
+function fmtData(bits) {
+  if (bits < 1000) return `${fmt(bits)} bits`;
+  if (bits < 8000) return `${(bits / 1000).toFixed(2)} kilobits`;
+  if (bits < 1000000) return `${(bits / 8000).toFixed(2)} kilobytes`;
+  if (bits < 8000000) return `${(bits / 1000000).toFixed(2)} megabits`;
+  return `${(bits / 8000000).toFixed(2)} megabytes`;
 }
 
 function recordRow({ name, desc, current, goal, done }) {
@@ -1567,7 +1569,8 @@ function renderRecords() {
       ['DAILY DECRYPTS PLAYED', fmt(s.dailies)],
       ['DAILY STREAK', `${fmt(s.lastDaily === todayKey() || s.lastDaily === new Date(Date.now() - 86400000).toISOString().slice(0, 10) ? s.dailyStreak : 0)} (best ${fmt(s.bestDailyStreak)})`],
       ['DAILY TODAY (OFFICIAL)', storage.get(dailyPlayedKey()) ? fmt(Number(storage.get(dailyKey())) || 0) : 'not played'],
-      ['DATA EXTRACTED', fmtData(s.points)],
+      ['DATA DECRYPTED', fmtData(s.bits)],
+      ['TOTAL POINTS', fmt(s.points)],
       ['BEST // BLITZ', fmt(Number(storage.get('bytefall-best-blitz')) || 0)],
       ['BEST // ZEN', fmt(Number(storage.get('bytefall-best-zen')) || 0)],
     ];
