@@ -2,12 +2,15 @@
    pixel font is scaled (size-adjust) so a line takes about the width it does in Courier, and the
    layout stays put. [data-font] on <html> picks one; everything reads var(--font). */
 @font-face { font-family: 'Press Start 2P'; src: url('fonts/press-start-2p.woff2') format('woff2'); font-display: swap; size-adjust: 62%; }
+@font-face { font-family: 'Share Tech Mono'; src: url('fonts/share-tech-mono.woff2') format('woff2'); font-display: swap; size-adjust: 111%; }
 @font-face { font-family: 'Bytesized'; src: url('fonts/bytesized.woff2') format('woff2'); font-display: swap; size-adjust: 120%; }
 :root { --font: 'Courier New', Courier, monospace; }
+:root[data-font="share-tech"] { --font: 'Share Tech Mono', 'Courier New', monospace; }
 :root[data-font="press-start"] { --font: 'Press Start 2P', 'Courier New', monospace; }
 :root[data-font="bytesized"] { --font: 'Bytesized', 'Courier New', monospace; }
 /* The font picker shows each name in its own font */
 [data-font-preview="courier"] { font-family: 'Courier New', Courier, monospace !important; }
+[data-font-preview="share-tech"] { font-family: 'Share Tech Mono', 'Courier New', monospace !important; }
 [data-font-preview="press-start"] { font-family: 'Press Start 2P', 'Courier New', monospace !important; }
 [data-font-preview="bytesized"] { font-family: 'Bytesized', 'Courier New', monospace !important; }
 /* PRESS START's small labels need a floor to stay readable */

@@ -112,10 +112,11 @@ everyone.
 SPECTRUM (9).
 
 **Fonts** (SETTINGS → FONT) unlock by achievements earned, for good: COURIER is
-the default, PRESS START (Press Start 2P) opens at 10 achievements and BYTESIZED
-at 25. Each has an achievement for playing a full session in it (INSERT COIN,
-BITE-SIZED). The pixel fonts are bundled in `fonts/` and scaled so the layout
-stays the same as in Courier.
+the default, SHARE TECH MONO opens at 10 achievements, PRESS START (Press Start
+2P) at 25 and BYTESIZED at 40. Each has an achievement for playing a full
+session in it (TECH SUPPORT, INSERT COIN, BITE-SIZED). The font changes all the
+game's text (the particles and the dev page too); the fonts are bundled in
+`fonts/` and scaled so the layout stays the same as in Courier.
 
 **Permanent unlocks:** Hard mode (score 2,000 on Normal) and tracks 02-10
 (125 / 350 / 800 / 1,600 / 3,000 / 5,000 / 7,500 / 11,000 / 15,000 bits decrypted in
@@ -215,7 +216,7 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
 - `style.css` — terminal/hacker visual theme
 - `script.js` — game state, rendering, chain resolution and exploits
 - `unlocks.js` — the Full Access check (never owned on the website; `?unlockall` previews it)
-- `fonts/` — the unlockable pixel fonts, Press Start 2P (CodeMan38) and Bytesized (Baltdev), from Google Fonts, with their SIL Open Font License files
+- `fonts/` — the unlockable fonts, Share Tech Mono (Carrois Type Design), Press Start 2P (CodeMan38) and Bytesized (Baltdev), from Google Fonts, with their SIL Open Font License files
 - `cpu.js` — VS CPU: the computer opponent (a copy of the board rules with no animation, and a player that tries every column)
 - `progress.js` — lifetime stats, earnable unlocks and achievements
 - `achievements.csv` — every achievement grouped by what it's about (category, name, description, goal, and whether it's standard, hidden or impossible)

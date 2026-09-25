@@ -107,6 +107,7 @@ const FX = (() => {
     last = now;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.globalCompositeOperation = 'lighter';
+    const fontFamily = themeRgb('--font', "'Courier New', monospace"); // the chosen game font
     particles = particles.filter((p) => {
       p.age += dt;
       const t = p.age - p.delay;
@@ -123,7 +124,7 @@ const FX = (() => {
       if (p.kind === 'frag') drawFrag(p, fade, p.size * (0.4 + 0.6 * fade));
       else {
         ctx.fillStyle = `rgba(${p.color}, ${(0.7 * fade).toFixed(3)})`;
-        ctx.font = `bold ${p.size}px 'Courier New', monospace`;
+        ctx.font = `bold ${p.size}px ${fontFamily}`;
         ctx.fillText(p.ch, p.x, p.y);
       }
       return true;

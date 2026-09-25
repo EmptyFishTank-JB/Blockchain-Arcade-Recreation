@@ -1915,6 +1915,7 @@ applyTheme();
 // Fonts: COURIER is free; the pixel fonts unlock by earning achievements (progress.js's font-<id>)
 const FONTS = [
   { id: 'courier', label: 'COURIER', desc: 'the classic terminal typewriter.' },
+  { id: 'share-tech', label: 'SHARE TECH MONO', desc: 'clean, squared-off terminal type.' },
   { id: 'press-start', label: 'PRESS START', desc: 'chunky 8-bit arcade pixels.' },
   { id: 'bytesized', label: 'BYTESIZED', desc: 'tiny pixel type, for the hard-core.' },
 ];
