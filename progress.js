@@ -245,9 +245,9 @@ const Progress = (() => {
     { id: 'audiophile', name: 'AUDIOPHILE', desc: 'Play a full session (10+ drops) on every track', value: () => count(d.tracksPlayed), goal: () => trackCount },
     { id: 'chameleon', name: 'CHAMELEON', desc: 'Play a full session (10+ drops) in every theme', value: () => count(d.themesPlayed), goal: () => themeCount },
     { id: 'lv-40', name: 'LV 40', desc: 'Reach level 40', value: () => (d.prestige > 0 ? 40 : levelInfo().level), goal: 40 },
-    { id: 'gigabit', name: 'GIGABIT', desc: 'Decrypt 1,000,000,000 bits', value: () => d.bits, goal: 1000000000 },
+    { id: 'gigabit', name: 'GIGABIT', desc: 'Decrypt 1,000,000,000 bits', value: () => d.bits, goal: 1000000000, impossible: true },
     { id: 'insomniac', name: 'INSOMNIAC', desc: 'Play between 2 and 4 AM', value: () => d.lateNight, goal: 1 },
-    { id: 'birthday', name: 'BIRTHDAY', desc: "Play on September 23, ByteFall's birthday", value: () => d.birthday, goal: 1 },
+    { id: 'birthday', name: 'BIRTHDAY', desc: "Play on September 23, ByteFall's birthday", value: () => d.birthday, goal: 1, hidden: true },
     // Hidden until earned
     { id: 'rage-quit', name: 'RAGE QUIT', desc: 'Restart 10 sessions in one sitting', value: () => d.rageQuit, goal: 1, hidden: true },
     { id: 'snake-eyes', name: 'SNAKE EYES', desc: 'Lose a session with 0 points', value: () => d.snakeEyes, goal: 1, hidden: true },

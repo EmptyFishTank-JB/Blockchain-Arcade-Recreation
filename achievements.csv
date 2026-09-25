@@ -11,7 +11,6 @@ Bits decrypted,KILOBYTE,"Decrypt 8,000 bits","8,000",Standard,kilobyte-8k
 Bits decrypted,MEGABIT,"Decrypt 1,000,000 bits","1,000,000",Standard,megabit
 Bits decrypted,MEGABYTE,"Decrypt 8,000,000 bits","8,000,000",Standard,megabyte-8m
 Bits decrypted,106473,"Decrypt 106,473 bits","106,473",Standard,106473
-Bits decrypted,GIGABIT,"Decrypt 1,000,000,000 bits","1,000,000,000",Standard,gigabit
 Bits decrypted,FULL RANGE,Decrypt 100 of every number from [1] to [7],100,Standard,full-range
 Bits decrypted,LUCKY SEVENS,"Decrypt 1,000 [7]s","1,000",Standard,lucky-sevens
 Bits decrypted,JACKPOT,Decrypt seven [7]s with one drop,1,Hidden,jackpot
@@ -96,9 +95,10 @@ Themes and music,THEME PARK,Change the theme 10 times in one sitting,1,Hidden,th
 Themes and music,CHANNEL SURFER,Pick a track 10 times in one sitting,1,Hidden,channel-surfer
 Themes and music,SILENT RUNNING,Play a full session (10+ drops) with the sound and music off,1,Hidden,silent-running
 Dates and times,INSOMNIAC,Play between 2 and 4 AM,1,Standard,insomniac
-Dates and times,BIRTHDAY,"Play on September 23, ByteFall's birthday",1,Standard,birthday
+Dates and times,BIRTHDAY,"Play on September 23, ByteFall's birthday",1,Hidden,birthday
 Dates and times,FRIDAY THE 13TH,Play on a Friday the 13th,1,Hidden,friday-13th
 Dates and times,PI DAY,Play on March 14,1,Hidden,pi-day
 Secrets,KONAMI,Enter the Konami code,1,Hidden,konami
+Impossible (not counted),GIGABIT,"Decrypt 1,000,000,000 bits","1,000,000,000",Impossible,gigabit
 Impossible (not counted),GIGABYTE,"Earn 8,000,000,000 points in total","8,000,000,000",Impossible,gigabyte
 Impossible (not counted),TERABYTE,"Earn 8,000,000,000,000 points in total","8,000,000,000,000",Impossible,terabyte
