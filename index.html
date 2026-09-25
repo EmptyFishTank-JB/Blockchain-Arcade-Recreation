@@ -12,7 +12,7 @@
   } catch (e) {}
 </script>
 <title>BYTEFALL // decryption terminal</title>
-<link rel="stylesheet" href="style.css?v=42">
+<link rel="stylesheet" href="style.css?v=44">
 </head>
 <body>
   <main class="cabinet">
@@ -82,6 +82,11 @@
       <header>
         <h1>BYTE<span>FALL</span></h1>
         <p class="tagline">// DECRYPTION TERMINAL</p>
+        <button type="button" class="level-bar" id="level-bar" aria-label="Level and prestige: open records">
+          <span id="level-label">LV 1</span>
+          <span class="xp"><i id="xp-fill"></i></span>
+          <span id="xp-label">0 / 50 BITS</span>
+        </button>
         <div class="modes" role="group" aria-label="Game mode">
           <button data-mode="classic">CLASSIC</button>
           <button data-mode="daily">DAILY</button>
@@ -152,39 +157,44 @@
       <div class="hack-item" data-hack="worm">
         <h3><span class="icon">§</span> WORM VIRUS<span class="combo"></span></h3>
         <p>Burrows down the column it lands in and wipes out every block there.</p>
+        <p class="lock-tag"></p>
       </div>
       <div class="hack-item" data-hack="overflow">
         <h3><span class="icon">+</span> BUFFER OVERFLOW<span class="combo"></span></h3>
         <p>Floods memory: every bit goes up by 1. A bit pushed past <span id="overflow-top">7</span> gets re-encrypted under two layers.</p>
+        <p class="lock-tag"></p>
       </div>
       <div class="hack-item" data-hack="trojan">
         <h3><span class="icon">◈</span> TROJAN<span class="combo"></span></h3>
         <p>Slips in quietly, then wipes out every block touching the spot where it lands.</p>
+        <p class="lock-tag"></p>
       </div>
       <div class="hack-item" data-hack="rng">
         <h3><span class="icon">?</span> RNG<span class="combo"></span></h3>
         <p>Scrambles every bit to a new random number.</p>
+        <p class="lock-tag"></p>
       </div>
       <div class="hack-item" data-hack="bitflip">
         <h3><span class="icon">↕</span> BITFLIP<span class="combo"></span></h3>
         <p>Turns every column upside down.</p>
+        <p class="lock-tag"></p>
       </div>
-      <div class="hack-item" data-hack="dictionary" data-unlock="exploit-dictionary">
+      <div class="hack-item" data-hack="dictionary">
         <h3><span class="icon">#</span> DICTIONARY ATTACK<span class="combo"></span></h3>
         <p>Throws every known key at the encryption: every layer on the board loses one level at once.</p>
         <p class="lock-tag"></p>
       </div>
-      <div class="hack-item" data-hack="keylogger" data-unlock="exploit-keylogger">
+      <div class="hack-item" data-hack="keylogger">
         <h3><span class="icon">@</span> KEYLOGGER<span class="combo"></span></h3>
         <p>Records the incoming stream: shows your next 3 bits for the next 10 drops.</p>
         <p class="lock-tag"></p>
       </div>
-      <div class="hack-item" data-hack="backdoor" data-unlock="exploit-backdoor">
+      <div class="hack-item" data-hack="backdoor">
         <h3><span class="icon">_</span> BACKDOOR<span class="combo"></span></h3>
         <p>Opens a way in underneath: the entire bottom row is deleted, layers included, and everything drops by one.</p>
         <p class="lock-tag"></p>
       </div>
-      <div class="hack-item" data-hack="rainbow" data-unlock="exploit-rainbow">
+      <div class="hack-item" data-hack="rainbow">
         <h3><span class="icon">*</span> RAINBOW TABLE<span class="combo"></span></h3>
         <p>Looks up the most common number on the board and decrypts every bit showing it.</p>
         <p class="lock-tag"></p>
@@ -212,6 +222,7 @@
 
   <canvas id="board-fx" aria-hidden="true"></canvas>
   <div id="toast" class="toast" role="status" hidden></div>
+  <a class="dev-badge" id="dev-badge" href="dev-tools/audio.html#dev" hidden>DEV // EVERYTHING UNLOCKED</a>
 
   <div id="game-over" class="overlay hidden">
     <div class="overlay-box">
@@ -225,20 +236,20 @@
     </div>
   </div>
 
-  <script src="unlocks.js?v=42"></script>
-  <script src="progress.js?v=42"></script>
-  <script src="sfx.js?v=42"></script>
-  <script src="music-theme.js?v=42"></script>
-  <script src="music-sleep-mode.js?v=42"></script>
-  <script src="music-brute-force.js?v=42"></script>
-  <script src="music-deep-web.js?v=42"></script>
-  <script src="music-zero-day.js?v=42"></script>
-  <script src="music-system-restore.js?v=42"></script>
-  <script src="music.js?v=42"></script>
-  <script src="puzzles.js?v=42"></script>
-  <script src="fx.js?v=42"></script>
-  <script src="viz.js?v=42"></script>
-  <script src="script.js?v=42"></script>
-  <script src="grid-bg.js?v=42"></script>
+  <script src="unlocks.js?v=44"></script>
+  <script src="progress.js?v=44"></script>
+  <script src="sfx.js?v=44"></script>
+  <script src="music-theme.js?v=44"></script>
+  <script src="music-sleep-mode.js?v=44"></script>
+  <script src="music-brute-force.js?v=44"></script>
+  <script src="music-deep-web.js?v=44"></script>
+  <script src="music-zero-day.js?v=44"></script>
+  <script src="music-system-restore.js?v=44"></script>
+  <script src="music.js?v=44"></script>
+  <script src="puzzles.js?v=44"></script>
+  <script src="fx.js?v=44"></script>
+  <script src="viz.js?v=44"></script>
+  <script src="script.js?v=45"></script>
+  <script src="grid-bg.js?v=44"></script>
 </body>
 </html>

@@ -183,6 +183,15 @@
 
   footer { text-align: center; font-size: 10px; letter-spacing: 0.16em; color: var(--green-dim); margin-top: 40px; }
 
+  .dev-switches { display: flex; flex-wrap: wrap; gap: 8px; }
+  .dev-switches button {
+    background: transparent; border: 1px solid var(--line); color: var(--text-dim);
+    font-family: inherit; font-size: 12px; letter-spacing: 0.1em; padding: 8px 12px; border-radius: 4px; cursor: pointer;
+  }
+  .dev-switches button:hover { border-color: var(--green-dim); color: var(--green); }
+  .dev-switches button.on { border-color: var(--amber); color: var(--amber); }
+  .dev-status { font-size: 11px; letter-spacing: 0.1em; color: var(--amber); min-height: 16px; margin-top: 10px; }
+
   @media (max-width: 560px) {
     .card-top { flex-direction: column; }
     button.play { align-self: flex-start; }
@@ -205,10 +214,22 @@
   </div>
 
   <nav class="tocnav">
+    <a href="#dev">00 Dev Switches</a>
     <a href="#effects">01 One-Shot Effects</a>
     <a href="#tracks">02 Music Tracks</a>
     <a href="#intensity">03 Music Intensity</a>
   </nav>
+
+  <section id="dev">
+    <h2><span class="sec-num">00</span> Dev Switches</h2>
+    <p class="sec-desc">For testing in this browser only. UNLOCK EVERYTHING works like owning Full Access (Hard, every track, theme and exploit) without touching your saved progress, and the game shows a DEV badge while it's on. The other two edit your saved progress so you can try levels and prestige quickly.</p>
+    <div class="dev-switches">
+      <button type="button" id="dev-unlock">UNLOCK EVERYTHING: OFF</button>
+      <button type="button" id="dev-lv80">JUMP TO LV 80</button>
+      <button type="button" id="dev-points">+10,000 POINTS (THIS PRESTIGE)</button>
+    </div>
+    <div class="dev-status" id="dev-status"></div>
+  </section>
 
   <section id="effects">
     <h2><span class="sec-num">01</span> One-Shot Effects</h2>
@@ -243,14 +264,14 @@
   <footer>GENERATED FROM SOURCE &mdash; NO AUDIO FILES, ALL SYNTHESIZED ON PLAY</footer>
 </div>
 
-<script src="../sfx.js?v=31"></script>
-<script src="../music-theme.js?v=31"></script>
-<script src="../music-sleep-mode.js?v=31"></script>
-<script src="../music-brute-force.js?v=31"></script>
-<script src="../music-deep-web.js?v=31"></script>
-<script src="../music-zero-day.js?v=31"></script>
-<script src="../music-system-restore.js?v=31"></script>
-<script src="../viz.js?v=31"></script>
+<script src="../sfx.js?v=44"></script>
+<script src="../music-theme.js?v=44"></script>
+<script src="../music-sleep-mode.js?v=44"></script>
+<script src="../music-brute-force.js?v=44"></script>
+<script src="../music-deep-web.js?v=44"></script>
+<script src="../music-zero-day.js?v=44"></script>
+<script src="../music-system-restore.js?v=44"></script>
+<script src="../viz.js?v=44"></script>
 <script>
 (() => {
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -659,6 +680,40 @@
     requestAnimationFrame(vizLoop);
   })(performance.now());
 })();
+</script>
+<script>
+  // Dev switches: flags and progress edits read by the game (unlocks.js, progress.js)
+  (() => {
+    const FLAG = 'bytefall-dev-unlockall';
+    const btn = document.getElementById('dev-unlock');
+    const status = document.getElementById('dev-status');
+    const get = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+    const set = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+    const show = () => {
+      const on = get(FLAG) === 'on';
+      btn.textContent = `UNLOCK EVERYTHING: ${on ? 'ON' : 'OFF'}`;
+      btn.classList.toggle('on', on);
+    };
+    btn.addEventListener('click', () => {
+      set(FLAG, get(FLAG) === 'on' ? 'off' : 'on');
+      show();
+      status.textContent = 'Saved. Reload the game to see it.';
+    });
+    const editProgress = (fn, message) => {
+      let d = {};
+      try { d = JSON.parse(get('bytefall-progress')) || {}; } catch (e) {}
+      fn(d);
+      set('bytefall-progress', JSON.stringify(d));
+      status.textContent = message;
+    };
+    // 19,355 bits takes Lv 1 to Lv 80 (50 bits, +5 per level)
+    document.getElementById('dev-lv80').addEventListener('click', () => editProgress((d) => { d.xp = Math.max(d.xp || 0, 19355); }, 'Lv 80 saved. Reload the game, then PRESTIGE from RECORDS.'));
+    document.getElementById('dev-points').addEventListener('click', () => editProgress((d) => {
+      d.prestigePoints = (d.prestigePoints || 0) + 10000;
+      d.points = (d.points || 0) + 10000;
+    }, '+10,000 points saved. Reload the game to see new exploits unlock.'));
+    show();
+  })();
 </script>
 </body>
 </html>

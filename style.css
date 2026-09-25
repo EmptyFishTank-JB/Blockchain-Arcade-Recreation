@@ -822,6 +822,30 @@ h1 span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
   margin-top: 14px;
 }
 
+.level-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 2px 6px;
+  background: none;
+  border: none;
+  color: var(--fg-dim);
+  font-family: inherit;
+  font-size: 10px;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+.level-bar #level-label { color: var(--accent); }
+.level-bar .xp { display: block; width: 90px; height: 4px; background: rgba(var(--fg-rgb), 0.12); border-radius: 2px; overflow: hidden; }
+.level-bar .xp i { display: block; height: 100%; width: 0; background: var(--fg); transition: width 0.4s ease; }
+.level-bar.maxed .xp i { background: var(--accent); }
+
+.rec-level { margin: 0 0 10px; padding: 8px; border: 1px dashed var(--grid-line); border-radius: 4px; }
+.rec-level .rec-head { font-size: 12px; }
+.rec-prestige { margin-top: 8px; width: 100%; padding: 6px; background: rgba(var(--accent-rgb), 0.1); border: 1px solid var(--accent); border-radius: 4px; color: var(--accent); font-family: inherit; font-size: 10px; letter-spacing: 1px; cursor: pointer; }
+.rec-prestige.danger { border-color: var(--danger); color: var(--danger); background: rgba(var(--danger-rgb), 0.12); }
+
 .modes {
   display: flex;
   justify-content: center;
@@ -1101,6 +1125,23 @@ h1 span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
 .rec-stats { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; margin: 0; }
 .rec-stats dt { color: var(--fg-dim); }
 .rec-stats dd { margin: 0; text-align: right; color: var(--fg); }
+
+/* Shown while the dev page's UNLOCK EVERYTHING switch is on */
+.dev-badge {
+  position: fixed;
+  left: 8px;
+  bottom: 8px;
+  z-index: 40;
+  padding: 3px 7px;
+  border: 1px dashed var(--accent);
+  border-radius: 4px;
+  background: var(--popup-bg);
+  color: var(--accent);
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-decoration: none;
+}
+.dev-badge[hidden] { display: none; }
 
 /* UNLOCKED / ACHIEVEMENT pop-ups, above the game-over overlay */
 .toast {

@@ -32,23 +32,26 @@ const DIFFICULTIES = {
 };
 
 // easyCombo: on Easy, the chain length that unlocks each hack (stronger hacks need longer chains).
-// unlock: a bonus exploit, only awarded once that progress.js unlock is earned.
+// Which exploits a player can get comes from progress.js (levels and prestige).
 const HACKS = {
   worm: { name: 'WORM VIRUS', icon: '§', easyCombo: 5 },
   overflow: { name: 'BUFFER OVERFLOW', icon: '+', easyCombo: 4 },
   trojan: { name: 'TROJAN', icon: '◈', easyCombo: 4 },
   rng: { name: 'RNG', icon: '?', easyCombo: 3 },
   bitflip: { name: 'BITFLIP', icon: '↕', easyCombo: 3 },
-  dictionary: { name: 'DICTIONARY ATTACK', icon: '#', easyCombo: 4, unlock: 'exploit-dictionary' },
-  keylogger: { name: 'KEYLOGGER', icon: '@', easyCombo: 3, unlock: 'exploit-keylogger' },
-  backdoor: { name: 'BACKDOOR', icon: '_', easyCombo: 4, unlock: 'exploit-backdoor' },
-  rainbow: { name: 'RAINBOW TABLE', icon: '*', easyCombo: 5, unlock: 'exploit-rainbow' },
+  dictionary: { name: 'DICTIONARY ATTACK', icon: '#', easyCombo: 4 },
+  keylogger: { name: 'KEYLOGGER', icon: '@', easyCombo: 3 },
+  backdoor: { name: 'BACKDOOR', icon: '_', easyCombo: 4 },
+  rainbow: { name: 'RAINBOW TABLE', icon: '*', easyCombo: 5 },
 };
 const KEYLOGGER_DROPS = 10; // drops the keylogger keeps showing the next bits for
 const KEYLOGGER_PREVIEW = 3;
 
-const hackAvailable = (id) => !HACKS[id].unlock || Progress.isUnlocked(HACKS[id].unlock);
+// The Daily Decrypt uses the same five exploits for everyone; elsewhere it's what you've unlocked.
+const DAILY_EXPLOITS = ['worm', 'overflow', 'trojan', 'rng', 'bitflip'];
+const hackAvailable = (id) => (mode === 'daily' ? DAILY_EXPLOITS.includes(id) : Progress.exploitInfo(id).unlocked);
 Progress.setExploitCount(Object.keys(HACKS).length);
+Progress.setExploitNames(Object.fromEntries(Object.entries(HACKS).map(([id, h]) => [id, h.name])));
 
 let columns = []; // columns[c] = array of cells, index 0 = bottom
 let queue = []; // upcoming pieces; queue[0] is the one being dropped
@@ -229,8 +232,8 @@ function initGame() {
   });
   const easy = difficulty === 'easy';
   document.getElementById('hack-intro').textContent = easy
-    ? 'Chains unlock exploits: the longer the chain, the stronger the exploit.'
-    : `Chain ${HACK_COMBO} decrypts in one drop to unlock a random exploit.`;
+    ? 'Chains earn exploits you\'ve unlocked: the longer the chain, the stronger the exploit.'
+    : `Chain ${HACK_COMBO} decrypts in one drop to get a random exploit you've unlocked.`;
   document.querySelectorAll('.hack-item').forEach((el) => {
     el.querySelector('.combo').textContent = `${easy ? HACKS[el.dataset.hack].easyCombo : HACK_COMBO}x`;
   });
@@ -244,6 +247,7 @@ function initGame() {
   render();
   overlayEl.classList.add('hidden');
   setMessage('');
+  refreshExploitCards();
 }
 
 // A layer peeled to 0 shows the bit under it: fixed in PUZZLE boards, random otherwise.
@@ -1348,7 +1352,7 @@ if (freeExploit.day !== localDay()) {
   freeGrantedNow = true;
 }
 function updateFreeBtn() {
-  freeBtn.hidden = !freeExploit.ready || mode === 'daily' || mode === 'puzzle';
+  freeBtn.hidden = !freeExploit.ready || mode === 'daily' || mode === 'puzzle' || !Object.keys(HACKS).some(hackAvailable);
   freeBtn.disabled = gameOver || busy;
 }
 freeBtn.addEventListener('click', () => {
@@ -1397,12 +1401,27 @@ function unlockLabel(name) {
 }
 
 function announce(earned) {
+  updateLevelBar();
   if (!earned.length) return;
   SFX.play('egg');
   for (const e of earned) showToast(`${e.type} // ${unlockLabel(e.name)}`);
-  if (earned.some((e) => e.type === 'UNLOCKED')) applyUnlocks();
+  applyUnlocks();
   if (!recordsEl.hidden) renderRecords();
 }
+
+// Level bar under the title: level, prestige and XP (bits) toward the next level
+const levelBarEl = document.getElementById('level-bar');
+function updateLevelBar() {
+  const lv = Progress.levelInfo();
+  document.getElementById('level-label').textContent = `LV ${lv.level}${lv.prestige ? ` \u00b7 P${lv.prestige}` : ''}`;
+  document.getElementById('xp-fill').style.width = `${lv.maxed ? 100 : (lv.into / lv.need) * 100}%`;
+  document.getElementById('xp-label').textContent = lv.maxed ? 'PRESTIGE READY' : `${fmt(lv.into)} / ${fmt(lv.need)} BITS`;
+  levelBarEl.classList.toggle('maxed', lv.maxed);
+}
+levelBarEl.addEventListener('click', () => {
+  recordsTab = 'unlocks';
+  setRecordsOpen(true);
+});
 
 // RECORDS panel: unlocks and achievements with trackers, and lifetime stats
 const recordsBtn = document.getElementById('records-btn');
@@ -1436,6 +1455,65 @@ function renderRecords() {
   });
   recordsBodyEl.innerHTML = '';
   if (recordsTab === 'unlocks') {
+    // Level and prestige, with PRESTIGE (two presses) once at Lv 80
+    const lv = Progress.levelInfo();
+    const box = document.createElement('div');
+    box.className = 'rec-level';
+    const row = recordRow({
+      name: `LV ${lv.level} // PRESTIGE ${lv.prestige}`,
+      desc: lv.maxed
+        ? 'Lv 80 reached. PRESTIGE to start again at Lv 1: exploits lock again (you keep one more at the start), and the next theme unlocks for good.'
+        : `Decrypt bits to level up. At Lv 80 you can prestige.`,
+      current: lv.maxed ? 1 : lv.into,
+      goal: lv.maxed ? 1 : lv.need,
+      done: lv.maxed,
+    });
+    row.style.borderBottom = 'none';
+    const rowList = document.createElement('ul');
+    rowList.className = 'rec-list';
+    rowList.appendChild(row);
+    box.appendChild(rowList);
+    if (lv.maxed) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'rec-prestige';
+      btn.textContent = `PRESTIGE TO ${lv.prestige + 1}`;
+      btn.addEventListener('click', () => {
+        if (!armed || armed.btn !== btn) {
+          armReset(btn, 'CONFIRM? EXPLOITS LOCK AGAIN');
+          return;
+        }
+        disarmReset();
+        if (Progress.prestige()) {
+          showToast(`PRESTIGE ${Progress.levelInfo().prestige} // BACK TO LV 1`);
+          announce(Progress.check());
+          applyUnlocks();
+          renderRecords();
+        }
+      });
+      box.appendChild(btn);
+    }
+    recordsBodyEl.appendChild(box);
+
+    // This prestige's exploit unlocks
+    const exHead = document.createElement('p');
+    exHead.className = 'rec-group';
+    exHead.textContent = `// EXPLOITS (PRESTIGE ${lv.prestige})`;
+    recordsBodyEl.appendChild(exHead);
+    const exList = document.createElement('ul');
+    exList.className = 'rec-list';
+    for (const id of Progress.exploitOrder()) {
+      const info = Progress.exploitInfo(id);
+      exList.appendChild(recordRow({
+        name: HACKS[id].name,
+        desc: info.start ? 'Unlocked from the start this prestige' : `${fmt(info.goal)} points this prestige`,
+        current: info.start ? 1 : info.current,
+        goal: info.start ? 1 : info.goal,
+        done: info.unlocked,
+      }));
+    }
+    recordsBodyEl.appendChild(exList);
+
     let group = '';
     let list = null;
     for (const u of Progress.unlocks()) {
@@ -1467,7 +1545,10 @@ function renderRecords() {
   } else {
     const s = Progress.stats();
     const favorite = Object.entries(s.exploitUses).sort((a, b) => b[1] - a[1])[0];
+    const lv = Progress.levelInfo();
     const rows = [
+      ['LEVEL', `${lv.level}`],
+      ['PRESTIGE', `${lv.prestige}`],
       ['SESSIONS PLAYED', fmt(s.games)],
       ['TOTAL DROPS', fmt(s.drops)],
       ['BITS DECRYPTED', fmt(s.bits)],
@@ -1546,14 +1627,22 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && !recordsEl.hidden) setRecordsOpen(false);
 });
 
+// Locked exploits dim with their points tracker (this prestige); DAILY shows its fixed five.
+function refreshExploitCards() {
+  document.querySelectorAll('.hack-item').forEach((el) => {
+    const id = el.dataset.hack;
+    const info = Progress.exploitInfo(id);
+    el.classList.toggle('locked', !hackAvailable(id));
+    el.querySelector('.lock-tag').textContent = mode === 'daily'
+      ? 'NOT USED IN THE DAILY DECRYPT'
+      : `UNLOCKS AT ${fmt(info.goal)} POINTS THIS PRESTIGE (${fmt(Math.min(info.current, info.goal))} / ${fmt(info.goal)})`;
+  });
+}
+
 // Refreshes everything that can be locked, after progress or Full Access changes.
 function applyUnlocks() {
-  // Bonus exploits dim with their requirement and tracker until unlocked
-  document.querySelectorAll('.hack-item[data-unlock]').forEach((el) => {
-    const u = Progress.unlock(el.dataset.unlock);
-    el.classList.toggle('locked', !hackAvailable(el.dataset.hack));
-    el.querySelector('.lock-tag').textContent = `UNLOCK: ${u.need.toUpperCase()} (${Math.min(u.value(), u.goal)}/${u.goal})`;
-  });
+  refreshExploitCards();
+  updateLevelBar();
   const hardBtn = document.querySelector('.difficulty [data-difficulty="hard"]');
   const hardLocked = !Progress.isUnlocked('mode-hard');
   hardBtn.classList.toggle('locked', hardLocked);
@@ -1564,6 +1653,7 @@ function applyUnlocks() {
 }
 Unlocks.onChange(applyUnlocks);
 applyUnlocks();
+document.getElementById('dev-badge').hidden = !Unlocks.isDevUnlock();
 
 initGame();
 updateFreeBtn();

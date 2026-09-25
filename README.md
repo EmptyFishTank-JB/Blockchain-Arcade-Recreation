@@ -68,39 +68,43 @@ On Hard, every 8 bits a single drop decrypts, chains included, make a byte:
 High scores are saved in your browser, one per difficulty (Hard's started
 fresh when it moved to 8×8).
 
-## Unlocks, achievements and stats
+## Levels, prestige and unlocks
 
-Easy, Normal, tracks 01-02, the TERMINAL theme and the five standard
-exploits are open from the start. Everything else is earned by playing:
+**Levels.** Every bit you decrypt is XP. Lv 1 → 2 takes 50 bits and each level
+after needs 5 more, up to **Lv 80** (about 19,000 bits). The level bar sits
+under the title; tapping it opens RECORDS.
 
-| Unlock | Requirement |
-|---|---|
-| Hard mode | Score 1,500 on Normal |
-| Tracks 03-10 | Decrypt 300 / 750 / 1,500 / 3,000 / 5,000 / 7,500 / 10,000 / 15,000 bits in total (07-10 are still to come) |
-| CIPHER | Decrypt a BYTE on Hard |
-| AMBER CRT | Play 25 sessions |
-| MONOCHROME | Get a 6x chain |
-| REDLINE | Last 100 drops in one Hard session |
-| SYNTHWAVE | Score 5,000 in one session |
-| Dictionary Attack | Peel 100 encryption layers |
-| Keylogger | Run 20 exploits |
-| Backdoor | Reveal 50 bits from under encryption layers |
-| Rainbow Table | Decrypt 5,000 bits |
-| DOT MATRIX | Decrypt 2,500 bits |
-| DAYLIGHT | Play 50 sessions |
-| GLYPH | Decrypt 100 of every number from 1 to 7 |
-| SPECTRUM | Earn every other unlock |
+**Prestige.** At Lv 80, PRESTIGE (in RECORDS → UNLOCKS, two presses) starts you
+again at Lv 1 with prestige +1. Exploits lock again, and each prestige
+permanently unlocks the next theme.
 
-The trophy icon (top-left of the terminal) opens **RECORDS**: every unlock
-and all 25 achievements with progress trackers, plus lifetime stats. Newly
-earned unlocks and achievements pop up as UNLOCKED // … and ACHIEVEMENT // ….
-Locked items show their requirement where they appear (the Hard button, the
-theme grid, the playlist and the exploit cards). Progress is saved in the
-browser (`bytefall-progress`); players who already had a Hard score keep Hard.
+**Exploits** are locked at first and unlock in this order as points pile up
+within the current prestige: RNG (500), BITFLIP (2,000), BUFFER OVERFLOW
+(5,000), TROJAN (10,000), WORM VIRUS (20,000), KEYLOGGER (35,000), BACKDOOR
+(55,000), DICTIONARY ATTACK (80,000), RAINBOW TABLE (110,000). Prestige N
+starts with the first N unlocked and the rest move down the thresholds. The
+Daily Decrypt always uses the five standard exploits, so it's the same for
+everyone.
 
-`progress.js` holds the stats, the unlock list (`UNLOCKS`) and the
-achievements (`ACHIEVEMENTS`); `script.js` reports each drop, decrypt,
-peel, byte and exploit to it.
+**Themes** unlock by prestige, for good: CIPHER (1), AMBER CRT (2), MONOCHROME
+(3), REDLINE (4), SYNTHWAVE (5), DOT MATRIX (6), DAYLIGHT (7), GLYPH (8),
+SPECTRUM (9).
+
+**Permanent unlocks:** Hard mode (score 1,500 on Normal) and tracks 03-10
+(300 / 750 / 1,500 / 3,000 / 5,000 / 7,500 / 10,000 / 15,000 bits decrypted in
+total; 07-10 are still to come).
+
+The trophy icon opens **RECORDS**: level and prestige, every unlock and
+achievement with a progress tracker, and lifetime stats. New unlocks, level-ups
+and achievements pop up as they happen. Progress is saved in the browser
+(`bytefall-progress`).
+
+`progress.js` holds the stats, levels, unlocks and achievements; `script.js`
+reports each drop, decrypt, peel, byte, exploit and point to it.
+
+**Dev switches.** The `</>` dev page has UNLOCK EVERYTHING (like owning Full
+Access, for this browser; the game shows a DEV badge while it's on), JUMP TO
+LV 80 and +10,000 POINTS for testing prestige and exploit unlocks.
 
 ## Daily bonus, vibration and resetting
 
