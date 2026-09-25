@@ -510,6 +510,15 @@ h1 span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
   transform: translateY(-2px);
 }
 
+/* PIVOT: the picked column and the two neighbors it can swap with */
+.column-buttons button.pivot-from { border-color: var(--accent); color: var(--accent); }
+.column-buttons button.pivot-target {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(var(--accent-rgb), 0.15);
+  animation: warn-pulse 1s ease-in-out infinite;
+}
+
 .column-buttons button:disabled {
   opacity: 0.25;
   cursor: not-allowed;

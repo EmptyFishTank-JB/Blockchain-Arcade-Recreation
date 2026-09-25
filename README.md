@@ -36,6 +36,7 @@ lands:
 | Keylogger `[@]` * | 3x | Shows your next 3 bits for the next 10 drops |
 | Backdoor `[_]` * | 4x | Deletes the entire bottom row, layers included; everything drops by one |
 | Rainbow Table `[*]` * | 5x | Decrypts every bit showing the most common number on the board |
+| Pivot `[⇆]` * | 3x | Swaps the column it lands in with a neighbor: pick the column, then tap ← or → (or press the arrow keys); edge columns swap with their only neighbor |
 | Packet Sniffer `[~]` * | 3x | For your next 3 bits, tap CURRENT (or press ↑ / ↓) to pick each one's number |
 | Logic Bomb `[!]` * | 4x | Lands as a `[!3]` block counting down each drop; at zero it wipes out the 5×5 around it |
 | Honeypot `[◎]` * | 4x | Lands as a trap; when a bit next to it decrypts, every bit of that number within 2 cells decrypts too |
@@ -85,9 +86,10 @@ rest unlock sooner. Each prestige also permanently unlocks the next theme.
 
 **Exploit slots (loadout).** Only exploits equipped in a slot are awarded.
 Slots unlock at Lv 5, 15, 30, 45, 60 and 75 (6 at most). Exploits unlock by
-level in this order: RNG (3), BITFLIP (8), BUFFER OVERFLOW (14), TROJAN (20),
-WORM VIRUS (26), KEYLOGGER (32), PACKET SNIFFER (38), BACKDOOR (44), LOGIC
-BOMB (50), HONEYPOT (56), DICTIONARY ATTACK (63), RAINBOW TABLE (70); with a
+level in this order: RNG (3), BITFLIP (8), BUFFER OVERFLOW (13), TROJAN (18),
+PIVOT (23), WORM VIRUS (29), KEYLOGGER (35), PACKET SNIFFER (41), BACKDOOR
+(47), LOGIC BOMB (53), HONEYPOT (59), DICTIONARY ATTACK (65), RAINBOW TABLE
+(70); with a
 prestige's kept exploits, the rest move down this list. A new unlock drops
 into a free slot by itself; tap an exploit card to remove or equip it. The loadout
 is locked during a session: change it before the first drop or after the game ends. The

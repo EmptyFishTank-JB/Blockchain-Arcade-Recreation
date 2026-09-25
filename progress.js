@@ -78,9 +78,9 @@ const Progress = (() => {
   }
 
   // Weakest first. After the ones a prestige keeps, each unlocks at the next level in EXPLOIT_LEVELS.
-  const EXPLOIT_ORDER = ['rng', 'bitflip', 'overflow', 'trojan', 'worm', 'keylogger', 'sniffer', 'backdoor',
-    'logicbomb', 'honeypot', 'dictionary', 'rainbow'];
-  const EXPLOIT_LEVELS = [3, 8, 14, 20, 26, 32, 38, 44, 50, 56, 63, 70];
+  const EXPLOIT_ORDER = ['rng', 'bitflip', 'overflow', 'trojan', 'pivot', 'worm', 'keylogger', 'sniffer',
+    'backdoor', 'logicbomb', 'honeypot', 'dictionary', 'rainbow'];
+  const EXPLOIT_LEVELS = [3, 8, 13, 18, 23, 29, 35, 41, 47, 53, 59, 65, 70];
   // Loadout slots: prestige N keeps N (up to MAX_SLOTS); the rest unlock at SLOT_LEVELS in turn
   const MAX_SLOTS = 6;
   const SLOT_LEVELS = [5, 15, 30, 45, 60, 75];

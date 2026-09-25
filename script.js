@@ -46,6 +46,7 @@ const HACKS = {
   sniffer: { name: 'PACKET SNIFFER', icon: '~', easyCombo: 3 },
   logicbomb: { name: 'LOGIC BOMB', icon: '!', easyCombo: 4 },
   honeypot: { name: 'HONEYPOT', icon: '\u25CE', easyCombo: 4 },
+  pivot: { name: 'PIVOT', icon: '\u21C6', easyCombo: 3 },
 };
 const KEYLOGGER_DROPS = 10; // drops the keylogger keeps showing the next bits for
 const KEYLOGGER_PREVIEW = 3;
@@ -71,6 +72,8 @@ let busy = false; // true while animating/resolving, blocks input
 let runId = 0; // bumped on every new game so a pending game-over sequence can tell it's stale
 let keyloggerDrops = 0; // drops left with the keylogger's preview showing
 let snifferBits = 0; // bits left whose number the player can pick
+let pivotFrom = null; // PIVOT: column picked, waiting for the player to pick a neighbor
+let pivotWith = null; // PIVOT: the neighbor the landing pivot swaps with
 
 const storage = {
   get(key) {
@@ -231,6 +234,8 @@ function initGame() {
   dropsSinceLastPulse = 0;
   keyloggerDrops = 0;
   snifferBits = 0;
+  pivotFrom = null;
+  pivotWith = null;
   pulseInterval = DIFFICULTIES[difficulty].interval(0);
   gameOver = false;
   busy = false;
@@ -365,7 +370,11 @@ function updateColumnButtons() {
   updateFreeBtn();
   const buttons = columnButtonsEl.querySelectorAll('button');
   buttons.forEach((btn, c) => {
-    btn.disabled = gameOver || busy || columns[c].length >= MAX_ROWS;
+    const target = pivotFrom !== null && Math.abs(c - pivotFrom) === 1;
+    btn.disabled = gameOver || busy || (!target && columns[c].length >= MAX_ROWS);
+    btn.classList.toggle('pivot-from', c === pivotFrom);
+    btn.classList.toggle('pivot-target', target);
+    btn.textContent = target ? (c < pivotFrom ? '\u2190' : '\u2192') : String(c + 1);
   });
 }
 
@@ -527,6 +536,7 @@ function updateHud() {
   pulseCounterEl.textContent = mode === 'puzzle' ? queue.length : pulseInterval - dropsSinceLastPulse;
   if (mode === 'daily') showClock();
   pulseCounterEl.closest('.stat').classList.toggle('danger', !gameOver && !MODES[mode].noLayers && pulseInterval - dropsSinceLastPulse === 1);
+  if (pivotFrom !== null && !(queue[0] && queue[0].id === 'pivot')) clearPivotChoice();
   const sniffing = snifferBits > 0 && queue[0] && queue[0].type === 'number';
   currentEl.closest('.stat').classList.toggle('sniffing', !!sniffing);
   document.getElementById('current-label').textContent = sniffing ? `SNIFF ${snifferBits} \u2195` : 'CURRENT';
@@ -551,9 +561,37 @@ function burstMessage(type) {
   FX.burst([{ rect: range.getBoundingClientRect(), type }]);
 }
 
+// PIVOT: a middle column asks which neighbor to swap with (second tap, or the arrow keys)
+function choosePivot(col) {
+  pivotFrom = col;
+  setMessage(`PIVOT // SWAP COLUMN ${col + 1} WITH \u2190 ${col} OR ${col + 2} \u2192`);
+  SFX.play('click');
+  updateColumnButtons();
+}
+function clearPivotChoice() {
+  if (pivotFrom === null) return;
+  pivotFrom = null;
+  setMessage('');
+  updateColumnButtons();
+}
+
 async function attemptDrop(col) {
   if (gameOver || busy || !queue.length) return;
+  if (queue[0].type === 'hack' && queue[0].id === 'pivot') {
+    if (pivotFrom !== null && Math.abs(col - pivotFrom) === 1) {
+      pivotWith = col; // the second tap: drop into the picked column, swap with this one
+      col = pivotFrom;
+      clearPivotChoice();
+    } else if (col === 0 || col === COLS - 1) {
+      clearPivotChoice();
+      pivotWith = col === 0 ? 1 : COLS - 2; // edges have only one neighbor
+    } else {
+      choosePivot(col);
+      return;
+    }
+  }
   if (columns[col].length >= MAX_ROWS) {
+    pivotWith = null;
     SFX.play('denied');
     return;
   }
@@ -952,6 +990,15 @@ async function runHack(id, row, col) {
     render();
     SFX.play('enter');
     await sleep(300);
+  } else if (id === 'pivot') {
+    // Swap the column it landed in with the neighbor the player picked
+    columns[col].pop();
+    const other = pivotWith === null ? (col === 0 ? 1 : col - 1) : pivotWith;
+    pivotWith = null;
+    [columns[col], columns[other]] = [columns[other], columns[col]];
+    render();
+    SFX.play('static');
+    await sleep(300);
   } else if (id === 'sniffer') {
     columns[col].pop();
     snifferBits = SNIFFER_BITS;
@@ -1046,6 +1093,9 @@ function endGame(reason = 'trace') {
 document.addEventListener('keydown', (e) => {
   const num = parseInt(e.key, 10);
   if (num >= 1 && num <= COLS) attemptDrop(num - 1);
+  else if (e.key === 'ArrowLeft' && pivotFrom !== null) { e.preventDefault(); attemptDrop(pivotFrom - 1); }
+  else if (e.key === 'ArrowRight' && pivotFrom !== null) { e.preventDefault(); attemptDrop(pivotFrom + 1); }
+  else if (e.key === 'Escape' && pivotFrom !== null) clearPivotChoice();
   else if (e.key === 'ArrowUp' && snifferBits > 0) { e.preventDefault(); sniff(1); }
   else if (e.key === 'ArrowDown' && snifferBits > 0) { e.preventDefault(); sniff(-1); }
 });
