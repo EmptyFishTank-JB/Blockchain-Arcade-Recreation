@@ -110,7 +110,7 @@ LV 80 and +10,000 POINTS for testing prestige and exploit unlocks.
 
 - **Daily bonus:** the first time the game opens each day (local date), one
   free exploit is banked behind the ⚡ FREE EXPLOIT button next to RESTART.
-  Tapping it makes a random unlocked exploit your next drop. It doesn't stack
+  Tapping it makes one of the first five exploits (RNG, BITFLIP, BUFFER OVERFLOW, TROJAN, WORM VIRUS) your next drop, even if you haven't unlocked it yet, so new players get to try them. It doesn't stack
   if unused, and it's hidden in DAILY and PUZZLE so those stay equal for
   everyone.
 - **Vibration:** on devices that support it (Android), drops, decrypts,

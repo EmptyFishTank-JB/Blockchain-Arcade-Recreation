@@ -1337,7 +1337,8 @@ vibrateBtn.addEventListener('click', () => {
 updateVibrateBtn();
 
 // DAILY BONUS: the first time the game opens each day (the player's own date), one free exploit
-// is banked behind the FREE EXPLOIT button until used. Unused, it doesn't stack. Not in DAILY or
+// is banked behind the FREE EXPLOIT button until used. It's one of the first five in the unlock
+// order, locked or not, so new players get a feel for them. Unused, it doesn't stack. Not in DAILY or
 // PUZZLE, which stay the same for everyone.
 const FREE_KEY = 'bytefall-free-exploit';
 const localDay = () => new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD in local time
@@ -1352,12 +1353,12 @@ if (freeExploit.day !== localDay()) {
   freeGrantedNow = true;
 }
 function updateFreeBtn() {
-  freeBtn.hidden = !freeExploit.ready || mode === 'daily' || mode === 'puzzle' || !Object.keys(HACKS).some(hackAvailable);
+  freeBtn.hidden = !freeExploit.ready || mode === 'daily' || mode === 'puzzle';
   freeBtn.disabled = gameOver || busy;
 }
 freeBtn.addEventListener('click', () => {
   if (!freeExploit.ready || gameOver || busy || mode === 'daily' || mode === 'puzzle') return;
-  const ids = Object.keys(HACKS).filter(hackAvailable);
+  const ids = Progress.exploitOrder().slice(0, 5);
   const id = ids[Math.floor(Math.random() * ids.length)];
   freeExploit.ready = false;
   saveFree();
