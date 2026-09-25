@@ -978,6 +978,18 @@ h1 span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
     max-width: 960px;
     align-items: start;
   }
+  /* The exploits column matches the game panel's height and scrolls inside itself:
+     contain: size keeps its long list from setting the row height, then it stretches. */
+  .cabinet .panel-hacks {
+    align-self: stretch;
+    contain: size;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--fg-dim) transparent;
+  }
+  .panel-hacks::-webkit-scrollbar { width: 6px; }
+  .panel-hacks::-webkit-scrollbar-thumb { background: var(--fg-dim); border-radius: 3px; }
 }
 
 .panel {
