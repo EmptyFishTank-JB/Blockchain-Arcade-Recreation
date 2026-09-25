@@ -207,6 +207,7 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
 - `script.js` — game state, rendering, chain resolution and exploits
 - `unlocks.js` — the Full Access check (never owned on the website; `?unlockall` previews it)
 - `progress.js` — lifetime stats, earnable unlocks and achievements
+- `achievements.csv` — every achievement grouped by what it's about (category, name, description, goal, and whether it's standard, hidden or impossible)
 - `manifest.webmanifest`, `icons/` — the home-screen app view and icons
 - `puzzles.js` — the PUZZLE boards, generated and verified by brute force (1-3 solutions each, none solvable in fewer drops)
 - `daily-puzzles.js` — the DAILY PUZZLE boards, one per UTC day for about three years (then they loop), generated and verified the same way (1-3 solutions each)

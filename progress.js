@@ -293,6 +293,7 @@ const Progress = (() => {
       ['pi-day', 'PI DAY', 'Play on March 14'],
     ].map(([id, name, desc]) => ({ id, name, desc, value: () => (d.secrets[id] ? 1 : 0), goal: 1, hidden: true })),
     // Impossible (or nearly): lifetime points. Listed on their own, outside the EARNED count.
+    { id: 'megabyte-points', name: 'MEGABYTE', desc: 'Earn 8,000,000 points in total', value: () => d.points, goal: 8e6, impossible: true },
     { id: 'gigabyte', name: 'GIGABYTE', desc: 'Earn 8,000,000,000 points in total', value: () => d.points, goal: 8e9, impossible: true },
     { id: 'terabyte', name: 'TERABYTE', desc: 'Earn 8,000,000,000,000 points in total', value: () => d.points, goal: 8e12, impossible: true },
   ];
