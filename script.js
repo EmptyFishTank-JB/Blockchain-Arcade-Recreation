@@ -1792,10 +1792,16 @@ function showToast(text) {
   toastQueue.push(text);
   if (!toastShowing) nextToast();
 }
+// Pop-ups wait while RECORDS or SETTINGS is open (one already showing finishes above the panel)
+const panelOpen = () => !recordsEl.hidden || !settingsEl.hidden;
 function nextToast() {
+  toastShowing = toastQueue.length > 0;
+  if (!toastShowing) return;
+  if (panelOpen()) {
+    setTimeout(nextToast, 250);
+    return;
+  }
   const text = toastQueue.shift();
-  toastShowing = !!text;
-  if (!text) return;
   toastEl.textContent = text;
   toastEl.hidden = false;
   placeToast();

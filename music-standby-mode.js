@@ -370,7 +370,7 @@ function createStandbyMode(ctx, out) {
           if (base) {
             sax(t, m, len * STEP, L.warmth, 1, legato ? from : null, bluesy ? 2 : 1);
           }
-          if (L.harmony > 0) sax(t, thirdBelow(m), len * STEP, L.warmth, 0.17 * L.harmony, null, bluesy ? 2 : 1);
+          if (L.harmony > 0) sax(t, thirdBelow(m), len * STEP, L.warmth, 0.5 * L.harmony, null, bluesy ? 2 : 1);
           lastSax = m;
         }
         if (s === 15 && i === 7) lastSax = null;
