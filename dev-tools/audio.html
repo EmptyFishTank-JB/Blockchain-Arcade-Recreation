@@ -266,15 +266,16 @@
   <footer>GENERATED FROM SOURCE &mdash; NO AUDIO FILES, ALL SYNTHESIZED ON PLAY</footer>
 </div>
 
-<script src="../sfx.js?v=79"></script>
-<script src="../music-theme.js?v=79"></script>
-<script src="../music-sleep-mode.js?v=79"></script>
-<script src="../music-brute-force.js?v=79"></script>
-<script src="../music-deep-web.js?v=79"></script>
-<script src="../music-zero-day.js?v=79"></script>
-<script src="../music-system-restore.js?v=79"></script>
-<script src="../music-night-drive.js?v=79"></script>
-<script src="../viz.js?v=79"></script>
+<script src="../sfx.js?v=80"></script>
+<script src="../music-theme.js?v=80"></script>
+<script src="../music-sleep-mode.js?v=80"></script>
+<script src="../music-brute-force.js?v=80"></script>
+<script src="../music-deep-web.js?v=80"></script>
+<script src="../music-zero-day.js?v=80"></script>
+<script src="../music-system-restore.js?v=80"></script>
+<script src="../music-night-drive.js?v=80"></script>
+<script src="../music-standby-mode.js?v=80"></script>
+<script src="../viz.js?v=80"></script>
 <script>
 (() => {
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -432,6 +433,17 @@
         ['0:19', 'Cruise', 'The full drive: gated snare on 2 and 4, 8th-note hats and the 16th arpeggio.'],
         ['0:38', 'Neon', 'New chords (D–E–C♯m–F♯m–D–E–A–E) and the gliding lead melody.'],
         ['0:58', 'Overdrive', 'The lead doubled an octave down and the arpeggio an octave up, then a tom fill back into the loop.'],
+      ],
+    },
+    {
+      id: 'standby-mode', num: '08', title: 'STANDBY MODE', create: createStandbyMode, file: 'music-standby-mode.js',
+      meta: ['soul ballad', '112 BPM', 'B♭ major', '32 bars', '~69s loop'],
+      desc: 'Original early-60s soul ballad: a walking upright bass, finger snaps and a guiro scrape, a clean guitar picking the chords, and a breathy saxophone singing the melody through a warm room reverb.',
+      sections: [
+        ['0:00', 'Standby', 'B♭–Gm–E♭–F–B♭, two bars a chord. Bass and snaps alone, then the guitar and guiro join at bar 3.'],
+        ['0:17', 'Signal', 'The saxophone takes the melody.'],
+        ['0:34', 'Connected', 'The melody climbs an octave higher.'],
+        ['0:51', 'Hold', 'The melody back down, with bluesy slides into each note, then round into the loop.'],
       ],
     },
   ];

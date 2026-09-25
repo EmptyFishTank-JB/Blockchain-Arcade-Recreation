@@ -112,7 +112,7 @@ SPECTRUM (9).
 
 **Permanent unlocks:** Hard mode (score 2,000 on Normal) and tracks 03-10
 (300 / 750 / 1,500 / 3,000 / 5,000 / 7,500 / 10,000 / 15,000 bits decrypted in
-total; 07-10 are still to come).
+total; 09-10 are still to come).
 
 The trophy icon opens **RECORDS**: level and DECRYPTOR rank, every unlock and
 achievement with a progress tracker, and lifetime stats. New unlocks, level-ups
@@ -258,6 +258,10 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
   at 100 BPM in F♯ minor (pumping octave bass ducking under the kick, detuned
   saw pads, gated-reverb snare and tom fills, arpeggio and gliding lead through
   a dotted-8th echo; ignition, cruise, neon, overdrive). Unlocked at 5,000 bits.
+- `music-standby-mode.js` — track 08, STANDBY MODE: an original early-60s
+  soul ballad at 112 BPM in B♭ major (walking upright bass, finger snaps and
+  guiro, clean guitar, a breathy saxophone melody in a warm room reverb;
+  standby, signal, connected, hold). Unlocked at 7,500 bits.
 - `dev-tools/audio.html` — the audio compendium, opened by the `</>` icon in
   the footer: every sound effect and track with a play button, where each is
   used in the game, a seekable progress line and a live intensity slider for
@@ -267,7 +271,7 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
   dial-up modem, ZERO DAY's air-raid siren): the game never plays them, and
   here they start muted so they can still be heard
 - `audio/` — offline WAV renders of the music for reference (not loaded by
-  the game). `01-bytefall-theme.wav` through `07-night-drive.wav` are one full
+  the game). `01-bytefall-theme.wav` through `08-standby-mode.wav` are one full
   loop of each track at full intensity (stack 6+, every layer the game plays,
   archived layers left out). Older versions: `blockchain-theme-v1.wav` is the
   original 16-bar theme loop, `blockchain-theme-v2.wav` the first 32-bar

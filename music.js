@@ -22,6 +22,7 @@ const Music = (() => {
     { id: 'zero-day', title: 'ZERO DAY', create: createZeroDay },
     { id: 'system-restore', title: 'SYSTEM RESTORE', create: createSystemRestore },
     { id: 'night-drive', title: 'NIGHT DRIVE', create: createNightDrive },
+    { id: 'standby-mode', title: 'STANDBY MODE', create: createStandbyMode },
   ];
   let enabled = true;
   let backgroundPlay = false;
