@@ -1527,7 +1527,7 @@ body.vs-mode header #mode-info { display: none; }
 
 .settings-row { display: flex; gap: 6px; margin-bottom: 6px; }
 
-.font-list { display: flex; flex-wrap: wrap; gap: 6px; }
+
 .theme-list { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .settings .theme-option {
   flex-direction: column;
@@ -1540,6 +1540,8 @@ body.vs-mode header #mode-info { display: none; }
   border-color: var(--grid-line);
 }
 .settings .theme-option.active { color: var(--fg); border-color: var(--fg); }
+/* Font picker: each name in its own font, centered both ways (clear of the lock icon) */
+.settings .font-list .theme-option { justify-content: center; align-items: center; text-align: center; min-height: 34px; padding-left: 15px; padding-right: 15px; letter-spacing: 0.5px; }
 /* Each swatch carries its theme's data-theme, so it shows that theme's bit, layer and accent colors */
 /* The theme's colors as three short, wide bars under its name */
 .swatches { display: flex; gap: 3px; width: 100%; }

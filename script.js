@@ -1942,7 +1942,9 @@ function applyFont() {
     btn.className = 'theme-option';
     btn.classList.toggle('active', f.id === shown.id);
     btn.setAttribute('aria-pressed', String(f.id === shown.id));
-    btn.textContent = f.label;
+    const name = document.createElement('span');
+    name.textContent = f.label;
+    btn.appendChild(name);
     btn.dataset.fontPreview = f.id; // each name shows in its own font
     if (!fontAvailable(f)) {
       btn.classList.add('locked');
@@ -1967,8 +1969,11 @@ function fitFontNames() {
   if (document.getElementById('settings').hidden) return;
   for (const btn of fontListEl.children) {
     btn.style.fontSize = '';
-    let size = parseFloat(getComputedStyle(btn).fontSize);
-    while (btn.scrollWidth > btn.clientWidth && size > 6) {
+    const cs = getComputedStyle(btn);
+    const room = btn.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    const name = btn.firstElementChild;
+    let size = parseFloat(cs.fontSize);
+    while (name.getBoundingClientRect().width > room && size > 6) {
       size -= 0.5;
       btn.style.fontSize = `${size}px`;
     }
