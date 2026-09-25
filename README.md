@@ -151,7 +151,7 @@ press and hold any exploit card for 2 seconds to make it your next drop.
 ## Daily bonus, vibration and resetting
 
 - **Daily bonus:** the first time the game opens each day (local date), one
-  free exploit waits in the exploit button once a session starts, marked FREE!.
+  free exploit waits in the exploit button, marked FREE!.
   Arming it makes one of the first five exploits (RNG, BITFLIP, BUFFER OVERFLOW, TROJAN, WORM VIRUS) your next drop, even if you haven't unlocked it yet, so new players get to try them. It doesn't stack
   if unused, and it's hidden in DAILY and PUZZLE so those stay equal for
   everyone.
@@ -205,10 +205,9 @@ Every color in `style.css` is a named role in `:root`; a theme is a
 `THEMES` in `script.js` and in the small theme script in `index.html`'s
 head. All but TERMINAL are unlocked by playing (see below).
 
-**START and the corners.** Each session begins with START (under the column
-buttons, or Enter); drops wait until then (PUZZLE starts right away, VS has
-its own START). During a session, RESTART is the arrows icon in the game card's
-lower-left corner (QUIT in VS) and the exploit button is in the lower-right.
+**The corners.** Once a session's first bit drops, RESTART is the arrows icon
+in the game card's lower-left corner (QUIT in VS); the exploit button is in the
+lower-right.
 
 **No scrolling on phones.** Below 1000px wide (phones and the app) the EXPLOITS
 and RULES cards and the footer move inside SETTINGS, so the game page never

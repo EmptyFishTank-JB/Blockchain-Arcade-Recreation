@@ -1721,11 +1721,11 @@ footer p.accent { color: var(--accent); }
 .free-exploit-btn .ico { margin-right: 6px; }
 .puzzle-nav .ico { width: 9px; height: 9px; vertical-align: middle; }
 
-/* ===== Lower corners and START =====
+/* ===== Lower corners =====
    RESTART (QUIT in VS) sits in the game card's lower-left corner during a session; the exploit
-   button in the lower-right. Before a session, START sits where the messages show. */
+   button in the lower-right. */
 /* The corner buttons are 60x30 (2:1) with the bit cells' square corners, level with each other
-   and mirrored 12px in from each side. The message line / START sits centered between the column
+   and mirrored 12px in from each side. The message line sits centered between the column
    buttons and the corner buttons' tops: its 12px top gap matches the room left above them in the
    52px bottom padding (52 - 10 below - 30 tall). */
 .crt { padding-bottom: 52px; }
@@ -1770,25 +1770,7 @@ footer p.accent { color: var(--accent); }
   0%, 100% { box-shadow: 0 0 4px rgba(var(--accent-rgb), 0.4); }
   50% { box-shadow: 0 0 18px rgba(var(--accent-rgb), 0.95); }
 }
-.message-slot { position: relative; }
-.start-btn {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 2;
-  padding: 8px 34px;
-  background: rgba(var(--fg-rgb), 0.12);
-  border: 1px solid var(--fg);
-  border-radius: 4px;
-  color: var(--fg);
-  font-family: inherit;
-  font-size: 14px;
-  letter-spacing: 3px;
-  cursor: pointer;
-  box-shadow: 0 0 12px rgba(var(--fg-rgb), 0.35);
-}
-.start-btn[hidden] { display: none; }
+
 
 /* ===== Phones and the app: no page scroll ===== the RULES and EXPLOITS cards and the footer
    sit inside SETTINGS (moved there by script.js) */

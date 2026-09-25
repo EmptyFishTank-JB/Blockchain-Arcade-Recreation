@@ -82,7 +82,7 @@ let snifferBits = 0; // bits left whose number the player can pick
 let pivotFrom = null; // PIVOT: column picked, waiting for the player to pick a neighbor
 let pivotWith = null; // PIVOT: the neighbor the landing pivot swaps with
 let breached = false; // BREACH: the board was cleared
-let started = false; // START pressed (PUZZLE starts right away; VS has its own START)
+let started = false; // the session's first drop has landed (PUZZLE counts as started right away)
 let heldHacks = []; // earned exploits waiting in the exploit button
 let armedHack = null; // the exploit armed as the next drop (no taking it back)
 
@@ -720,7 +720,7 @@ async function attemptDrop(col) {
       return;
     }
   }
-  if ((mode === 'vs' && !vsStarted) || (mode !== 'vs' && !started)) {
+  if (mode === 'vs' && !vsStarted) {
     SFX.play('denied');
     return;
   }
@@ -756,6 +756,7 @@ async function attemptDrop(col) {
     if (tries >= 10) Progress.secret('stubborn');
   }
   Progress.drop();
+  started = true;
   if (Progress.runDrops() === 1) refreshExploitCards(); // the loadout locks for this session
   if (mode === 'blitz') clockRunning = true;
   let wentOver = overflowed();
@@ -1292,11 +1293,6 @@ document.addEventListener('keydown', (e) => {
 });
 
 document.addEventListener('keydown', (e) => {
-  if (mode !== 'vs' && !started && !gameOver && (e.key === 'Enter' || e.key === ' ')) {
-    e.preventDefault();
-    startSession();
-    return;
-  }
   if (e.key === 'e' || e.key === 'E') {
     if (nextExploit()) armExploit();
     return;
@@ -2223,29 +2219,19 @@ function showExploitsCard() {
   hacksPanelBox.classList.add('flash');
 }
 
-// START (before a session) and the lower corners: RESTART (QUIT in VS) once a session is going,
-// and the exploit button
-const startBtn = document.getElementById('start-btn');
+// The lower corners: RESTART (QUIT in VS) once a session is going (after its first drop), and the
+// exploit button
 const exploitBtn = document.getElementById('exploit-btn');
 const LIGHTNING_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 10-13h-7z" fill="currentColor"/></svg>';
-function startSession() {
-  if (mode === 'vs' || started || gameOver) return;
-  started = true;
-  FX.burst([{ el: startBtn, type: 'warning' }]);
-  SFX.play('static');
-  updateFreeBtn();
-}
-startBtn.addEventListener('click', startSession);
 
 // The exploit button: dim lightning when there's nothing to arm; glowing green (showing that
 // exploit's icon) when one is ready; glowing, pulsing amber once armed as the next drop
 function nextExploit() {
   if (heldHacks.length) return heldHacks[0];
-  return freeAllowed() && started ? freeExploitId() : null;
+  return freeAllowed() ? freeExploitId() : null;
 }
 function updateFreeBtn() {
   const inVs = mode === 'vs';
-  startBtn.hidden = inVs || started || gameOver;
   restartBtn.hidden = inVs || !started || gameOver;
   vsQuitBtn.hidden = !inVs;
   const ready = nextExploit();
@@ -2257,7 +2243,7 @@ function updateFreeBtn() {
     : ready ? `${HACKS[ready].name} // tap to arm it as your next drop` : 'Exploits';
   // FREE! beside the button when the ready one is the daily free exploit
   document.getElementById('exploit-free').hidden = !!armedHack || heldHacks.length > 0 || !ready;
-  const count = heldHacks.length + (freeAllowed() && started ? 1 : 0);
+  const count = heldHacks.length + (freeAllowed() ? 1 : 0);
   const countEl = document.getElementById('exploit-count');
   countEl.hidden = count < 2 || !!armedHack;
   countEl.textContent = `x${count}`;
@@ -2265,7 +2251,7 @@ function updateFreeBtn() {
 
 // Arm the ready exploit as the next drop. Committed: it can't be taken back.
 function armExploit() {
-  if (armedHack || gameOver || busy || pivotFrom !== null || !started) return false;
+  if (armedHack || gameOver || busy || pivotFrom !== null) return false;
   let id = heldHacks.shift();
   let free = false;
   if (!id) {
