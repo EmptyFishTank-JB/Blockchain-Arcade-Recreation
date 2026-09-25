@@ -101,7 +101,8 @@ const Progress = (() => {
     if (best('hard') > 0 || Number(localStorage.getItem('blockchain-best-hard')) > 0) d.earned['mode-hard'] = true;
   } catch (e) {}
 
-  const TRACK_BITS = [300, 750, 1500, 3000, 5000, 7500, 10000, 15000]; // tracks 03-10
+  // Tracks 02-10: each roughly 1.5-2.8x the last, so the early ones come quickly
+  const TRACK_BITS = [125, 350, 800, 1600, 3000, 5000, 7500, 11000, 15000];
 
   const MAX_LEVEL = 80;
   // 100 bits (12.5 bytes) per level. Lv 80 starts at 7,900 bits and its bar fills at 8,000,
@@ -165,7 +166,7 @@ const Progress = (() => {
   const UNLOCKS = [
     { id: 'mode-hard', group: 'MODE', name: 'HARD MODE', need: 'Score 2,000 on Normal', value: () => best('normal'), goal: 2000 },
     ...TRACK_BITS.map((goal, i) => ({
-      id: `track-${i + 3}`, group: 'TRACKS', name: `TRACK ${String(i + 3).padStart(2, '0')}`,
+      id: `track-${i + 2}`, group: 'TRACKS', name: `TRACK ${String(i + 2).padStart(2, '0')}`,
       need: `Decrypt ${goal.toLocaleString('en-US')} bits`, value: () => d.bits, goal,
     })),
     ...THEME_ORDER.map(([id, name], i) => ({

@@ -13,10 +13,10 @@ const Music = (() => {
   const HIDDEN_LOOKAHEAD = 1.5;
   const INTENSITY_EASE = 0.06; // per 16th step, ~2.5s to settle
   // Add future tracks here: each entry's create(ctx, out) returns an engine like createSynthwave's.
-  // free: always playable; track N (from 03) is unlocked by progress.js's track-N.
+  // free: always playable; track N (from 02) is unlocked by progress.js's track-N.
   const TRACKS = [
     { id: 'theme', title: 'BYTEFALL THEME', create: createSynthwave, free: true },
-    { id: 'sleep-mode', title: 'SLEEP MODE', create: createSleepMode, free: true },
+    { id: 'sleep-mode', title: 'SLEEP MODE', create: createSleepMode },
     { id: 'brute-force', title: 'BRUTE FORCE', create: createBruteForce },
     { id: 'deep-web', title: 'DEEP WEB', create: createDeepWeb },
     { id: 'zero-day', title: 'ZERO DAY', create: createZeroDay },

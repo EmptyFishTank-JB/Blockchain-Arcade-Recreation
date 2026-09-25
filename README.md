@@ -110,8 +110,8 @@ everyone.
 (3), REDLINE (4), SYNTHWAVE (5), DOT MATRIX (6), DAYLIGHT (7), GLYPH (8),
 SPECTRUM (9).
 
-**Permanent unlocks:** Hard mode (score 2,000 on Normal) and tracks 03-10
-(300 / 750 / 1,500 / 3,000 / 5,000 / 7,500 / 10,000 / 15,000 bits decrypted in
+**Permanent unlocks:** Hard mode (score 2,000 on Normal) and tracks 02-10
+(125 / 350 / 800 / 1,600 / 3,000 / 5,000 / 7,500 / 11,000 / 15,000 bits decrypted in
 total; 09-10 are still to come).
 
 The trophy icon opens **RECORDS**: level and DECRYPTOR rank, every unlock and
@@ -239,6 +239,7 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
 - `music-sleep-mode.js` — track 02, SLEEP MODE: original electronicore
   (music box, trance synths, chugging distorted guitars, double-kick) at
   150 BPM, built on the public-domain lullaby "Schlaf, Kindlein, schlaf".
+  Unlocked at 125 bits.
 - `music-brute-force.js` — track 03, BRUTE FORCE: original NES-style
   chiptune at 140 BPM (pulse-wave leads, stepped triangle bass, noise drums,
   arpeggiated chords; boot, level 1, level 2, boss duet).
