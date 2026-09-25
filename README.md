@@ -179,7 +179,7 @@ Themes (picked from the swatch grid in settings):
 | REDLINE | red | steel blue | yellow | white |
 | SYNTHWAVE | pink | purple | orange | cyan |
 | DOT MATRIX | olive green | dark green | pale green | red |
-| DAYLIGHT | dark green ink on paper | tan | dark amber | red |
+| DAYLIGHT | near-black ink on paper | grey | dark amber (gold) | red |
 | GLYPH | shapes on blueprint blue | slate | amber | red |
 | SPECTRUM | each bit cycles the rainbow on its own | grey (still) | near-white (still) | cycles |
 
