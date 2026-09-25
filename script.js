@@ -397,9 +397,14 @@ function pieceLabel(piece) {
   return piece.type === 'hack' ? `[${HACKS[piece.id].icon}]` : `[${piece.val}]`;
 }
 
+// A bit in a HUD square: its number (or glyph); an exploit shows its icon
 function showPiece(el, piece) {
-  if (piece.type === 'number') fillBit(el, piece.val);
-  else el.textContent = pieceLabel(piece);
+  if (piece.type === 'number') {
+    fillBit(el, piece.val);
+    if (!themeIs('glyph')) el.textContent = String(piece.val);
+  } else {
+    el.textContent = HACKS[piece.id].icon;
+  }
   el.classList.toggle('hack', piece.type === 'hack');
   el.title = piece.type === 'hack' ? HACKS[piece.id].name : '';
 }
@@ -480,23 +485,23 @@ function updateHud() {
   scoreEl.textContent = score;
   bestEl.textContent = best;
   if (queue[0]) showPiece(currentEl, queue[0]);
-  else currentEl.textContent = '[ ]';
+  else {
+    currentEl.textContent = '';
+    currentEl.classList.remove('hack');
+  }
   // Easy previews the next bit; an active keylogger shows the next three; PUZZLE shows what's left.
   const preview = mode === 'puzzle' ? Math.min(KEYLOGGER_PREVIEW, Math.max(0, queue.length - 1))
     : keyloggerDrops > 0 ? KEYLOGGER_PREVIEW : DIFFICULTIES[difficulty].showNext ? 1 : 0;
   nextStatEl.hidden = !preview;
   nextLabelEl.textContent = keyloggerDrops > 0 ? `KEYLOG ${keyloggerDrops}` : 'NEXT';
   nextStatEl.classList.toggle('keylogger', keyloggerDrops > 0);
-  if (preview === 1) showPiece(nextEl, queue[1]);
-  else if (preview) {
-    const upcoming = queue.slice(1, 1 + preview);
-    if (themeIs('glyph')) {
-      nextEl.innerHTML = `<span class="glyphs">${upcoming.map((p) => (p.type === 'number' ? glyphSvg(p.val) : pieceLabel(p))).join('')}</span>`;
-    } else {
-      nextEl.textContent = upcoming.map(pieceLabel).join('');
-    }
-    nextEl.classList.remove('hack');
-    nextEl.title = '';
+  document.getElementById('hud-bits').classList.toggle('has-next', !!preview);
+  nextEl.innerHTML = '';
+  for (const piece of queue.slice(1, 1 + preview)) {
+    const sq = document.createElement('div');
+    sq.className = 'bit-sq';
+    showPiece(sq, piece);
+    nextEl.appendChild(sq);
   }
   pulseCounterEl.textContent = mode === 'puzzle' ? queue.length : pulseInterval - dropsSinceLastPulse;
   if (mode === 'daily') showClock();
@@ -550,6 +555,7 @@ async function attemptDrop(col) {
   columns[col].push(piece);
   if (mode === 'daily' && dailyOfficial) storage.set(dailyPlayedKey(), '1'); // this is today's official run
   Progress.drop();
+  if (Progress.runDrops() === 1) refreshExploitCards(); // the loadout locks for this session
   if (mode === 'blitz') clockRunning = true;
   let wentOver = overflowed();
   render();
@@ -984,6 +990,7 @@ function meltBoard(run) {
 // reason: 'trace' (something left above the line) or 'time' (BLITZ ran out)
 function endGame(reason = 'trace') {
   gameOver = true;
+  refreshExploitCards(); // the loadout can change again
   busy = true;
   clockRunning = false;
   SFX.play('denied');
@@ -1747,16 +1754,19 @@ document.addEventListener('keydown', (e) => {
 // Exploit cards, in unlock order: locked (with the level that unlocks them), unlocked (tap to
 // equip) or equipped (tap to remove). DAILY shows its fixed five instead.
 const hacksPanelEl = document.querySelector('.panel-hacks');
+// The loadout can only change before a session's first drop, or once it's over
+const loadoutEditable = () => gameOver || Progress.runDrops() === 0;
 const slotInfoEl = document.getElementById('slot-info');
 function refreshExploitCards() {
   const { slots, max, nextLevel } = Progress.slotInfo();
   const equipped = Progress.equipped();
+  const editable = loadoutEditable();
   if (mode === 'daily') {
     slotInfoEl.textContent = 'DAILY DECRYPT // THE SAME FIVE EXPLOITS FOR EVERYONE';
   } else {
     slotInfoEl.textContent = `SLOTS ${equipped.length} / ${slots}`
       + (slots < max ? (nextLevel ? ` // NEXT SLOT AT LV ${nextLevel}` : ' // MORE SLOTS WITH PRESTIGE') : '')
-      + (slots === 0 ? ' // TAP AN UNLOCKED EXPLOIT TO EQUIP IT' : '');
+      + (editable ? '' : ' // LOCKED UNTIL THE SESSION ENDS');
   }
   for (const id of Progress.exploitOrder()) {
     const el = hacksPanelEl.querySelector(`.hack-item[data-hack="${id}"]`);
@@ -1766,11 +1776,12 @@ function refreshExploitCards() {
     const daily = mode === 'daily';
     const on = daily ? DAILY_EXPLOITS.includes(id) : equipped.includes(id);
     el.classList.toggle('locked', daily ? !on : !info.unlocked);
-    el.classList.toggle('unlocked', !daily && info.unlocked);
+    el.classList.toggle('unlocked', !daily && info.unlocked && editable);
     el.classList.toggle('equipped', on);
     let tag;
     if (daily) tag = on ? '' : 'NOT USED IN THE DAILY DECRYPT';
     else if (!info.unlocked) tag = `UNLOCKS AT LV ${info.level} THIS PRESTIGE`;
+    else if (!editable) tag = on ? '' : 'NOT EQUIPPED THIS SESSION';
     else if (on) tag = 'TAP TO REMOVE';
     else tag = equipped.length < slots ? 'TAP TO EQUIP' : 'SLOTS FULL // REMOVE ONE TO SWAP';
     el.querySelector('.lock-tag').textContent = tag;
@@ -1779,6 +1790,11 @@ function refreshExploitCards() {
 hacksPanelEl.addEventListener('click', (e) => {
   const card = e.target.closest('.hack-item');
   if (!card || mode === 'daily' || !Progress.exploitInfo(card.dataset.hack).unlocked) return;
+  if (!loadoutEditable()) {
+    SFX.play('denied');
+    showToast('LOADOUT LOCKED // FINISH OR RESTART TO CHANGE IT');
+    return;
+  }
   const id = card.dataset.hack;
   if (Progress.isEquipped(id)) {
     Progress.unequip(id);
@@ -1825,7 +1841,7 @@ function formatCentral(isoDate) {
   return `${date} ${hh}:${get('minute')} ${get('timeZoneName')}`;
 }
 
-fetch('https://api.github.com/repos/EmptyFishTank-JB/Blockchain-Arcade-Recreation/commits?sha=main&per_page=1')
+fetch('https://api.github.com/repos/EmptyFishTank-JB/ByteFall/commits?sha=main&per_page=1')
   .then((r) => {
     if (!r.ok) throw new Error('bad response');
     return r.json();

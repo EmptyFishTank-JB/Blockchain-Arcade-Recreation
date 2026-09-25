@@ -12,7 +12,7 @@
   } catch (e) {}
 </script>
 <title>BYTEFALL // decryption terminal</title>
-<link rel="stylesheet" href="style.css?v=48">
+<link rel="stylesheet" href="style.css?v=49">
 </head>
 <body>
   <main class="cabinet">
@@ -117,14 +117,6 @@
           <span class="label">CHAIN</span>
           <span class="value" id="chain">0x</span>
         </div>
-        <div class="stat">
-          <span class="label" id="current-label">CURRENT</span>
-          <div class="next-disc" id="current-piece">[?]</div>
-        </div>
-        <div class="stat" id="next-stat" hidden>
-          <span class="label" id="next-label">NEXT</span>
-          <div class="next-disc" id="next-piece">[?]</div>
-        </div>
         <div class="stat" id="pulse-stat">
           <span class="label" id="pulse-label">NEW LAYER IN</span>
           <span class="value" id="pulse-counter">8</span>
@@ -132,6 +124,17 @@
         <div class="stat" id="time-stat" hidden>
           <span class="label" id="time-label">TIME</span>
           <span class="value" id="time-left">2:00</span>
+        </div>
+        <!-- CURRENT and NEXT wrap together, so on narrow screens they share a row with CURRENT biggest -->
+        <div class="hud-bits" id="hud-bits">
+          <div class="stat stat-current">
+            <span class="label" id="current-label">CURRENT</span>
+            <div class="bit-sq" id="current-piece">?</div>
+          </div>
+          <div class="stat" id="next-stat" hidden>
+            <span class="label" id="next-label">NEXT</span>
+            <div class="bit-row" id="next-piece"></div>
+          </div>
         </div>
       </div>
 
@@ -252,20 +255,20 @@
     </div>
   </div>
 
-  <script src="unlocks.js?v=48"></script>
-  <script src="progress.js?v=48"></script>
-  <script src="sfx.js?v=48"></script>
-  <script src="music-theme.js?v=48"></script>
-  <script src="music-sleep-mode.js?v=48"></script>
-  <script src="music-brute-force.js?v=48"></script>
-  <script src="music-deep-web.js?v=48"></script>
-  <script src="music-zero-day.js?v=48"></script>
-  <script src="music-system-restore.js?v=48"></script>
-  <script src="music.js?v=48"></script>
-  <script src="puzzles.js?v=48"></script>
-  <script src="fx.js?v=48"></script>
-  <script src="viz.js?v=48"></script>
-  <script src="script.js?v=48"></script>
-  <script src="grid-bg.js?v=48"></script>
+  <script src="unlocks.js?v=49"></script>
+  <script src="progress.js?v=49"></script>
+  <script src="sfx.js?v=49"></script>
+  <script src="music-theme.js?v=49"></script>
+  <script src="music-sleep-mode.js?v=49"></script>
+  <script src="music-brute-force.js?v=49"></script>
+  <script src="music-deep-web.js?v=49"></script>
+  <script src="music-zero-day.js?v=49"></script>
+  <script src="music-system-restore.js?v=49"></script>
+  <script src="music.js?v=49"></script>
+  <script src="puzzles.js?v=49"></script>
+  <script src="fx.js?v=49"></script>
+  <script src="viz.js?v=49"></script>
+  <script src="script.js?v=49"></script>
+  <script src="grid-bg.js?v=49"></script>
 </body>
 </html>

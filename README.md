@@ -89,7 +89,8 @@ level in this order: RNG (3), BITFLIP (8), BUFFER OVERFLOW (14), TROJAN (20),
 WORM VIRUS (26), KEYLOGGER (32), PACKET SNIFFER (38), BACKDOOR (44), LOGIC
 BOMB (50), HONEYPOT (56), DICTIONARY ATTACK (63), RAINBOW TABLE (70); with a
 prestige's kept exploits, the rest move down this list. A new unlock drops
-into a free slot by itself; tap an exploit card to remove or equip it. The
+into a free slot by itself; tap an exploit card to remove or equip it. The loadout
+is locked during a session: change it before the first drop or after the game ends. The
 Daily Decrypt always uses the five standard exploits, so it's the same for
 everyone.
 
