@@ -1468,6 +1468,36 @@ vibrateBtn.addEventListener('click', () => {
 });
 updateVibrateBtn();
 
+// FULLSCREEN (app view): the browser's fullscreen mode where it's allowed (Android Chrome,
+// desktop). iPhones don't allow it for pages, so there the note points to Add to Home Screen,
+// which opens the game full screen like an app (see manifest.webmanifest). Hidden once the
+// game is already running as an installed app.
+const fullscreenBtn = document.getElementById('fullscreen-btn');
+const appNoteEl = document.getElementById('app-note');
+const runningAsApp = window.matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches || navigator.standalone === true;
+const canFullscreen = !!(document.fullscreenEnabled && document.documentElement.requestFullscreen);
+function updateFullscreenBtn() {
+  const on = !!document.fullscreenElement;
+  fullscreenBtn.textContent = `FULLSCREEN: ${on ? 'ON' : 'OFF'}`;
+  fullscreenBtn.classList.toggle('on', on);
+}
+fullscreenBtn.hidden = runningAsApp || !canFullscreen;
+appNoteEl.hidden = runningAsApp;
+appNoteEl.textContent = canFullscreen
+  ? 'FULLSCREEN hides the browser bars. For an app icon on your phone, use your browser’s Add to Home Screen.'
+  : 'For full screen on this device, use Share → Add to Home Screen: ByteFall then opens like an app.';
+fullscreenBtn.addEventListener('click', async () => {
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else await document.documentElement.requestFullscreen({ navigationUI: 'hide' });
+  } catch (e) {}
+});
+document.addEventListener('fullscreenchange', () => {
+  updateFullscreenBtn();
+  requestAnimationFrame(fitBoard); // the window just changed height
+});
+updateFullscreenBtn();
+
 // DAILY BONUS: the first time the game opens each day (the player's own date), one free exploit
 // is banked behind the FREE EXPLOIT button until used. It's one of the first five in the unlock
 // order, locked or not, so new players get a feel for them. Unused, it doesn't stack. Not in DAILY or

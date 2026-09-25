@@ -791,7 +791,7 @@ h1 span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
 }
 .free-exploit-btn[hidden] { display: none; }
 .free-exploit-btn:disabled { animation: none; opacity: 0.4; cursor: default; }
-#vibrate-btn { margin-top: 6px; }
+#vibrate-btn, #fullscreen-btn { margin-top: 6px; }
 .rec-reset { margin-top: 14px; width: 100%; padding: 6px; background: none; border: 1px solid var(--grid-line); border-radius: 4px; color: var(--fg-dim); font-family: inherit; font-size: 10px; letter-spacing: 1px; cursor: pointer; }
 .rec-reset.danger { border-color: var(--danger); color: var(--danger); background: rgba(var(--danger-rgb), 0.12); }
 

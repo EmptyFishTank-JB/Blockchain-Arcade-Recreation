@@ -114,6 +114,15 @@ reports each drop, decrypt, peel, byte, exploit and point to it.
 Access, for this browser; the game shows a DEV badge while it's on), JUMP TO
 LV 80 and +10 LEVELS for testing prestige, slots and exploit unlocks.
 
+## App view on a phone
+
+- **FULLSCREEN** in settings hides the browser bars (Android Chrome and
+  desktop browsers; iPhones don't allow it for web pages, so it's hidden there).
+- **Add to Home Screen** (Chrome's menu on Android, Share on iPhone) installs
+  ByteFall with its own icon, and it opens full screen like an app, without
+  browser bars. `manifest.webmanifest` and `icons/` (the icon's source is
+  `icons/icon.svg`) set that up.
+
 ## Daily bonus, vibration and resetting
 
 - **Daily bonus:** the first time the game opens each day (local date), one
@@ -187,6 +196,7 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
 - `script.js` — game state, rendering, chain resolution and exploits
 - `unlocks.js` — the Full Access check (never owned on the website; `?unlockall` previews it)
 - `progress.js` — lifetime stats, earnable unlocks and achievements
+- `manifest.webmanifest`, `icons/` — the home-screen app view and icons
 - `puzzles.js` — the PUZZLE boards, generated and verified by brute force (each has 1-2 solutions and can't be solved in fewer drops)
 - `fx.js` — particle overlay: cleared cells dissolve into pixel fragments and
   drifting hex/binary glyphs (skipped under reduced motion)

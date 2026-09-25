@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#020403">
+<!-- App view: "Add to Home Screen" opens ByteFall full screen like an app -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ByteFall">
 <script>
   // Apply the saved color theme before first paint (script.js owns the setting).
   try {
@@ -12,7 +20,7 @@
   } catch (e) {}
 </script>
 <title>BYTEFALL // decryption terminal</title>
-<link rel="stylesheet" href="style.css?v=52">
+<link rel="stylesheet" href="style.css?v=53">
 </head>
 <body>
   <main class="cabinet">
@@ -63,6 +71,8 @@
         </div>
         <button type="button" id="buttons-pos-btn" class="toggle-btn on">DROP BUTTONS: BOTTOM</button>
         <button type="button" id="vibrate-btn" class="toggle-btn" hidden>VIBRATION: ON</button>
+        <button type="button" id="fullscreen-btn" class="toggle-btn" hidden>FULLSCREEN: OFF</button>
+        <p class="settings-note" id="app-note"></p>
         <p class="settings-note">Where the drop buttons sit: under the grid (easier to reach on a phone) or above it.</p>
         <p class="settings-title settings-section">// THEME</p>
         <div id="theme-list" class="theme-list" role="group" aria-label="Color theme"></div>
@@ -255,20 +265,20 @@
     </div>
   </div>
 
-  <script src="unlocks.js?v=51"></script>
-  <script src="progress.js?v=51"></script>
-  <script src="sfx.js?v=51"></script>
-  <script src="music-theme.js?v=51"></script>
-  <script src="music-sleep-mode.js?v=51"></script>
-  <script src="music-brute-force.js?v=51"></script>
-  <script src="music-deep-web.js?v=51"></script>
-  <script src="music-zero-day.js?v=51"></script>
-  <script src="music-system-restore.js?v=51"></script>
-  <script src="music.js?v=51"></script>
-  <script src="puzzles.js?v=51"></script>
-  <script src="fx.js?v=51"></script>
-  <script src="viz.js?v=51"></script>
-  <script src="script.js?v=51"></script>
-  <script src="grid-bg.js?v=51"></script>
+  <script src="unlocks.js?v=53"></script>
+  <script src="progress.js?v=53"></script>
+  <script src="sfx.js?v=53"></script>
+  <script src="music-theme.js?v=53"></script>
+  <script src="music-sleep-mode.js?v=53"></script>
+  <script src="music-brute-force.js?v=53"></script>
+  <script src="music-deep-web.js?v=53"></script>
+  <script src="music-zero-day.js?v=53"></script>
+  <script src="music-system-restore.js?v=53"></script>
+  <script src="music.js?v=53"></script>
+  <script src="puzzles.js?v=53"></script>
+  <script src="fx.js?v=53"></script>
+  <script src="viz.js?v=53"></script>
+  <script src="script.js?v=53"></script>
+  <script src="grid-bg.js?v=53"></script>
 </body>
 </html>
