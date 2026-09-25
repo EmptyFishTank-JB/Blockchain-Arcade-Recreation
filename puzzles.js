@@ -1,8 +1,9 @@
 // PUZZLE mode boards: clear the whole board using exactly the bits given, in order.
 // Each column lists its blocks bottom to top: a number is a bit; 'L2:5' is an encryption
 // layer at level 2 hiding a [5] (revealed when it's peeled to 0). Generated and verified by
-// brute force against the game's rules: every puzzle has 1-2 solutions and none can be
-// solved in fewer drops. Ordered easiest first (1 drop, then 2, then 3; layers from 17).
+// brute force against the game's rules: puzzles 1-40 have 1-2 solutions, 41-60 have 1-3, and
+// none can be solved in fewer drops. Ordered easiest first (1 drop, then 2, then 3; layers from
+// 17; 31-40 are 3 drops over layers, 41-50 are 4 drops and 51-60 are 4 drops over layers).
 const PUZZLES = [
   { board: [[3],[3],[],[4],[],[],[]], pieces: [3] },
   { board: [[],[4,3],[2],[2],[],[],[]], pieces: [4] },
@@ -34,4 +35,34 @@ const PUZZLES = [
   { board: [[],["L2:4",4],["L2:3",1],["L2:1"],[3],["L2:5",5],[7,7]], pieces: [3,1,2] },
   { board: [["L1:4",6,6,2,3],[],[3],[],[],[3,3],[]], pieces: [1,2,3] },
   { board: [["L1:7"],[2],[2],["L1:3",3],[],["L1:6"],[7]], pieces: [1,6,1] },
+  { board: [[6],[2,5,5],["L1:4",1],["L1:4"],[4],[5,4],[2]], pieces: [5,5,1] },
+  { board: [[2],["L1:1",4],["L1:4"],[6,5,4],[2],["L1:2"],[5]], pieces: [3,1,4] },
+  { board: [["L1:1",1],[7,2,2],[5,5],[4],[5,4],[7],[]], pieces: [3,2,2] },
+  { board: [[],[3],["L1:2"],[2],["L2:6",2,2],["L2:2"],[3,6]], pieces: [6,1,6] },
+  { board: [[6],[6],[],["L1:2"],["L1:6",3],[7],[1,7]], pieces: [2,3,6] },
+  { board: [[2],[],[],["L1:4",4,4,6,6],["L2:1",1],[],[]], pieces: [3,4,2] },
+  { board: [[3,5,7,5],["L2:4"],["L2:1"],["L2:1"],[5,1],["L1:5",3],[6]], pieces: [3,3,4] },
+  { board: [[],["L1:2",6],[],["L1:2"],[2],["L2:3",3],[3,4]], pieces: [5,2,7] },
+  { board: [[],["L1:4"],["L1:2"],[],[7,6],["L1:2",1],[7,1]], pieces: [7,2,1] },
+  { board: [["L1:2",4,6],["L1:4",1],["L1:4",1,3,2],[],[2],[],[7,7]], pieces: [4,5,2] },
+  { board: [[],[6,5],[6,4],[],[3,4],[4],[]], pieces: [4,1,7,6] },
+  { board: [[4,6],[6],[],[2],[2],[6],[7]], pieces: [4,4,1,1] },
+  { board: [[],[],[],[1,1],[6,5,4],[5,6],[]], pieces: [4,6,2,5] },
+  { board: [[3,6],[5],[],[],[5,3],[5],[7]], pieces: [3,2,1,5] },
+  { board: [[7,7],[],[5],[3,3],[3],[2],[]], pieces: [2,2,1,4] },
+  { board: [[6],[4],[],[3,3,4,3,3],[6],[],[]], pieces: [3,7,5,2] },
+  { board: [[2],[],[],[1,1],[3,1],[2],[7,4]], pieces: [2,2,1,1] },
+  { board: [[],[],[7,6],[7,7,4],[4],[7,3],[7,1]], pieces: [5,2,2,2] },
+  { board: [[7,7],[2],[5],[5,3],[],[2],[]], pieces: [5,3,3,2] },
+  { board: [[7,5],[6,1,4],[3],[5,3],[],[],[3,7]], pieces: [3,7,2,1] },
+  { board: [["L1:1"],[5,3],[],["L1:3"],[5],[3,5],[1,3,5,3]], pieces: [2,5,1,1] },
+  { board: [["L1:6"],["L1:6",4],[6],[],["L2:3",4],[6,5],[]], pieces: [4,2,5,4] },
+  { board: [[7],["L1:1",2,2],["L1:1"],[],[4],[6,4],["L1:2"]], pieces: [4,2,6,4] },
+  { board: [["L2:1"],["L1:1"],[1,5,2],[],["L1:5",4],[5,4],[4,5]], pieces: [4,7,1,5] },
+  { board: [[5],["L2:1"],[7,4,4],[],[],[7,4],[4]], pieces: [4,5,5,2] },
+  { board: [[7],[],["L1:7",3],[5],[],[7,3],[1,1]], pieces: [3,3,5,6] },
+  { board: [[],[5],[5,1],["L1:1",1],[7],[3,7],["L2:2"]], pieces: [3,1,4,2] },
+  { board: [[6],[6,4],[6,4],[1,1],[],["L2:2"],[]], pieces: [6,1,2,2] },
+  { board: [[],[],[3],["L1:2",1],[3,3],[7,5,6,5],["L2:1",5]], pieces: [4,6,5,2] },
+  { board: [[2],["L2:2"],[5],[5,4],[4,6,6],["L1:7"],["L1:1",3]], pieces: [6,5,3,1] },
 ];

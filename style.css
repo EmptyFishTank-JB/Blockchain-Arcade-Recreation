@@ -960,6 +960,8 @@ h1 span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
   box-shadow: 0 0 10px rgba(var(--fg-rgb), 0.4);
 }
 
+.difficulty#daily-kinds { gap: 6px; }
+.difficulty#daily-kinds button { padding-left: 10px; padding-right: 10px; }
 .difficulty button.danger {
   background: rgba(var(--danger-rgb), 0.12);
   border-color: var(--danger);

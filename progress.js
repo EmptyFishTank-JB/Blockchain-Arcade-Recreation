@@ -200,7 +200,7 @@ const Progress = (() => {
     { id: 'ghost', name: 'GHOST', desc: 'Last 100 drops in one Hard session', value: () => d.bestHardDrops, goal: 100 },
     { id: 'clean-sweep', name: 'CLEAN SWEEP', desc: 'Clear the whole board after 10+ drops', value: () => d.sweeps, goal: 1 },
     { id: 'close-call', name: 'CLOSE CALL', desc: 'Decrypt your way back under the line', value: () => d.closeCalls, goal: 1 },
-    { id: 'daily-driver', name: 'DAILY DRIVER', desc: 'Play the Daily Decrypt 7 days in a row', value: () => d.bestDailyStreak, goal: 7 },
+    { id: 'daily-driver', name: 'DAILY DRIVER', desc: 'Play a Daily game 7 days in a row', value: () => d.bestDailyStreak, goal: 7 },
     { id: 'locksmith', name: 'LOCKSMITH', desc: 'Solve 10 puzzles', value: () => Object.keys(d.puzzles).length, goal: 10 },
     { id: 'master-key', name: 'MASTER KEY', desc: 'Solve every puzzle', value: () => Object.keys(d.puzzles).length, goal: () => puzzleCount },
     { id: 'maxed-out', name: 'MAXED OUT', desc: 'Fill Lv 80: a kilobyte of bits in one prestige', value: () => (levelInfo().maxed || d.prestige > 0 ? 1 : 0), goal: 1 },
@@ -219,8 +219,8 @@ const Progress = (() => {
     { id: 'speed-run', name: 'SPEED RUN', desc: 'Score 1,000 in one Blitz', value: () => d.bestBlitz, goal: 1000 },
     { id: 'blitzkrieg', name: 'BLITZKRIEG', desc: 'Score 3,000 in one Blitz', value: () => d.bestBlitz, goal: 3000 },
     { id: 'zen-master', name: 'ZEN MASTER', desc: 'Last 300 drops in one Zen session', value: () => d.bestZenDrops, goal: 300 },
-    { id: 'daily-grind', name: 'DAILY GRIND', desc: 'Play 30 Daily Decrypts', value: () => d.dailies, goal: 30 },
-    { id: 'streak', name: 'STREAK', desc: 'Play the Daily Decrypt 30 days in a row', value: () => d.bestDailyStreak, goal: 30 },
+    { id: 'daily-grind', name: 'DAILY GRIND', desc: 'Play the Daily on 30 different days', value: () => d.dailies, goal: 30 },
+    { id: 'streak', name: 'STREAK', desc: 'Play a Daily game 30 days in a row', value: () => d.bestDailyStreak, goal: 30 },
     { id: 'perfect-daily', name: 'PERFECT DAILY', desc: 'Finish a Daily Decrypt with the board empty', value: () => d.perfectDailies, goal: 1 },
     { id: 'first-try', name: 'FIRST TRY', desc: 'Solve a puzzle on your first attempt', value: () => d.firstTries, goal: 1 },
     { id: 'pickpocket', name: 'PICKPOCKET', desc: 'Solve 5 puzzles in a row without failing one', value: () => d.bestPuzzleStreak, goal: 5 },
@@ -370,9 +370,10 @@ const Progress = (() => {
     stats: () => ({ ...d, bestNormal: best('normal'), bestEasy: best('easy'), bestHard: best('hard') }),
 
     // Run events from script.js
-    startRun(difficulty, mode = 'classic', puzzle = null) {
+    // mode: the game played ('decrypt', 'breach' and the others); daily: a daily game
+    startRun(difficulty, mode = 'classic', puzzle = null, daily = false) {
       run = {
-        difficulty, mode, puzzle, drops: 0, started: false, bits: 0, chain: 0, bytes: 0,
+        difficulty, mode, puzzle, daily, drops: 0, started: false, bits: 0, chain: 0, bytes: 0,
         exploits: 0, closeCalls: 0, clearStreak: 0, dropBits: 0, dropBroken: 0, pivoted: false, fullCols: new Set(),
       };
     },
@@ -380,7 +381,7 @@ const Progress = (() => {
       if (!run.started) {
         run.started = true;
         if (run.mode !== 'puzzle') d.games++; // puzzle retries don't count as sessions
-        if (run.mode === 'daily') playedDaily();
+        if (run.daily) playedDaily();
         if (run.mode === 'puzzle' && run.puzzle !== null) d.puzzleTries[run.puzzle] = (d.puzzleTries[run.puzzle] || 0) + 1;
       }
       run.drops++;
@@ -416,7 +417,7 @@ const Progress = (() => {
     },
     // A session ended (not PUZZLE): reason 'trace', 'time' or 'daily'
     endRun({ score, reason, boardEmpty, track, theme }) {
-      if (run.mode === 'daily' && reason === 'daily' && boardEmpty) d.perfectDailies++;
+      if (run.mode === 'decrypt' && reason === 'daily' && boardEmpty) d.perfectDailies++;
       if (run.drops >= 10) {
         if (track) d.tracksPlayed[track] = true;
         d.themesPlayed[theme] = true;
@@ -463,7 +464,7 @@ const Progress = (() => {
     },
     score(points) {
       d.bestScore = Math.max(d.bestScore, points);
-      if (run.mode === 'blitz') d.bestBlitz = Math.max(d.bestBlitz, points);
+      if (run.mode === 'blitz' && !run.daily) d.bestBlitz = Math.max(d.bestBlitz, points);
       if (run.exploits === 0 && run.mode !== 'puzzle') d.bestNoToolsScore = Math.max(d.bestNoToolsScore, points);
     },
     bombHits(n) { d.bestBombHits = Math.max(d.bestBombHits, n); },

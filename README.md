@@ -14,8 +14,9 @@ Mechanically it's a Drop7-style puzzle:
 - A bit decrypts (clears) when its number matches the length of the unbroken
   line it sits in, across or down (e.g. a `[5]` decrypts when it's part of an
   unbroken run of exactly 5 filled cells in its row or column).
+- A decrypted bit scores 10 plus its number (a `[4]` is 14, a `[7]` is 17).
 - Decrypts chain: bits above fall into the gap and may make new matches.
-  Chains multiply your score.
+  Chains multiply the points.
 - Every 8 drops a row of encryption layers (`[=]`) rises from the bottom.
   Decrypting a bit beside one peels it down to `[-]`, and a second peel
   reveals the bit underneath.
@@ -55,10 +56,10 @@ A drop earns at most one exploit, picked from the longest chain it set off.
 | Mode | What changes |
 |---|---|
 | CLASSIC | The main game, on EASY / NORMAL / HARD |
-| DAILY | The Daily Decrypt: a fixed stack of 40 bits dealt from a seed of the UTC date, so everyone gets the same bits (Normal rules, the five standard exploits). It ends when the stack runs out. Your first run each day is the official score; later runs are practice. SHARE on the results screen sends or copies your result. Keeps a daily streak |
+| DAILY | Four daily games, picked on a second row under the modes. Each is the same for everyone that UTC day, and each keeps a daily streak. **DECRYPT**: a fixed stack of 40 bits dealt from a seed of the date (Normal rules, the five standard exploits); it ends when the stack runs out. **PUZZLE**: a new puzzle every day (from `daily-puzzles.js`), harder through the week: Monday is 1 bit, Sunday 4 bits with layers; retries are free and your tries are counted. **BLITZ**: the same bits for everyone against a 60-second clock. **BREACH** (daily only): the board starts with a 3-row firewall of level 1 and 2 layers and you get 30 bits to break through; each layer broken is +25 and clearing the whole board is +1,000. For DECRYPT, BLITZ and BREACH your first run each day is the official score and later runs are practice. SHARE on the results screen sends or copies your result |
 | BLITZ | Normal rules against a 2-minute clock that starts on your first drop (paused while the tab is hidden) |
 | ZEN | Normal rules with no encryption layers and no clock |
-| PUZZLE | 30 set boards (in `puzzles.js`): decrypt every block using exactly the bits given, in order. Solving one opens the next; the arrow buttons move between them. No new layers rise and no exploits drop; puzzle layers hide a fixed bit |
+| PUZZLE | 60 set boards (in `puzzles.js`): decrypt every block using exactly the bits given, in order. Solving one opens the next; the arrow buttons move between them. No new layers rise and no exploits drop; puzzle layers hide a fixed bit |
 
 Switching modes mid-run asks to confirm, like RESTART. Each mode keeps its
 own best score.
@@ -98,7 +99,7 @@ PIVOT (23), WORM VIRUS (29), KEYLOGGER (35), PACKET SNIFFER (41), BACKDOOR
 prestige's kept exploits, the rest move down this list. A new unlock drops
 into a free slot by itself; tap an exploit card to remove or equip it. The loadout
 is locked during a session: change it before the first drop or after the game ends. The
-Daily Decrypt always uses the five standard exploits, so it's the same for
+daily games always use the five standard exploits, so they're the same for
 everyone.
 
 **Themes** unlock by prestige, for good: CIPHER (1), AMBER CRT (2), MONOCHROME
@@ -205,7 +206,8 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
 - `unlocks.js` — the Full Access check (never owned on the website; `?unlockall` previews it)
 - `progress.js` — lifetime stats, earnable unlocks and achievements
 - `manifest.webmanifest`, `icons/` — the home-screen app view and icons
-- `puzzles.js` — the PUZZLE boards, generated and verified by brute force (each has 1-2 solutions and can't be solved in fewer drops)
+- `puzzles.js` — the PUZZLE boards, generated and verified by brute force (1-3 solutions each, none solvable in fewer drops)
+- `daily-puzzles.js` — the DAILY PUZZLE boards, one per UTC day for about three years (then they loop), generated and verified the same way (1-3 solutions each)
 - `fx.js` — particle overlay: cleared cells dissolve into pixel fragments and
   drifting hex/binary glyphs (skipped under reduced motion)
 - `viz.js` — the shared music visualizer (LED bars or auto-gained

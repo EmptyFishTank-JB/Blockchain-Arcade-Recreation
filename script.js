@@ -56,7 +56,7 @@ const BLAST_RADIUS = 2; // logic bomb and honeypot reach: a 5x5 area
 
 // The Daily Decrypt uses the same five exploits for everyone; elsewhere it's your equipped loadout.
 const DAILY_EXPLOITS = ['worm', 'overflow', 'trojan', 'rng', 'bitflip'];
-const hackAvailable = (id) => (mode === 'daily' ? DAILY_EXPLOITS.includes(id) : Progress.isEquipped(id));
+const hackAvailable = (id) => (daily ? DAILY_EXPLOITS.includes(id) : Progress.isEquipped(id));
 Progress.setExploitCount(Object.keys(HACKS).length);
 Progress.setExploitNames(Object.fromEntries(Object.entries(HACKS).map(([id, h]) => [id, h.name])));
 
@@ -74,6 +74,7 @@ let keyloggerDrops = 0; // drops left with the keylogger's preview showing
 let snifferBits = 0; // bits left whose number the player can pick
 let pivotFrom = null; // PIVOT: column picked, waiting for the player to pick a neighbor
 let pivotWith = null; // PIVOT: the neighbor the landing pivot swaps with
+let breached = false; // BREACH: the board was cleared
 
 const storage = {
   get(key) {
@@ -91,28 +92,57 @@ if (classicDifficulty === 'hard' && !Progress.isUnlocked('mode-hard')) classicDi
 let difficulty = classicDifficulty;
 
 const BLITZ_SECONDS = 120;
+const DAILY_BLITZ_SECONDS = 60;
 const DAILY_BITS = 40; // the Daily Decrypt deals a fixed stack of bits, then ends
-let dealt = 0; // bits dealt so far this run (DAILY)
-// DAILY: the first run each day is the official one (its score is today's); the rest are practice
+const BREACH_BITS = 30; // BREACH deals 30
+const BREACH_ROWS = 3; // rows of the pre-built firewall
+const BREACH_LAYER_POINTS = 25; // BREACH: extra points for each layer broken open
+const BREACH_CLEAR_BONUS = 1000; // BREACH: the whole board cleared
+let dealt = 0; // bits dealt so far this run (DECRYPT, BREACH)
+const dealLimit = () => (mode === 'decrypt' ? DAILY_BITS : mode === 'breach' ? BREACH_BITS : Infinity);
+// DAILY: the first run of each daily game each day is the official one (its score is today's);
+// the rest are practice. Daily Decrypt keeps its original key names.
 let dailyOfficial = true;
-const dailyKey = () => `bytefall-daily-${todayKey()}`;
-const dailyPlayedKey = () => `bytefall-daily-played-${todayKey()}`;
+const dailyTag = (kind = mode) => (kind === 'decrypt' ? '' : `${kind}-`);
+const dailyKey = (kind = mode) => `bytefall-daily-${dailyTag(kind)}${todayKey()}`;
+const dailyPlayedKey = (kind = mode) => `bytefall-daily-played-${dailyTag(kind)}${todayKey()}`;
+const DAILY_KINDS = { decrypt: 'DAILY DECRYPT', puzzle: 'DAILY PUZZLE', blitz: 'DAILY BLITZ', breach: 'BREACH' };
+const WEEKDAYS = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
+const utcWeekday = () => (new Date().getUTCDay() + 6) % 7; // Monday = 0
 let reportedScore = 0; // points already added to lifetime data extracted
+// The official-or-practice note on each daily game's info line
+const dailyNote = (date, what) => (dailyOfficial
+  ? `${DAILY_KINDS[mode]} // ${date} (UTC): ${what} Your first attempt today is the official one.`
+  : `${DAILY_KINDS[mode]} // ${date} // PRACTICE: your official score today is ${fmt(Number(storage.get(dailyKey())) || 0)}.`);
+// `mode` is the game being played. The mode row picks CLASSIC, DAILY, BLITZ, ZEN or PUZZLE; under
+// DAILY (`daily`) the second row picks DECRYPT, PUZZLE, BLITZ or BREACH (BREACH is daily only).
 const MODES = {
   classic: { label: 'CLASSIC' },
-  daily: {
-    label: 'DAILY',
-    info: (date) => (dailyOfficial
-      ? `DAILY DECRYPT // ${date} (UTC): the same ${DAILY_BITS} bits for everyone. Your first attempt today is the official one.`
-      : `DAILY DECRYPT // ${date} // PRACTICE: your official score today is ${fmt(Number(storage.get(dailyKey())) || 0)}.`),
+  decrypt: {
+    label: 'DAILY DECRYPT',
+    info: (date) => dailyNote(date, `the same ${DAILY_BITS} bits for everyone.`),
   },
-  blitz: { label: 'BLITZ', info: () => 'BLITZ // 2 minutes on the clock, starting with your first drop. Score all you can.' },
+  blitz: {
+    label: 'BLITZ',
+    info: (date) => (daily
+      ? dailyNote(date, `the same bits for everyone and ${DAILY_BLITZ_SECONDS} seconds on the clock.`)
+      : 'BLITZ // 2 minutes on the clock, starting with your first drop. Score all you can.'),
+  },
   zen: { label: 'ZEN', noLayers: true, info: () => 'ZEN // no encryption layers and no clock. Just decrypt.' },
   puzzle: {
     label: 'PUZZLE',
     noLayers: true, // no new layers rise (puzzles can start with some)
     noHacks: true,
-    info: () => `Decrypt every block on the board with exactly the ${PUZZLES[puzzleIndex].pieces.length === 1 ? 'bit' : `${PUZZLES[puzzleIndex].pieces.length} bits`} given, in order.`,
+    info: (date) => {
+      const n = currentPuzzle().pieces.length;
+      const rule = `Decrypt every block on the board with exactly the ${n === 1 ? 'bit' : `${n} bits`} given, in order.`;
+      return daily ? `DAILY PUZZLE // ${date} // ${WEEKDAYS[utcWeekday()]}, DIFFICULTY ${utcWeekday() + 1}/7: ${rule} Retry as often as you like.` : rule;
+    },
+  },
+  breach: {
+    label: 'BREACH',
+    noLayers: true, // the firewall is built at the start; no new layers rise
+    info: (date) => dailyNote(date, `break through a ${BREACH_ROWS}-row firewall with ${BREACH_BITS} bits. +${BREACH_LAYER_POINTS} for every layer broken, +${BREACH_CLEAR_BONUS} for clearing the board.`),
   },
 };
 Progress.setPuzzleCount(PUZZLES.length);
@@ -124,7 +154,28 @@ const firstUnsolved = () => {
 };
 let puzzleIndex = Math.min(Number(storage.get('bytefall-puzzle')) || firstUnsolved(), firstUnsolved());
 let overlayNext = null; // what the overlay button does in PUZZLE: 'next' or 'retry'
-let mode = MODES[storage.get('bytefall-mode')] ? storage.get('bytefall-mode') : 'classic';
+// The mode row's choice ('daily' or one of MODES) and the daily game under it
+const TOP_MODES = ['classic', 'daily', 'blitz', 'zen', 'puzzle'];
+let topMode = TOP_MODES.includes(storage.get('bytefall-mode')) ? storage.get('bytefall-mode') : 'classic';
+let dailyKind = DAILY_KINDS[storage.get('bytefall-daily-kind')] ? storage.get('bytefall-daily-kind') : 'decrypt';
+let daily = false;
+let mode = 'classic';
+function setModeFromChoice() {
+  daily = topMode === 'daily';
+  mode = daily ? dailyKind : topMode;
+}
+setModeFromChoice();
+
+// PUZZLE: the archive puzzle picked, or today's daily one (daily-puzzles.js). The daily list
+// is dated from its first Monday and a whole number of weeks long, so past its end it loops
+// and each weekday keeps its difficulty.
+function todayPuzzle() {
+  const day = Math.floor((Date.parse(`${todayKey()}T00:00:00Z`) - Date.parse(`${DAILY_PUZZLES[0].date}T00:00:00Z`)) / 86400000);
+  return DAILY_PUZZLES[((day % DAILY_PUZZLES.length) + DAILY_PUZZLES.length) % DAILY_PUZZLES.length];
+}
+const currentPuzzle = () => (daily ? todayPuzzle() : PUZZLES[puzzleIndex]);
+const dailyPuzzleTriesKey = () => `bytefall-daily-puzzle-tries-${todayKey()}`;
+const dailyPuzzleSolvedKey = () => `bytefall-daily-puzzle-solved-${todayKey()}`;
 
 // Randomness. DAILY seeds each stream from the date, so the bits you're dealt are the same for
 // everyone however they play; bits revealed under layers and exploits use their own streams.
@@ -146,9 +197,9 @@ function hashString(str) {
 const todayKey = () => new Date().toISOString().slice(0, 10); // UTC, so the daily is the same worldwide
 const dice = { queue: Math.random, reveal: Math.random, hack: Math.random };
 function setupDice() {
-  if (mode === 'daily') {
+  if (daily) {
     const day = todayKey();
-    for (const stream of Object.keys(dice)) dice[stream] = seeded(hashString(`bytefall:${day}:${stream}`));
+    for (const stream of Object.keys(dice)) dice[stream] = seeded(hashString(`bytefall:${day}:${dailyTag()}${stream}`));
   } else {
     for (const stream of Object.keys(dice)) dice[stream] = Math.random;
   }
@@ -184,6 +235,11 @@ function newPacket(stream = 'reveal') {
   return { type: 'number', val: 1 + Math.floor(dice[stream]() * COLS) };
 }
 
+// Points for a block cleared: a bit is worth 10 plus its number ([4] is 14), anything else 10.
+// Chains multiply the bits they decrypt.
+const blockPoints = (cell) => 10 + (cell && cell.type === 'number' ? cell.val : 0);
+const pointsFor = (positions) => positions.reduce((n, { row, col }) => n + blockPoints(columns[col][row]), 0);
+
 function newFirewall(level = 2) {
   return { type: 'firewall', level };
 }
@@ -191,7 +247,7 @@ function newFirewall(level = 2) {
 // Hard moved to 8x8, so it keeps a fresh best apart from old 7x7 Hard scores.
 // Other modes keep their own bests; DAILY keeps today's official score (practice runs save nothing).
 function bestKey() {
-  if (mode === 'daily') return dailyOfficial ? dailyKey() : null;
+  if (daily) return dailyOfficial ? dailyKey() : null;
   if (mode !== 'classic') return `bytefall-best-${mode}`;
   return difficulty === 'hard' ? 'blockchain-best-hard-8x8' : `blockchain-best-${difficulty}`;
 }
@@ -199,22 +255,22 @@ function bestKey() {
 // Always enough upcoming bits for the widest preview (the keylogger's). PUZZLE has a fixed list.
 function refillQueue() {
   if (mode === 'puzzle') return;
-  while (queue.length < 1 + KEYLOGGER_PREVIEW && (mode !== 'daily' || dealt < DAILY_BITS)) {
+  while (queue.length < 1 + KEYLOGGER_PREVIEW && dealt < dealLimit()) {
     queue.push(newPacket('queue'));
     dealt++;
   }
 }
 
-// DAILY: bits still to drop (dealt-but-waiting plus not yet dealt)
-const dailyBitsLeft = () => DAILY_BITS - dealt + queue.filter((p) => p.type === 'number').length;
+// DECRYPT, BREACH: bits still to drop (dealt-but-waiting plus not yet dealt)
+const dailyBitsLeft = () => dealLimit() - dealt + queue.filter((p) => p.type === 'number').length;
 
 function initGame() {
   runId++;
   difficulty = mode === 'classic' ? classicDifficulty : 'normal';
-  dailyOfficial = !storage.get(dailyPlayedKey());
+  dailyOfficial = daily && mode !== 'puzzle' && !storage.get(dailyPlayedKey());
   setupDice();
-  Progress.startRun(difficulty, mode, mode === 'puzzle' ? puzzleIndex : null);
-  timeLeft = BLITZ_SECONDS;
+  Progress.startRun(difficulty, mode, mode === 'puzzle' && !daily ? puzzleIndex : null, daily);
+  timeLeft = daily ? DAILY_BLITZ_SECONDS : BLITZ_SECONDS;
   clockRunning = false;
   timeUp = false;
   applyModeUi();
@@ -229,19 +285,21 @@ function initGame() {
   reportedScore = 0;
   refillQueue();
   if (mode === 'puzzle') loadPuzzle();
+  if (mode === 'breach') buildBreachWall();
   score = 0;
-  best = Number(storage.get(mode === 'daily' ? dailyKey() : bestKey())) || 0;
+  best = Number(storage.get(daily ? dailyKey() : bestKey())) || 0;
   bestAtStart = best;
   dropsSinceLastPulse = 0;
   keyloggerDrops = 0;
   snifferBits = 0;
   pivotFrom = null;
   pivotWith = null;
+  breached = false;
   pulseInterval = DIFFICULTIES[difficulty].interval(0);
   gameOver = false;
   busy = false;
   chainEl.textContent = '0x';
-  document.querySelectorAll('.difficulty button').forEach((btn) => {
+  document.querySelectorAll('#difficulty-row button').forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.difficulty === classicDifficulty);
   });
   const easy = difficulty === 'easy';
@@ -270,9 +328,17 @@ function revealBit(layer) {
   return layer.hidden ? { type: 'number', val: layer.hidden } : newPacket();
 }
 
+// BREACH: the bottom rows start as a firewall, the same for everyone today. Layers are level 1 or 2
+// and hide bits from the day's reveal stream.
+function buildBreachWall() {
+  const wall = seeded(hashString(`bytefall:${todayKey()}:breach-wall`));
+  columns = columns.map(() => Array.from({ length: BREACH_ROWS }, () => newFirewall(wall() < 0.5 ? 1 : 2)));
+}
+const layersLeft = () => columns.reduce((n, c) => n + c.filter((cell) => cell && cell.type === 'firewall').length, 0);
+
 // PUZZLE: 'L2:5' is a level 2 layer hiding a [5]; plain numbers are bits.
 function loadPuzzle() {
-  const puzzle = PUZZLES[puzzleIndex];
+  const puzzle = currentPuzzle();
   columns = puzzle.board.map((col) => col.map((block) => {
     if (typeof block === 'number') return { type: 'number', val: block };
     const [level, hidden] = block.slice(1).split(':').map(Number);
@@ -290,7 +356,14 @@ function setPuzzle(i) {
 
 // Runs at the end of each PUZZLE turn (when the board didn't overflow).
 function checkPuzzle() {
-  if (columns.every((c) => c.length === 0)) {
+  if (daily && columns.every((c) => c.length === 0)) {
+    const first = !storage.get(dailyPuzzleSolvedKey());
+    if (first) storage.set(dailyPuzzleSolvedKey(), storage.get(dailyPuzzleTriesKey()) || '1');
+    announce(Progress.check());
+    showPuzzleResult(true, first);
+  } else if (daily) {
+    if (!queue.length) showPuzzleResult(false);
+  } else if (columns.every((c) => c.length === 0)) {
     const first = !Progress.puzzleSolved(puzzleIndex);
     Progress.solvePuzzle(puzzleIndex);
     announce(Progress.check());
@@ -305,21 +378,28 @@ function showPuzzleResult(solved, firstTime = false) {
   busy = true;
   setMessage('');
   SFX.play(solved ? 'egg' : 'denied');
-  if (!solved) Progress.puzzleFailed();
-  const last = puzzleIndex === PUZZLES.length - 1;
+  if (!solved && !daily) Progress.puzzleFailed();
+  const last = daily || puzzleIndex === PUZZLES.length - 1;
   overlayNext = solved && !last ? 'next' : 'retry';
   document.querySelector('.overlay-box').classList.toggle('win', solved);
   document.getElementById('overlay-title').textContent = solved ? 'DECRYPTED' : 'OUT OF BITS';
-  document.getElementById('overlay-sub').textContent = solved
+  const tries = Number(storage.get(dailyPuzzleSolvedKey())) || 0;
+  document.getElementById('overlay-sub').textContent = daily
+    ? (solved ? `Today's puzzle cracked${tries ? ` in ${tries} ${tries === 1 ? 'try' : 'tries'}` : ''}.` : 'Blocks are still encrypted.')
+    : solved
     ? (last ? 'Every puzzle solved. The whole archive is yours.' : `Puzzle ${puzzleIndex + 1} cracked${firstTime ? '' : ' again'}.`)
     : 'Blocks are still encrypted.';
   finalScoreEl.textContent = score;
   newBestEl.hidden = true;
   const note = document.getElementById('overlay-note');
   note.hidden = false;
-  note.textContent = `PUZZLE ${puzzleIndex + 1} / ${PUZZLES.length} // ${PUZZLES.filter((_, n) => Progress.puzzleSolved(n)).length} SOLVED`;
+  note.textContent = daily
+    ? `DAILY PUZZLE // ${todayKey()} // ${WEEKDAYS[utcWeekday()]}`
+    : `PUZZLE ${puzzleIndex + 1} / ${PUZZLES.length} // ${PUZZLES.filter((_, n) => Progress.puzzleSolved(n)).length} SOLVED`;
+  shareBtn.hidden = !(daily && tries);
+  shareBtn.textContent = 'SHARE';
   document.getElementById('overlay-restart-btn').textContent = overlayNext === 'next' ? 'NEXT PUZZLE' : 'RETRY';
-  updatePuzzleNav();
+  if (!daily) updatePuzzleNav();
   const run = runId;
   setTimeout(() => {
     if (run === runId) overlayEl.classList.remove('hidden');
@@ -544,8 +624,8 @@ function updateHud() {
     showPiece(sq, piece);
     nextEl.appendChild(sq);
   }
-  pulseCounterEl.textContent = mode === 'puzzle' ? queue.length : pulseInterval - dropsSinceLastPulse;
-  if (mode === 'daily') showClock();
+  pulseCounterEl.textContent = mode === 'puzzle' ? queue.length : mode === 'breach' ? layersLeft() : pulseInterval - dropsSinceLastPulse;
+  if (dealLimit() < Infinity) showClock();
   pulseCounterEl.closest('.stat').classList.toggle('danger', !gameOver && !MODES[mode].noLayers && pulseInterval - dropsSinceLastPulse === 1);
   if (pivotFrom !== null && !(queue[0] && queue[0].id === 'pivot')) clearPivotChoice();
   const sniffing = snifferBits > 0 && queue[0] && queue[0].type === 'number';
@@ -629,7 +709,10 @@ async function attemptDrop(col) {
     await sleep(STEP_MS);
   }
   columns[col].push(piece);
-  if (mode === 'daily' && dailyOfficial) storage.set(dailyPlayedKey(), '1'); // this is today's official run
+  if (daily && dailyOfficial) storage.set(dailyPlayedKey(), '1'); // this is today's official run
+  if (daily && mode === 'puzzle' && Progress.runDrops() === 0) {
+    storage.set(dailyPuzzleTriesKey(), String((Number(storage.get(dailyPuzzleTriesKey())) || 0) + 1));
+  }
   Progress.drop();
   if (Progress.runDrops() === 1) refreshExploitCards(); // the loadout locks for this session
   if (mode === 'blitz') clockRunning = true;
@@ -653,6 +736,10 @@ async function attemptDrop(col) {
     }
   }
 
+  if (mode === 'breach' && !overflowed() && columns.every((c) => c.length === 0)) {
+    score += BREACH_CLEAR_BONUS;
+    breached = true;
+  }
   if (!overflowed()) {
     if (wentOver) Progress.closeCall();
     if (piecesBefore >= 5 && Progress.runDrops() >= 10 && columns.every((c) => c.length === 0)) Progress.sweep();
@@ -672,7 +759,8 @@ function finishTurn() {
   announce(Progress.check());
   if (overflowed()) endGame();
   else if (timeUp) endGame('time');
-  else if (mode === 'daily' && !queue.length) endGame('daily');
+  else if (breached) endGame('breached');
+  else if (dealLimit() < Infinity && !queue.length) endGame('daily');
   else if (mode === 'puzzle') checkPuzzle();
   // One drop until a firewall row: warn until the player drops (unless a hack message is showing)
   else if (!MODES[mode].noLayers && pulseInterval - dropsSinceLastPulse === 1 && messageEl.classList.contains('hidden')) {
@@ -811,7 +899,7 @@ async function resolveChains() {
     chain++;
     cleared += pops.length;
     Progress.decrypted(pops.map((p) => grid[p.row][p.col].val), chain);
-    score += pops.length * 10 * chain;
+    score += pops.reduce((n, pos) => n + blockPoints(grid[pos.row][pos.col]), 0) * chain;
     chainEl.textContent = `${chain}x`;
 
     FX.burst(cellsAt([...pops, ...sprung]));
@@ -838,6 +926,7 @@ async function resolveChains() {
           Progress.peeled(neighborCell.level <= 0);
           cracked = true;
           if (neighborCell.level <= 0) {
+            if (mode === 'breach') score += BREACH_LAYER_POINTS;
             columns[n.col][n.row] = revealBit(neighborCell);
             revealed = true;
           }
@@ -896,8 +985,8 @@ async function tickBombs() {
   SFX.play('burst');
   SFX.play('denied');
   await sleep(260);
+  score += pointsFor(hits.filter((h) => columns[h.col][h.row].type !== 'bomb'));
   for (const h of hits) columns[h.col][h.row] = null;
-  score += (hits.length - blasts.length) * 10;
   Progress.bombHits(hits.length - blasts.length);
   await collapse();
   await resolveChains();
@@ -945,8 +1034,8 @@ async function runHack(id, row, col) {
     render(hits);
     SFX.play('burst');
     await sleep(220);
+    score += pointsFor(hits.filter((h) => !(h.row === row && h.col === col))); // not the exploit itself
     for (const h of hits) columns[h.col][h.row] = null;
-    score += (hits.length - 1) * 10;
     await collapse();
   } else if (id === 'dictionary') {
     // Peel one layer off every encryption block at once
@@ -962,6 +1051,7 @@ async function runHack(id, row, col) {
       cell.level--;
       Progress.peeled(cell.level <= 0);
       if (cell.level <= 0) {
+        if (mode === 'breach') score += BREACH_LAYER_POINTS;
         columns[c][r] = revealBit(cell);
         revealed = true;
       }
@@ -977,8 +1067,8 @@ async function runHack(id, row, col) {
     render(hits);
     SFX.play('burst');
     await sleep(220);
+    score += pointsFor(hits);
     for (const h of hits) columns[h.col][0] = null;
-    score += hits.length * 10;
     await collapse();
   } else if (id === 'rainbow') {
     // Decrypt every bit showing the most common number (ties go to the higher number)
@@ -1000,7 +1090,7 @@ async function runHack(id, row, col) {
       await sleep(220);
       for (const h of hits) columns[h.col][h.row] = null;
       Progress.decrypted(hits.map(() => target), 1);
-      score += hits.length * 10;
+      score += hits.length * (10 + target);
       await collapse();
     } else {
       render();
@@ -1091,21 +1181,23 @@ function endGame(reason = 'trace') {
   const endings = {
     trace: ['TRACE COMPLETE', 'They found you.'],
     time: ["TIME'S UP", 'The connection timed out.'],
-    daily: ['DAILY COMPLETE', `All ${DAILY_BITS} bits dropped.`],
+    daily: [mode === 'breach' ? 'BREACH COMPLETE' : 'DAILY COMPLETE', `All ${dealLimit()} bits dropped.`],
+    breached: ['FIREWALL BREACHED', `Every block cleared. +${BREACH_CLEAR_BONUS}`],
   };
   document.getElementById('overlay-title').textContent = endings[reason][0];
   document.getElementById('overlay-sub').textContent = endings[reason][1];
   const note = document.getElementById('overlay-note');
   note.hidden = mode === 'classic';
-  note.textContent = mode === 'daily'
-    ? (dailyOfficial ? `OFFICIAL SCORE // ${todayKey()}` : `PRACTICE // OFFICIAL SCORE TODAY ${fmt(best)}`)
+  note.textContent = daily
+    ? (dailyOfficial ? `${DAILY_KINDS[mode]} // OFFICIAL SCORE // ${todayKey()}` : `${DAILY_KINDS[mode]} PRACTICE // OFFICIAL SCORE TODAY ${fmt(best)}`)
     : `${MODES[mode].label} // BEST ${best}`;
-  if (mode === 'daily') newBestEl.hidden = true;
-  shareBtn.hidden = mode !== 'daily';
+  if (daily) newBestEl.hidden = true;
+  shareBtn.hidden = !daily || mode === 'puzzle';
   shareBtn.textContent = 'SHARE';
 
-  if (mode === 'puzzle') Progress.puzzleFailed();
-  else {
+  if (mode === 'puzzle') {
+    if (!daily) Progress.puzzleFailed();
+  } else {
     Progress.endRun({
       score, reason, boardEmpty: columns.every((c) => c.length === 0),
       track: Music.isEnabled() ? Music.currentTrack() : null, theme: document.documentElement.dataset.theme || 'terminal',
@@ -1180,7 +1272,7 @@ function requestReset(btn, confirmText, apply = () => {}) {
   }
   if (busy) return; // stays armed; mid-drop the board can't be wiped yet
   disarmReset();
-  Progress.restarted();
+  if (Progress.runDrops() > 0) Progress.restarted();
   busy = true;
   updateColumnButtons();
   Music.setIntensity(0);
@@ -1197,7 +1289,7 @@ function requestReset(btn, confirmText, apply = () => {}) {
 const restartBtn = document.getElementById('restart-btn');
 restartBtn.addEventListener('click', () => requestReset(restartBtn, 'CONFIRM RESTART?'));
 
-document.querySelectorAll('.difficulty button').forEach((btn) => {
+document.querySelectorAll('#difficulty-row button').forEach((btn) => {
   btn.addEventListener('click', () => {
     const next = btn.dataset.difficulty;
     if (next === classicDifficulty) return;
@@ -1217,10 +1309,24 @@ document.querySelectorAll('.difficulty button').forEach((btn) => {
 document.querySelectorAll('.modes button').forEach((btn) => {
   btn.addEventListener('click', () => {
     const next = btn.dataset.mode;
-    if (next === mode) return;
+    if (next === topMode) return;
     requestReset(btn, 'CONFIRM?', () => {
-      mode = next;
+      topMode = next;
       storage.set('bytefall-mode', next);
+      setModeFromChoice();
+    });
+  });
+});
+
+// DAILY's games: DECRYPT, PUZZLE, BLITZ, BREACH
+document.querySelectorAll('#daily-kinds button').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const next = btn.dataset.daily;
+    if (next === dailyKind) return;
+    requestReset(btn, 'CONFIRM?', () => {
+      dailyKind = next;
+      storage.set('bytefall-daily-kind', next);
+      setModeFromChoice();
     });
   });
 });
@@ -1229,29 +1335,33 @@ document.querySelectorAll('.modes button').forEach((btn) => {
 // only), the layer countdown (not in ZEN) and the BLITZ clock.
 function applyModeUi() {
   document.querySelectorAll('.modes button').forEach((btn) => {
-    btn.classList.toggle('active', btn.dataset.mode === mode);
+    btn.classList.toggle('active', btn.dataset.mode === topMode);
+  });
+  document.querySelectorAll('#daily-kinds button').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.daily === dailyKind);
   });
   const info = document.getElementById('mode-info');
   info.hidden = mode === 'classic';
   info.textContent = mode === 'classic' ? '' : MODES[mode].info(todayKey());
-  document.querySelector('.difficulty').hidden = mode !== 'classic';
-  document.getElementById('pulse-stat').hidden = !!MODES[mode].noLayers && mode !== 'puzzle';
-  document.getElementById('pulse-label').textContent = mode === 'puzzle' ? 'BITS LEFT' : 'NEW LAYER IN';
-  puzzleNavEl.hidden = mode !== 'puzzle';
-  if (mode === 'puzzle') updatePuzzleNav();
+  document.getElementById('difficulty-row').hidden = mode !== 'classic';
+  document.getElementById('daily-kinds').hidden = !daily;
+  document.getElementById('pulse-stat').hidden = !!MODES[mode].noLayers && mode !== 'puzzle' && mode !== 'breach';
+  document.getElementById('pulse-label').textContent = mode === 'puzzle' ? 'BITS LEFT' : mode === 'breach' ? 'LAYERS LEFT' : 'NEW LAYER IN';
+  puzzleNavEl.hidden = mode !== 'puzzle' || daily;
+  if (mode === 'puzzle' && !daily) updatePuzzleNav();
   // The overlay goes back to its trace look until a puzzle result changes it
   overlayNext = null;
   document.querySelector('.overlay-box').classList.remove('win');
   document.getElementById('overlay-restart-btn').textContent = mode === 'puzzle' ? 'RETRY' : 'NEW SESSION';
-  document.getElementById('time-stat').hidden = mode !== 'blitz' && mode !== 'daily';
-  document.getElementById('time-label').textContent = mode === 'daily' ? 'BITS LEFT' : 'TIME';
+  document.getElementById('time-stat').hidden = mode !== 'blitz' && dealLimit() === Infinity;
+  document.getElementById('time-label').textContent = mode === 'blitz' ? 'TIME' : 'BITS LEFT';
   shareBtn.hidden = true;
   showClock();
 }
 
 const timeLeftEl = document.getElementById('time-left');
 function showClock() {
-  if (mode === 'daily') {
+  if (dealLimit() < Infinity) {
     timeLeftEl.textContent = dailyBitsLeft();
     timeLeftEl.closest('.stat').classList.remove('time-low');
     return;
@@ -1279,13 +1389,26 @@ setInterval(() => {
 const shareBtn = document.getElementById('overlay-share-btn');
 function dailyShareText() {
   const run = Progress.runStats();
-  const filled = Math.round((Math.min(run.bits, DAILY_BITS) / DAILY_BITS) * 10);
-  return [
-    `BYTEFALL // DAILY DECRYPT ${todayKey()}${dailyOfficial ? '' : ' (practice)'}`,
-    `${fmt(score)} pts // ${run.chain}x best chain // ${run.bits} bits decrypted`,
-    `${'\u25AE'.repeat(filled)}${'\u25AF'.repeat(10 - filled)}`,
-    location.href.split(/[?#]/)[0],
-  ].join('\n');
+  const bar = (part, whole) => {
+    const filled = Math.round((Math.min(part, whole) / whole) * 10);
+    return `${'\u25AE'.repeat(filled)}${'\u25AF'.repeat(10 - filled)}`;
+  };
+  const head = `BYTEFALL // ${DAILY_KINDS[mode]} ${todayKey()}`;
+  const url = location.href.split(/[?#]/)[0];
+  if (mode === 'puzzle') {
+    const tries = Number(storage.get(dailyPuzzleSolvedKey())) || 1;
+    return [`${head} // ${WEEKDAYS[utcWeekday()]} ${utcWeekday() + 1}/7`, `Solved in ${tries} ${tries === 1 ? 'try' : 'tries'}`, url].join('\n');
+  }
+  const practice = dailyOfficial ? '' : ' (practice)';
+  if (mode === 'breach') {
+    const total = BREACH_ROWS * COLS;
+    const broken = total - layersLeft();
+    return [`${head}${practice}`, `${fmt(score)} pts // ${broken}/${total} layers broken${breached ? ' // BREACHED' : ''}`, bar(broken, total), url].join('\n');
+  }
+  if (mode === 'blitz') {
+    return [`${head}${practice}`, `${fmt(score)} pts in ${DAILY_BLITZ_SECONDS}s // ${run.chain}x best chain // ${run.bits} bits decrypted`, url].join('\n');
+  }
+  return [`${head}${practice}`, `${fmt(score)} pts // ${run.chain}x best chain // ${run.bits} bits decrypted`, bar(run.bits, DAILY_BITS), url].join('\n');
 }
 function copyText(text) {
   if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(text);
@@ -1313,7 +1436,7 @@ shareBtn.addEventListener('click', async () => {
 });
 
 document.getElementById('overlay-restart-btn').addEventListener('click', () => {
-  if (mode === 'puzzle' && overlayNext === 'next') setPuzzle(Math.min(puzzleIndex + 1, PUZZLES.length - 1));
+  if (mode === 'puzzle' && !daily && overlayNext === 'next') setPuzzle(Math.min(puzzleIndex + 1, PUZZLES.length - 1));
   else restart();
 });
 
@@ -1599,11 +1722,11 @@ if (freeExploit.day !== localDay()) {
   freeGrantedNow = true;
 }
 function updateFreeBtn() {
-  freeBtn.hidden = !freeExploit.ready || mode === 'daily' || mode === 'puzzle';
+  freeBtn.hidden = !freeExploit.ready || daily || mode === 'puzzle';
   freeBtn.disabled = gameOver || busy || pivotFrom !== null;
 }
 freeBtn.addEventListener('click', () => {
-  if (!freeExploit.ready || gameOver || busy || pivotFrom !== null || mode === 'daily' || mode === 'puzzle') return;
+  if (!freeExploit.ready || gameOver || busy || pivotFrom !== null || daily || mode === 'puzzle') return;
   const ids = Progress.exploitOrder().slice(0, 5);
   const id = ids[Math.floor(Math.random() * ids.length)];
   freeExploit.ready = false;
@@ -1842,7 +1965,7 @@ function renderRecords() {
       ['CLOSE CALLS', fmt(s.closeCalls)],
       ['DAILY DECRYPTS PLAYED', fmt(s.dailies)],
       ['DAILY STREAK', `${fmt(s.lastDaily === todayKey() || s.lastDaily === new Date(Date.now() - 86400000).toISOString().slice(0, 10) ? s.dailyStreak : 0)} (best ${fmt(s.bestDailyStreak)})`],
-      ['DAILY TODAY (OFFICIAL)', storage.get(dailyPlayedKey()) ? fmt(Number(storage.get(dailyKey())) || 0) : 'not played'],
+      ['DAILY DECRYPT TODAY', storage.get(dailyPlayedKey('decrypt')) ? fmt(Number(storage.get(dailyKey('decrypt'))) || 0) : 'not played'],
       ['DATA DECRYPTED', fmtData(s.bits)],
       ['TOTAL POINTS', fmt(s.points)],
       ['BEST // BLITZ', fmt(Number(storage.get('bytefall-best-blitz')) || 0)],
@@ -1915,8 +2038,8 @@ function refreshExploitCards() {
   const { slots, max, nextLevel } = Progress.slotInfo();
   const equipped = Progress.equipped();
   const editable = loadoutEditable();
-  if (mode === 'daily') {
-    slotInfoEl.textContent = 'DAILY DECRYPT // THE SAME FIVE EXPLOITS FOR EVERYONE';
+  if (daily) {
+    slotInfoEl.textContent = mode === 'puzzle' ? 'DAILY PUZZLE // NO EXPLOITS' : 'DAILY // THE SAME FIVE EXPLOITS FOR EVERYONE';
   } else {
     slotInfoEl.textContent = `SLOTS ${equipped.length} / ${slots}`
       + (slots < max ? (nextLevel ? ` // NEXT SLOT AT LV ${nextLevel}` : ' // MORE SLOTS WITH PRESTIGE') : '')
@@ -1927,13 +2050,12 @@ function refreshExploitCards() {
     if (!el) continue;
     hacksPanelEl.appendChild(el); // keep the cards in unlock order
     const info = Progress.exploitInfo(id);
-    const daily = mode === 'daily';
     const on = daily ? DAILY_EXPLOITS.includes(id) : equipped.includes(id);
     el.classList.toggle('locked', daily ? !on : !info.unlocked);
     el.classList.toggle('unlocked', !daily && info.unlocked && editable);
     el.classList.toggle('equipped', on);
     let tag;
-    if (daily) tag = on ? '' : 'NOT USED IN THE DAILY DECRYPT';
+    if (daily) tag = on ? '' : 'NOT USED IN THE DAILY';
     else if (!info.unlocked) tag = `UNLOCKS AT LV ${info.level} THIS PRESTIGE`;
     else if (!editable) tag = on ? '' : 'NOT EQUIPPED THIS SESSION';
     else if (on) tag = 'TAP TO REMOVE';
@@ -1986,7 +2108,7 @@ hacksPanelEl.addEventListener('click', (e) => {
     return;
   }
   const card = e.target.closest('.hack-item');
-  if (!card || mode === 'daily' || !Progress.exploitInfo(card.dataset.hack).unlocked) return;
+  if (!card || daily || !Progress.exploitInfo(card.dataset.hack).unlocked) return;
   if (!loadoutEditable()) {
     SFX.play('denied');
     showToast('LOADOUT LOCKED // FINISH OR RESTART TO CHANGE IT');
@@ -2009,7 +2131,7 @@ hacksPanelEl.addEventListener('click', (e) => {
 function applyUnlocks() {
   refreshExploitCards();
   updateLevelBar();
-  const hardBtn = document.querySelector('.difficulty [data-difficulty="hard"]');
+  const hardBtn = document.querySelector('#difficulty-row [data-difficulty="hard"]');
   const hardLocked = !Progress.isUnlocked('mode-hard');
   hardBtn.classList.toggle('locked', hardLocked);
   hardBtn.title = hardLocked ? `${Progress.unlock('mode-hard').need} to unlock` : '';
