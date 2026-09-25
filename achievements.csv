@@ -31,9 +31,9 @@ Score,SUPERUSER,"Score 5,000 in one session","5,000",Standard,superuser
 Score,KERNEL MODE,"Score 10,000 in one session","10,000",Standard,kernel-mode
 Score,HYPERVISOR,"Score 20,000 in one session","20,000",Standard,hypervisor
 Score,NO TOOLS,"Score 2,000 in one session without running an exploit","2,000",Standard,no-tools
-Score,SNAKE EYES,Lose a session with 0 hashes,1,Hidden,snake-eyes
-Score,1337,"Finish a session on exactly 1,337 hashes",1,Hidden,1337
-Score,NOT FOUND,Finish a session on exactly 404 hashes,1,Hidden,not-found
+Score,SNAKE EYES,Lose a session with 0 points,1,Hidden,snake-eyes
+Score,1337,"Finish a session on exactly 1,337 points",1,Hidden,1337
+Score,NOT FOUND,Finish a session on exactly 404 points,1,Hidden,not-found
 Score,DEEP THOUGHT,Finish a session with exactly 42 bits decrypted,1,Hidden,deep-thought
 Score,PALINDROME,Finish a session on a score that reads the same backwards (4+ digits),1,Hidden,palindrome
 Hard mode and bytes,HARDENED,Unlock Hard mode,1,Standard,hardened
@@ -115,5 +115,5 @@ Dates and times,PI DAY,Play on March 14,1,Hidden,pi-day
 Secrets,KONAMI,Enter the Konami code,1,Hidden,konami
 Impossible (not counted),32-BIT OVERFLOW,"Decrypt 1,073,741,824 nibbles (2^32 bits)","1,073,741,824",Impossible,32-bit-overflow
 Impossible (not counted),GIGABIT,"Decrypt 1,000,000,000 bits","1,000,000,000",Impossible,gigabit
-Impossible (not counted),GIGABYTE,"Earn 8,000,000,000 hashes in total","8,000,000,000",Impossible,gigabyte
-Impossible (not counted),TERABYTE,"Earn 8,000,000,000,000 hashes in total","8,000,000,000,000",Impossible,terabyte
+Impossible (not counted),GIGABYTE,"Earn 8,000,000,000 points in total","8,000,000,000",Impossible,gigabyte
+Impossible (not counted),TERABYTE,"Earn 8,000,000,000,000 points in total","8,000,000,000,000",Impossible,terabyte

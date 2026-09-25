@@ -1441,12 +1441,12 @@ function dailyShareText() {
   if (mode === 'breach') {
     const total = BREACH_ROWS * COLS;
     const broken = total - layersLeft();
-    return [`${head}${practice}`, `${fmt(score)} hashes // ${broken}/${total} layers broken${breached ? ' // BREACHED' : ''}`, bar(broken, total), url].join('\n');
+    return [`${head}${practice}`, `${fmt(score)} pts // ${broken}/${total} layers broken${breached ? ' // BREACHED' : ''}`, bar(broken, total), url].join('\n');
   }
   if (mode === 'blitz') {
-    return [`${head}${practice}`, `${fmt(score)} hashes in ${DAILY_BLITZ_SECONDS}s // ${run.chain}x best chain // ${run.bits} bits decrypted`, url].join('\n');
+    return [`${head}${practice}`, `${fmt(score)} pts in ${DAILY_BLITZ_SECONDS}s // ${run.chain}x best chain // ${run.bits} bits decrypted`, url].join('\n');
   }
-  return [`${head}${practice}`, `${fmt(score)} hashes // ${run.chain}x best chain // ${run.bits} bits decrypted`, bar(run.bits, DAILY_BITS), url].join('\n');
+  return [`${head}${practice}`, `${fmt(score)} pts // ${run.chain}x best chain // ${run.bits} bits decrypted`, bar(run.bits, DAILY_BITS), url].join('\n');
 }
 function copyText(text) {
   if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(text);
@@ -2030,7 +2030,7 @@ function renderRecords() {
       ['DAILY STREAK', `${fmt(s.lastDaily === todayKey() || s.lastDaily === new Date(Date.now() - 86400000).toISOString().slice(0, 10) ? s.dailyStreak : 0)} (best ${fmt(s.bestDailyStreak)})`],
       ['DAILY DECRYPT TODAY', storage.get(dailyPlayedKey('decrypt')) ? fmt(Number(storage.get(dailyKey('decrypt'))) || 0) : 'not played'],
       ['DATA DECRYPTED', fmtData(s.bits)],
-      ['TOTAL HASHES', fmt(s.points)],
+      ['TOTAL POINTS', fmt(s.points)],
       ['BEST // BLITZ', fmt(Number(storage.get('bytefall-best-blitz')) || 0)],
       ['BEST // ZEN', fmt(Number(storage.get('bytefall-best-zen')) || 0)],
     ];

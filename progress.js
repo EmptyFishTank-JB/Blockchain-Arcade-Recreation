@@ -251,8 +251,8 @@ const Progress = (() => {
     { id: 'birthday', name: 'BIRTHDAY', desc: "Play on September 23, ByteFall's birthday", value: () => d.birthday, goal: 1, hidden: true },
     // Hidden until earned
     { id: 'rage-quit', name: 'RAGE QUIT', desc: 'Restart 10 sessions in one sitting', value: () => d.rageQuit, goal: 1, hidden: true },
-    { id: 'snake-eyes', name: 'SNAKE EYES', desc: 'Lose a session with 0 hashes', value: () => d.snakeEyes, goal: 1, hidden: true },
-    { id: '1337', name: '1337', desc: 'Finish a session on exactly 1,337 hashes', value: () => d.leet, goal: 1, hidden: true },
+    { id: 'snake-eyes', name: 'SNAKE EYES', desc: 'Lose a session with 0 points', value: () => d.snakeEyes, goal: 1, hidden: true },
+    { id: '1337', name: '1337', desc: 'Finish a session on exactly 1,337 points', value: () => d.leet, goal: 1, hidden: true },
     // More: skill, totals and modes
     { id: 'lifer', name: 'LIFER', desc: 'Play 500 sessions', value: () => d.games, goal: 500 },
     { id: 'marathon', name: 'MARATHON', desc: 'Last 250 drops in one Classic session', value: () => d.bestClassicDrops, goal: 250 },
@@ -295,7 +295,7 @@ const Progress = (() => {
     // More hidden ones
     ...[
       ['konami', 'KONAMI', 'Enter the Konami code'],
-      ['not-found', 'NOT FOUND', 'Finish a session on exactly 404 hashes'],
+      ['not-found', 'NOT FOUND', 'Finish a session on exactly 404 points'],
       ['deep-thought', 'DEEP THOUGHT', 'Finish a session with exactly 42 bits decrypted'],
       ['jackpot', 'JACKPOT', 'Decrypt seven [7]s with one drop'],
       ['silent-running', 'SILENT RUNNING', 'Play a full session (10+ drops) with the sound and music off'],
@@ -313,8 +313,8 @@ const Progress = (() => {
     ].map(([id, name, desc]) => ({ id, name, desc, value: () => (d.secrets[id] ? 1 : 0), goal: 1, hidden: true })),
     // Impossible (or nearly): lifetime points. Listed on their own, outside the EARNED count.
     { id: '32-bit-overflow', name: '32-BIT OVERFLOW', desc: 'Decrypt 1,073,741,824 nibbles (2^32 bits)', value: () => d.nibbles, goal: 1073741824, impossible: true },
-    { id: 'gigabyte', name: 'GIGABYTE', desc: 'Earn 8,000,000,000 hashes in total', value: () => d.points, goal: 8e9, impossible: true },
-    { id: 'terabyte', name: 'TERABYTE', desc: 'Earn 8,000,000,000,000 hashes in total', value: () => d.points, goal: 8e12, impossible: true },
+    { id: 'gigabyte', name: 'GIGABYTE', desc: 'Earn 8,000,000,000 points in total', value: () => d.points, goal: 8e9, impossible: true },
+    { id: 'terabyte', name: 'TERABYTE', desc: 'Earn 8,000,000,000,000 points in total', value: () => d.points, goal: 8e12, impossible: true },
   ];
 
   const goalOf = (item) => (typeof item.goal === 'function' ? item.goal() : item.goal);

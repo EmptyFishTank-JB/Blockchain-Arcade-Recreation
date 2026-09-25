@@ -14,10 +14,10 @@ Mechanically it's a Drop7-style puzzle:
 - A bit decrypts (clears) when its number matches the length of the unbroken
   line it sits in, across or down (e.g. a `[5]` decrypts when it's part of an
   unbroken run of exactly 5 filled cells in its row or column).
-- Score is counted in **hashes**. A decrypted bit is worth 10 hashes plus its
-  number (a `[4]` is 14, a `[7]` is 17). Blocks wiped out by exploits are a flat 10.
+- A decrypted bit scores 10 plus its number (a `[4]` is 14, a `[7]` is 17).
+  Blocks wiped out by exploits score a flat 10.
 - Decrypts chain: bits above fall into the gap and may make new matches.
-  Chains multiply the hashes.
+  Chains multiply the points.
 - Every 8 drops a row of encryption layers (`[=]`) rises from the bottom.
   Decrypting a bit beside one peels it down to `[-]`, and a second peel
   reveals the bit underneath.
@@ -71,12 +71,12 @@ own best score.
 |---|---|
 | Easy | Shows the next bit, and exploits unlock at 3x–5x depending on the exploit; NIBBLE bonus |
 | Normal | New encryption layer every 8 drops; NIBBLE bonus |
-| Hard | A full byte: 8×8 grid with bits 1-8; new layer every 8 drops, minus one per 700 hashes, down to every 4; BYTE bonus |
+| Hard | A full byte: 8×8 grid with bits 1-8; new layer every 8 drops, minus one per 700 points, down to every 4; BYTE bonus |
 
 On Hard, every 8 bits a single drop decrypts, chains included, make a byte:
-**BYTE DECRYPTED** adds a 256-hash (2^8) bonus per byte. On Easy and Normal
+**BYTE DECRYPTED** adds a 256-point (2^8) bonus per byte. On Easy and Normal
 (and the modes that play Normal rules, all but PUZZLE), every 4 bits make a
-nibble: **NIBBLE DECRYPTED** adds a 16-hash (2^4) bonus per nibble.
+nibble: **NIBBLE DECRYPTED** adds a 16-point (2^4) bonus per nibble.
 
 High scores are saved in your browser, one per difficulty (Hard's started
 fresh when it moved to 8×8).
@@ -120,7 +120,7 @@ and achievements pop up as they happen. Progress is saved in the browser
 (`bytefall-progress`).
 
 `progress.js` holds the stats, levels, unlocks and achievements; `script.js`
-reports each drop, decrypt, peel, byte, exploit and hash to it.
+reports each drop, decrypt, peel, byte, exploit and point to it.
 
 **Dev switches.** The `</>` dev page has UNLOCK EVERYTHING (like owning Full
 Access, for this browser; the game shows a DEV badge while it's on), JUMP TO
