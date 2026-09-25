@@ -2060,7 +2060,9 @@ function renderRecords() {
       dt.textContent = label;
       const dd = document.createElement('dd');
       dd.textContent = value;
-      dl.append(dt, dd);
+      const line = document.createElement('div'); // label ........ value
+      line.append(dt, dd);
+      dl.append(line);
     }
     recordsBodyEl.appendChild(dl);
     // RESET PROGRESS: two presses, like RESTART. Clears stats, unlocks, achievements, puzzles and
