@@ -5,7 +5,7 @@
 // schedule() takes an intensity from 0 to 1 that blends in extra layers
 // (four-on-the-floor kick, 16th hats, brighter bass/arp, a tension pulse).
 
-function createSynthwave(ctx, out) {
+function createBytefallTheme(ctx, out) {
   const BPM = 108;
   const STEP = 60 / BPM / 4; // one 16th note
   const freq = (m) => 440 * Math.pow(2, (m - 69) / 12);

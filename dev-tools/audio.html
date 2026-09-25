@@ -207,7 +207,7 @@
   <div class="hero">
     <div class="eyebrow"><span class="dot"></span>BYTEFALL // DEV TOOLS</div>
     <h1>AUDIO <span>COMPENDIUM</span></h1>
-    <p class="lede">Every sound in the game: the one-shot effects, both music tracks, and how the music intensifies near the red line. Nothing here is a recording. This page loads the game's own <code>sfx.js</code>, <code>music-theme.js</code> and <code>music-sleep-mode.js</code>, so every button plays exactly what the game plays.</p>
+    <p class="lede">Every sound in the game: the one-shot effects, both music tracks, and how the music intensifies near the red line. Nothing here is a recording. This page loads the game's own <code>sfx.js</code>, <code>music-bytefall-theme.js</code> and <code>music-sleep-mode.js</code>, so every button plays exactly what the game plays.</p>
     <div class="wf-strip" title="Click to switch visualizer style"><canvas id="scope"></canvas></div>
     <div class="wf-row">
       <div class="wf-label" id="scope-label">// SCOPE IDLE &mdash; PLAY A TRACK TO SEE IT MOVE</div>
@@ -266,16 +266,16 @@
   <footer>GENERATED FROM SOURCE &mdash; NO AUDIO FILES, ALL SYNTHESIZED ON PLAY</footer>
 </div>
 
-<script src="../sfx.js?v=97"></script>
-<script src="../music-theme.js?v=97"></script>
-<script src="../music-sleep-mode.js?v=97"></script>
-<script src="../music-brute-force.js?v=97"></script>
-<script src="../music-deep-web.js?v=97"></script>
-<script src="../music-zero-day.js?v=97"></script>
-<script src="../music-system-restore.js?v=97"></script>
-<script src="../music-night-drive.js?v=97"></script>
-<script src="../music-standby-mode.js?v=97"></script>
-<script src="../viz.js?v=97"></script>
+<script src="../sfx.js?v=98"></script>
+<script src="../music-bytefall-theme.js?v=98"></script>
+<script src="../music-sleep-mode.js?v=98"></script>
+<script src="../music-brute-force.js?v=98"></script>
+<script src="../music-deep-web.js?v=98"></script>
+<script src="../music-zero-day.js?v=98"></script>
+<script src="../music-system-restore.js?v=98"></script>
+<script src="../music-night-drive.js?v=98"></script>
+<script src="../music-standby-mode.js?v=98"></script>
+<script src="../viz.js?v=98"></script>
 <script>
 (() => {
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -359,7 +359,7 @@
   // ── Music tracks ───────────────────────────────────────────────────
   const TRACKS = [
     {
-      id: 'theme', num: '01', title: 'BYTEFALL THEME', create: createSynthwave, file: 'music-theme.js',
+      id: 'bytefall-theme', num: '01', title: 'BYTEFALL THEME', create: createBytefallTheme, file: 'music-bytefall-theme.js',
       meta: ['synthwave', '108 BPM', 'A minor', '32 bars', '~71s loop'],
       desc: 'An original 80s-style synthwave loop: gated-reverb snare, octave-pulsing bass, detuned saw pads, an echoing 16th-note arpeggio and a square/saw lead.',
       sections: [
@@ -708,7 +708,7 @@
   document.addEventListener('visibilitychange', () => {
     if (!ctx || !player) return;
     let background = false;
-    try { background = localStorage.getItem('blockchain-music-bg') === 'on'; } catch (e) {}
+    try { background = localStorage.getItem('bytefall-music-bg') === 'on'; } catch (e) {}
     if (document.hidden && !background) ctx.suspend();
     else ctx.resume();
   });
@@ -752,7 +752,7 @@
       set('bytefall-progress', JSON.stringify(d));
       status.textContent = message;
     };
-    // 100 bits per level; a full Lv 80 (8,000 bits, a kilobyte) opens PRESTIGE
+    // 100 bits per level; a full Lv 80 (8,000 bits, a kilobyte) opens RANK UP
     document.getElementById('dev-lv80').addEventListener('click', () => editProgress((d) => { d.xp = Math.max(d.xp || 0, 8000); }, 'Lv 80 (full) saved. Reload the game, then rank up to DECRYPTOR from RECORDS.'));
     document.getElementById('dev-levels').addEventListener('click', () => editProgress((d) => {
       d.xp = Math.min((d.xp || 0) + 1000, 8000);

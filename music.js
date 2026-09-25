@@ -2,9 +2,9 @@
 // and the intensity input. Track engines live in their own music-*.js files.
 
 const Music = (() => {
-  const STORAGE_KEY = 'blockchain-music';
-  const BG_KEY = 'blockchain-music-bg';
-  const MODE_KEY = 'blockchain-music-mode';
+  const STORAGE_KEY = 'bytefall-music';
+  const BG_KEY = 'bytefall-music-bg';
+  const MODE_KEY = 'bytefall-music-mode';
   const MODES = ['repeat', 'sequence', 'shuffle'];
   const FADE_OUT = 3; // seconds of fade at the end of a track's last loop
   const LOOPS_PER_TRACK = 4; // sequence/shuffle: plays before moving to the next track
@@ -12,10 +12,10 @@ const Music = (() => {
   // Hidden tabs get their timers throttled to ~1/s, so queue more notes ahead while in the background.
   const HIDDEN_LOOKAHEAD = 1.5;
   const INTENSITY_EASE = 0.06; // per 16th step, ~2.5s to settle
-  // Add future tracks here: each entry's create(ctx, out) returns an engine like createSynthwave's.
+  // Add future tracks here: each entry's create(ctx, out) returns an engine like createBytefallTheme's.
   // free: always playable; track N (from 02) is unlocked by progress.js's track-N.
   const TRACKS = [
-    { id: 'theme', title: 'BYTEFALL THEME', create: createSynthwave, free: true },
+    { id: 'bytefall-theme', title: 'BYTEFALL THEME', create: createBytefallTheme, free: true },
     { id: 'sleep-mode', title: 'SLEEP MODE', create: createSleepMode },
     { id: 'brute-force', title: 'BRUTE FORCE', create: createBruteForce },
     { id: 'deep-web', title: 'DEEP WEB', create: createDeepWeb },

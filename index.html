@@ -15,12 +15,12 @@
 <script>
   // Apply the saved color theme before first paint (script.js owns the setting).
   try {
-    var theme = localStorage.getItem('blockchain-theme');
-    if (['cipher', 'amber', 'mono', 'redline', 'synthwave', 'dotmatrix', 'paper', 'glyph', 'spectrum'].indexOf(theme) >= 0) document.documentElement.dataset.theme = theme;
+    var theme = localStorage.getItem('bytefall-theme');
+    if (['cipher', 'amber-crt', 'monochrome', 'redline', 'synthwave', 'dot-matrix', 'paper', 'glyph', 'spectrum'].indexOf(theme) >= 0) document.documentElement.dataset.theme = theme;
   } catch (e) {}
 </script>
 <title>BYTEFALL // decryption terminal</title>
-<link rel="stylesheet" href="style.css?v=97">
+<link rel="stylesheet" href="style.css?v=98">
 </head>
 <body>
   <main class="cabinet">
@@ -200,12 +200,12 @@
       <h2>EXPLOITS</h2>
       <p class="slot-info" id="slot-info"></p>
       <p><span id="hack-intro">Chain 5 decrypts in one drop to unlock a random exploit.</span> It becomes your next drop and runs wherever it lands.</p>
-      <div class="hack-item" data-hack="worm">
+      <div class="hack-item" data-hack="worm-virus">
         <h3><span class="icon">§</span> WORM VIRUS<span class="combo"></span></h3>
         <p>Burrows down the column it lands in and wipes out every block there.</p>
         <p class="lock-tag"></p>
       </div>
-      <div class="hack-item" data-hack="overflow">
+      <div class="hack-item" data-hack="buffer-overflow">
         <h3><span class="icon">+</span> BUFFER OVERFLOW<span class="combo"></span></h3>
         <p>Floods memory: every bit goes up by 1. A bit pushed past <span id="overflow-top">7</span> gets re-encrypted under two layers.</p>
         <p class="lock-tag"></p>
@@ -225,7 +225,7 @@
         <p>Turns every column upside down.</p>
         <p class="lock-tag"></p>
       </div>
-      <div class="hack-item" data-hack="dictionary">
+      <div class="hack-item" data-hack="dictionary-attack">
         <h3><span class="icon">#</span> DICTIONARY ATTACK<span class="combo"></span></h3>
         <p>Throws every known key at the encryption: every layer on the board loses one level at once.</p>
         <p class="lock-tag"></p>
@@ -240,12 +240,12 @@
         <p>Moves sideways through the network: the column it lands in swaps places with the one beside it. Pick the column, then tap the neighbor (&larr; or &rarr;) to swap with: once picked, you're committed. Edge columns swap with their only neighbor.</p>
         <p class="lock-tag"></p>
       </div>
-      <div class="hack-item" data-hack="sniffer">
+      <div class="hack-item" data-hack="packet-sniffer">
         <h3><span class="icon">~</span> PACKET SNIFFER<span class="combo"></span></h3>
         <p>Taps the incoming stream: for your next 3 bits, tap CURRENT (or press &uarr; / &darr;) to choose each one's number.</p>
         <p class="lock-tag"></p>
       </div>
-      <div class="hack-item" data-hack="logicbomb">
+      <div class="hack-item" data-hack="logic-bomb">
         <h3><span class="icon">!</span> LOGIC BOMB<span class="combo"></span></h3>
         <p>Lands as a block counting down from 3. Three drops later it detonates, wiping out everything in the 5&times;5 around it.</p>
         <p class="lock-tag"></p>
@@ -260,7 +260,7 @@
         <p>Opens a way in underneath: the entire bottom row is deleted, layers included, and everything drops by one.</p>
         <p class="lock-tag"></p>
       </div>
-      <div class="hack-item" data-hack="rainbow">
+      <div class="hack-item" data-hack="rainbow-table">
         <h3><span class="icon">*</span> RAINBOW TABLE<span class="combo"></span></h3>
         <p>Looks up the most common number on the board and decrypts every bit showing it.</p>
         <p class="lock-tag"></p>
@@ -302,24 +302,24 @@
     </div>
   </div>
 
-  <script src="unlocks.js?v=97"></script>
-  <script src="progress.js?v=97"></script>
-  <script src="sfx.js?v=97"></script>
-  <script src="music-theme.js?v=97"></script>
-  <script src="music-sleep-mode.js?v=97"></script>
-  <script src="music-brute-force.js?v=97"></script>
-  <script src="music-deep-web.js?v=97"></script>
-  <script src="music-zero-day.js?v=97"></script>
-  <script src="music-system-restore.js?v=97"></script>
-  <script src="music-night-drive.js?v=97"></script>
-  <script src="music-standby-mode.js?v=97"></script>
-  <script src="music.js?v=97"></script>
-  <script src="puzzles.js?v=97"></script>
-  <script src="daily-puzzles.js?v=97"></script>
-  <script src="cpu.js?v=97"></script>
-  <script src="fx.js?v=97"></script>
-  <script src="viz.js?v=97"></script>
-  <script src="script.js?v=97"></script>
-  <script src="grid-bg.js?v=97"></script>
+  <script src="unlocks.js?v=98"></script>
+  <script src="progress.js?v=98"></script>
+  <script src="sfx.js?v=98"></script>
+  <script src="music-bytefall-theme.js?v=98"></script>
+  <script src="music-sleep-mode.js?v=98"></script>
+  <script src="music-brute-force.js?v=98"></script>
+  <script src="music-deep-web.js?v=98"></script>
+  <script src="music-zero-day.js?v=98"></script>
+  <script src="music-system-restore.js?v=98"></script>
+  <script src="music-night-drive.js?v=98"></script>
+  <script src="music-standby-mode.js?v=98"></script>
+  <script src="music.js?v=98"></script>
+  <script src="puzzles.js?v=98"></script>
+  <script src="daily-puzzles.js?v=98"></script>
+  <script src="cpu.js?v=98"></script>
+  <script src="fx.js?v=98"></script>
+  <script src="viz.js?v=98"></script>
+  <script src="script.js?v=98"></script>
+  <script src="grid-bg.js?v=98"></script>
 </body>
 </html>

@@ -8,7 +8,7 @@ function vizRgb(name, fallback) {
 }
 
 function createVisualizer(canvas, getAnalyser, { bars = 28 } = {}) {
-  const MODE_KEY = 'blockchain-viz-mode';
+  const MODE_KEY = 'bytefall-viz-mode';
   const SEGMENT = 3; // css px per LED segment, plus a 1px gap
   const g = canvas.getContext('2d');
   const peaks = new Float32Array(bars);

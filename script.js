@@ -39,19 +39,19 @@ const DIFFICULTIES = {
 };
 
 // easyCombo: on Easy, the chain length that unlocks each hack (stronger hacks need longer chains).
-// Which exploits a player can get comes from progress.js (levels and prestige).
+// Which exploits a player can get comes from progress.js (levels and DECRYPTOR ranks).
 const HACKS = {
-  worm: { name: 'WORM VIRUS', icon: '§', easyCombo: 5 },
-  overflow: { name: 'BUFFER OVERFLOW', icon: '+', easyCombo: 4 },
+  'worm-virus': { name: 'WORM VIRUS', icon: '§', easyCombo: 5 },
+  'buffer-overflow': { name: 'BUFFER OVERFLOW', icon: '+', easyCombo: 4 },
   trojan: { name: 'TROJAN', icon: '◈', easyCombo: 4 },
   rng: { name: 'RNG', icon: '?', easyCombo: 3 },
   bitflip: { name: 'BITFLIP', icon: '\u2195', easyCombo: 3 },
-  dictionary: { name: 'DICTIONARY ATTACK', icon: '#', easyCombo: 4 },
+  'dictionary-attack': { name: 'DICTIONARY ATTACK', icon: '#', easyCombo: 4 },
   keylogger: { name: 'KEYLOGGER', icon: '@', easyCombo: 3 },
   backdoor: { name: 'BACKDOOR', icon: '_', easyCombo: 4 },
-  rainbow: { name: 'RAINBOW TABLE', icon: '*', easyCombo: 5 },
-  sniffer: { name: 'PACKET SNIFFER', icon: '~', easyCombo: 3 },
-  logicbomb: { name: 'LOGIC BOMB', icon: '!', easyCombo: 4 },
+  'rainbow-table': { name: 'RAINBOW TABLE', icon: '*', easyCombo: 5 },
+  'packet-sniffer': { name: 'PACKET SNIFFER', icon: '~', easyCombo: 3 },
+  'logic-bomb': { name: 'LOGIC BOMB', icon: '!', easyCombo: 4 },
   honeypot: { name: 'HONEYPOT', icon: '\u25CE', easyCombo: 4 },
   pivot: { name: 'PIVOT', icon: '\u21C6', easyCombo: 3 },
 };
@@ -62,7 +62,7 @@ const BOMB_DROPS = 3; // drops before a logic bomb detonates
 const BLAST_RADIUS = 2; // logic bomb and honeypot reach: a 5x5 area
 
 // The Daily Decrypt uses the same five exploits for everyone; elsewhere it's your equipped loadout.
-const DAILY_EXPLOITS = ['worm', 'overflow', 'trojan', 'rng', 'bitflip'];
+const DAILY_EXPLOITS = ['worm-virus', 'buffer-overflow', 'trojan', 'rng', 'bitflip'];
 const hackAvailable = (id) => (daily ? DAILY_EXPLOITS.includes(id) : Progress.isEquipped(id));
 Progress.setExploitCount(Object.keys(HACKS).length);
 Progress.setExploitNames(Object.fromEntries(Object.entries(HACKS).map(([id, h]) => [id, h.name])));
@@ -94,7 +94,7 @@ const storage = {
 
 // The EASY / NORMAL / HARD choice (CLASSIC mode). `difficulty` is the rules of the current
 // run: the classic choice in CLASSIC, Normal in every other mode.
-let classicDifficulty = DIFFICULTIES[storage.get('blockchain-difficulty')] ? storage.get('blockchain-difficulty') : 'normal';
+let classicDifficulty = DIFFICULTIES[storage.get('bytefall-difficulty')] ? storage.get('bytefall-difficulty') : 'normal';
 if (classicDifficulty === 'hard' && !Progress.isUnlocked('mode-hard')) classicDifficulty = 'normal';
 let difficulty = classicDifficulty;
 
@@ -267,12 +267,11 @@ function newFirewall(level = 2) {
   return { type: 'firewall', level };
 }
 
-// Hard moved to 8x8, so it keeps a fresh best apart from old 7x7 Hard scores.
 // Other modes keep their own bests; DAILY keeps today's official score (practice runs save nothing).
 function bestKey() {
   if (daily) return dailyOfficial ? dailyKey() : null;
   if (mode !== 'classic') return `bytefall-best-${mode}`;
-  return difficulty === 'hard' ? 'blockchain-best-hard-8x8' : `blockchain-best-${difficulty}`;
+  return `bytefall-best-${difficulty}`;
 }
 
 // Always enough upcoming bits for the widest preview (the keylogger's). PUZZLE has a fixed list.
@@ -1065,9 +1064,9 @@ async function runHack(id, row, col) {
   setMessage(`${HACKS[id].name} // EXECUTING`);
   SFX.play('static');
 
-  if (id === 'worm' || id === 'trojan') {
+  if (id === 'worm-virus' || id === 'trojan') {
     const hits = [];
-    if (id === 'worm') {
+    if (id === 'worm-virus') {
       columns[col].forEach((_, r) => hits.push({ row: r, col }));
     } else {
       for (let dr = -1; dr <= 1; dr++) {
@@ -1083,7 +1082,7 @@ async function runHack(id, row, col) {
     score += pointsFor(hits.filter((h) => !(h.row === row && h.col === col))); // not the exploit itself
     for (const h of hits) columns[h.col][h.row] = null;
     await collapse();
-  } else if (id === 'dictionary') {
+  } else if (id === 'dictionary-attack') {
     // Peel one layer off every encryption block at once
     columns[col].pop();
     const peeled = [];
@@ -1116,7 +1115,7 @@ async function runHack(id, row, col) {
     score += pointsFor(hits);
     for (const h of hits) columns[h.col][0] = null;
     await collapse();
-  } else if (id === 'rainbow') {
+  } else if (id === 'rainbow-table') {
     // Decrypt every bit showing the most common number (ties go to the higher number)
     columns[col].pop();
     const counts = {};
@@ -1141,9 +1140,9 @@ async function runHack(id, row, col) {
     } else {
       render();
     }
-  } else if (id === 'logicbomb' || id === 'honeypot') {
+  } else if (id === 'logic-bomb' || id === 'honeypot') {
     // Both stay on the board as armed blocks where they landed
-    columns[col][row] = id === 'logicbomb' ? { type: 'bomb', timer: BOMB_DROPS, fresh: true } : { type: 'honeypot' };
+    columns[col][row] = id === 'logic-bomb' ? { type: 'bomb', timer: BOMB_DROPS, fresh: true } : { type: 'honeypot' };
     const armedTypes = columns.flat().map((cell) => cell && cell.type);
     if (armedTypes.includes('bomb') && armedTypes.includes('honeypot')) Progress.secret('double-trouble');
     render();
@@ -1158,7 +1157,7 @@ async function runHack(id, row, col) {
     render();
     SFX.play('static');
     await sleep(300);
-  } else if (id === 'sniffer') {
+  } else if (id === 'packet-sniffer') {
     columns[col].pop();
     snifferBits = SNIFFER_BITS;
     render();
@@ -1176,7 +1175,7 @@ async function runHack(id, row, col) {
       if (id === 'bitflip') stack.reverse();
       stack.forEach((cell, r) => {
         if (cell.type !== 'number') return;
-        if (id === 'overflow') {
+        if (id === 'buffer-overflow') {
           stack[r] = cell.val === COLS ? newFirewall(2) : { type: 'number', val: cell.val + 1 };
         } else if (id === 'rng') {
           stack[r] = newPacket();
@@ -1375,7 +1374,7 @@ document.querySelectorAll('#difficulty-row button').forEach((btn) => {
     }
     requestReset(btn, 'CONFIRM?', () => {
       classicDifficulty = next;
-      storage.set('blockchain-difficulty', next);
+      storage.set('bytefall-difficulty', next);
     });
   });
 });
@@ -1829,14 +1828,14 @@ updateMusicBtn();
 
 // Drop buttons under the grid (default, easier to reach on phones) or above it.
 const buttonsPosBtn = document.getElementById('buttons-pos-btn');
-let buttonsOnTop = storage.get('blockchain-buttons') === 'top';
+let buttonsOnTop = storage.get('bytefall-buttons') === 'top';
 function updateButtonsPos() {
   boardWrapEl.classList.toggle('buttons-top', buttonsOnTop);
   buttonsPosBtn.textContent = `DROP BUTTONS: ${buttonsOnTop ? 'TOP' : 'BOTTOM'}`;
 }
 buttonsPosBtn.addEventListener('click', () => {
   buttonsOnTop = !buttonsOnTop;
-  storage.set('blockchain-buttons', buttonsOnTop ? 'top' : 'bottom');
+  storage.set('bytefall-buttons', buttonsOnTop ? 'top' : 'bottom');
   updateButtonsPos();
 });
 updateButtonsPos();
@@ -1846,11 +1845,11 @@ updateButtonsPos();
 const THEMES = [
   { id: 'terminal', label: 'TERMINAL', desc: 'green bits, grey layers, amber cracks and exploits.' },
   { id: 'cipher', label: 'CIPHER', desc: 'cyan bits, magenta layers, yellow cracks and exploits.' },
-  { id: 'amber', label: 'AMBER CRT', desc: 'an old amber monitor: grey layers, white cracks and exploits.' },
-  { id: 'mono', label: 'MONOCHROME', desc: 'black and white; layers are told apart by stripes and dashed borders.' },
+  { id: 'amber-crt', label: 'AMBER CRT', desc: 'an old amber monitor: grey layers, white cracks and exploits.' },
+  { id: 'monochrome', label: 'MONOCHROME', desc: 'black and white; layers are told apart by stripes and dashed borders.' },
   { id: 'redline', label: 'REDLINE', desc: 'red-alert intrusion: steel-blue layers, yellow cracks, a white trace.' },
   { id: 'synthwave', label: 'SYNTHWAVE', desc: 'pink bits, purple layers, orange cracks and a cyan trace.' },
-  { id: 'dotmatrix', label: 'DOT MATRIX', desc: 'four shades of olive green, like an old handheld game screen.' },
+  { id: 'dot-matrix', label: 'DOT MATRIX', desc: 'four shades of olive green, like an old handheld game screen.' },
   { id: 'paper', label: 'PAPER', desc: 'near-black ink and grey on pale paper with gold accents, for bright rooms and outdoors.' },
   { id: 'glyph', label: 'GLYPH', desc: 'bits become shapes with one corner per point: a teardrop is 1, a triangle 3, an octagon 8.' },
   { id: 'spectrum', label: 'SPECTRUM', desc: 'every bit cycles through the rainbow on its own while the page drifts slowly behind them.' },
@@ -1861,7 +1860,7 @@ const themeNoteEl = document.getElementById('theme-note');
 const themeMeta = document.querySelector('meta[name="theme-color"]');
 // The saved choice is kept even while locked, so it comes back once unlocked.
 Progress.setThemeCount(THEMES.length);
-let themeId = THEMES.some((t) => t.id === storage.get('blockchain-theme')) ? storage.get('blockchain-theme') : 'terminal';
+let themeId = THEMES.some((t) => t.id === storage.get('bytefall-theme')) ? storage.get('bytefall-theme') : 'terminal';
 
 function applyTheme() {
   const theme = THEMES.find((t) => t.id === themeId);
@@ -1903,7 +1902,7 @@ function applyTheme() {
           announce(Progress.check());
         }
         themeId = t.id;
-        storage.set('blockchain-theme', themeId);
+        storage.set('bytefall-theme', themeId);
         applyTheme();
       });
     }
@@ -2170,11 +2169,11 @@ function announce(earned) {
   if (!recordsEl.hidden) renderRecords();
 }
 
-// Level bar under the title: level, prestige and XP (bits) toward the next level
+// Level bar under the title: level, DECRYPTOR rank and XP (bits) toward the next level
 const levelBarEl = document.getElementById('level-bar');
 function updateLevelBar() {
   const lv = Progress.levelInfo();
-  document.getElementById('level-label').textContent = `LV ${lv.level}${lv.prestige ? ` \u00b7 D${lv.prestige}` : ''}`;
+  document.getElementById('level-label').textContent = `LV ${lv.level}${lv.decryptor ? ` \u00b7 D${lv.decryptor}` : ''}`;
   document.getElementById('xp-fill').style.width = `${lv.maxed ? 100 : (lv.into / lv.need) * 100}%`;
   document.getElementById('xp-label').textContent = lv.maxed ? 'DECRYPTOR READY' : `${fmt(lv.into)} / ${fmt(lv.need)} BITS`;
   levelBarEl.classList.toggle('maxed', lv.maxed);
@@ -2232,22 +2231,22 @@ function renderRecords() {
   });
   recordsBodyEl.innerHTML = '';
   if (recordsTab === 'unlocks') {
-    // Level and prestige, with PRESTIGE (four presses) once at Lv 80
+    // Level and DECRYPTOR rank, with RANK UP (four presses) once at Lv 80
     const lv = Progress.levelInfo();
     const box = document.createElement('div');
     box.className = 'rec-level';
     const row = recordRow({
-      name: `LV ${lv.level} // DECRYPTOR ${lv.prestige}`,
+      name: `LV ${lv.level} // DECRYPTOR ${lv.decryptor}`,
       desc: lv.maxed
         ? 'A kilobyte decrypted. Rank up to the next DECRYPTOR rank to start again at Lv 1: exploits and slots lock again (you keep one more of each for good), and the next theme unlocks for good.'
-        : `100 bits per level. Fill Lv 80 (${fmt(lv.xp)} / ${fmt(lv.prestigeBits)} bits, a kilobyte) to rank up to DECRYPTOR ${lv.prestige + 1}.`,
+        : `100 bits per level. Fill Lv 80 (${fmt(lv.xp)} / ${fmt(lv.rankBits)} bits, a kilobyte) to rank up to DECRYPTOR ${lv.decryptor + 1}.`,
       current: lv.maxed ? 1 : lv.into,
       goal: lv.maxed ? 1 : lv.need,
       done: lv.maxed,
     });
     row.style.borderBottom = 'none';
     // Bright green labels with amber numbers
-    row.querySelector('.rec-name').innerHTML = `LV <em>${lv.level}</em> // DECRYPTOR <em>${lv.prestige}</em>${lv.maxed ? ' <span class="rec-check">✓</span>' : ''}`;
+    row.querySelector('.rec-name').innerHTML = `LV <em>${lv.level}</em> // DECRYPTOR <em>${lv.decryptor}</em>${lv.maxed ? ' <span class="rec-check">✓</span>' : ''}`;
     row.querySelector('.rec-state').innerHTML = `<em>${fmt(lv.maxed ? lv.need : lv.into)}</em> / <em>${fmt(lv.need)}</em>`;
     const rowList = document.createElement('ul');
     rowList.className = 'rec-list';
@@ -2256,9 +2255,9 @@ function renderRecords() {
     if (lv.maxed) {
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'rec-prestige';
-      btn.textContent = `RANK UP TO DECRYPTOR ${lv.prestige + 1}?`;
-      // Each press arms the next warning (for a few seconds); the fourth one prestiges
+      btn.className = 'rec-rankup';
+      btn.textContent = `RANK UP TO DECRYPTOR ${lv.decryptor + 1}?`;
+      // Each press arms the next warning (for a few seconds); the fourth one ranks up
       const warnings = ['CONFIRM? EXPLOITS LOCK AGAIN', 'NO GOING BACK. ARE YOU SURE?', 'YES, ENCRYPT MY PROGRESS!!'];
       let stage = 0;
       btn.addEventListener('click', () => {
@@ -2268,8 +2267,8 @@ function renderRecords() {
           return;
         }
         disarmReset();
-        if (Progress.prestige()) {
-          showToast(`DECRYPTOR ${Progress.levelInfo().prestige} // BACK TO LV 1`);
+        if (Progress.rankUp()) {
+          showToast(`DECRYPTOR ${Progress.levelInfo().decryptor} // BACK TO LV 1`);
           announce(Progress.check());
           applyUnlocks();
           renderRecords();
@@ -2279,9 +2278,9 @@ function renderRecords() {
     }
     recordsBodyEl.appendChild(box);
 
-    // This prestige's exploit unlocks
+    // This rank's exploit unlocks
     const exUnlocked = Progress.exploitOrder().filter((id) => Progress.exploitInfo(id).unlocked).length;
-    recHead(`// EXPLOITS // DECRYPTOR ${lv.prestige} (${exUnlocked} / ${Progress.exploitOrder().length})`);
+    recHead(`// EXPLOITS // DECRYPTOR ${lv.decryptor} (${exUnlocked} / ${Progress.exploitOrder().length})`);
     const exList = document.createElement('ul');
     exList.className = 'rec-list';
     const slotsNow = Progress.slotInfo();
@@ -2359,7 +2358,7 @@ function renderRecords() {
     const lv = Progress.levelInfo();
     const rows = [
       ['LEVEL', `${lv.level}`],
-      ['DECRYPTOR RANK', `${lv.prestige}`],
+      ['DECRYPTOR RANK', `${lv.decryptor}`],
       ['SESSIONS PLAYED', fmt(s.games)],
       ['TOTAL DROPS', fmt(s.drops)],
       ['BITS DECRYPTED', fmt(s.bits)],
@@ -2413,7 +2412,7 @@ function renderRecords() {
       disarmReset();
       try {
         Object.keys(localStorage)
-          .filter((k) => k === 'bytefall-progress' || k === 'bytefall-puzzle' || k.startsWith('blockchain-best-')
+          .filter((k) => k === 'bytefall-progress' || k === 'bytefall-puzzle' || k.startsWith('bytefall-best-')
             || k.startsWith('bytefall-best-') || k.startsWith('bytefall-daily-'))
           .forEach((k) => localStorage.removeItem(k));
       } catch (e) {}
@@ -2445,7 +2444,7 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && !recordsEl.hidden) setRecordsOpen(false);
 });
 
-// Locked exploits dim with their points tracker (this prestige); DAILY shows its fixed five.
+// Locked exploits dim with their points tracker (this rank); DAILY shows its fixed five.
 // Exploit cards, in unlock order: locked (with the level that unlocks them), unlocked (tap to
 // equip) or equipped (tap to remove). DAILY shows its fixed five instead.
 const hacksPanelEl = document.querySelector('.panel-hacks');

@@ -7,9 +7,9 @@ SESSIONS,MARATHON,Last 250 drops in one Classic session,250,Standard,marathon
 SESSIONS,RAGE QUIT,Restart 10 sessions in one sitting,1,Hidden,rage-quit
 BITS DECRYPTED,HANDSHAKE,Decrypt 100 bits,100,Standard,handshake
 BITS DECRYPTED,KILOBIT,"Decrypt 1,000 bits","1,000",Standard,kilobit
-BITS DECRYPTED,KILOBYTE,"Decrypt 8,000 bits","8,000",Standard,kilobyte-8k
+BITS DECRYPTED,KILOBYTE,"Decrypt 8,000 bits","8,000",Standard,kilobyte
 BITS DECRYPTED,MEGABIT,"Decrypt 1,000,000 bits","1,000,000",Standard,megabit
-BITS DECRYPTED,MEGABYTE,"Decrypt 8,000,000 bits","8,000,000",Standard,megabyte-8m
+BITS DECRYPTED,MEGABYTE,"Decrypt 8,000,000 bits","8,000,000",Standard,megabyte
 BITS DECRYPTED,106473,"Decrypt 106,473 bits","106,473",Standard,106473
 BITS DECRYPTED,FULL RANGE,Decrypt 100 of every number from [1] to [7],100,Standard,full-range
 BITS DECRYPTED,LUCKY SEVENS,"Decrypt 1,000 [7]s","1,000",Standard,lucky-sevens
@@ -69,7 +69,7 @@ ENCRYPTION LAYERS,DEMOLITION,Break 500 encryption layers all the way open,500,St
 ENCRYPTION LAYERS,FIREWALL BREACH,Break 3 encryption layers open with one drop,3,Standard,firewall-breach
 EXPLOITS,SCRIPT KIDDIE,Run your first exploit,1,Standard,script-kiddie
 EXPLOITS,BLACK HAT,Run 50 exploits,50,Standard,black-hat
-EXPLOITS,ADVANCED PERSISTENT THREAT,Run 500 exploits,500,Standard,apt
+EXPLOITS,ADVANCED PERSISTENT THREAT,Run 500 exploits,500,Standard,advanced-persistent-threat
 EXPLOITS,FULL TOOLKIT,Run every exploit at least once,13,Standard,full-toolkit
 EXPLOITS,CHAINED EXPLOITS,Run 3 exploits in one session,3,Standard,chained-exploits
 EXPLOITS,ARSENAL,Fill all 6 exploit slots,6,Standard,arsenal

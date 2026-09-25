@@ -236,7 +236,7 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
   BACKGROUND PLAY toggle (keep playing or pause when you switch tabs or
   apps). New tracks go in the `TRACKS` list here, with their engine in a
   `music-*.js` file
-- `music-theme.js` — track 01, BYTEFALL THEME: an original synthwave loop
+- `music-bytefall-theme.js` — track 01, BYTEFALL THEME: an original synthwave loop
   (intro, melody 1, section B with melody 2, octave-doubled climax)
 - `music-sleep-mode.js` — track 02, SLEEP MODE: original electronicore
   (music box, trance synths, chugging distorted guitars, double-kick) at
@@ -276,6 +276,6 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
 - `audio/` — offline WAV renders of the music for reference (not loaded by
   the game). `01-bytefall-theme.wav` through `08-standby-mode.wav` are one full
   loop of each track at full intensity (stack 6+, every layer the game plays,
-  archived layers left out). Older versions: `blockchain-theme-v1.wav` is the
-  original 16-bar theme loop, `blockchain-theme-v2.wav` the first 32-bar
+  archived layers left out). Older versions: `bytefall-theme-v1.wav` is the
+  original 16-bar theme loop, `bytefall-theme-v2.wav` the first 32-bar
   version, `sleep-mode-v1.wav` the first SLEEP MODE

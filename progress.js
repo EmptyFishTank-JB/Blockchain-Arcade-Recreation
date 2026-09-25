@@ -1,13 +1,13 @@
-// Progress: lifetime stats, levels and prestige, earnable unlocks (Hard mode,
+// Progress: lifetime stats, levels and DECRYPTOR ranks, earnable unlocks (Hard mode,
 // tracks, themes, exploits) and achievements, saved in this browser. Full Access
 // (unlocks.js) unlocks everything straight away; otherwise it's earned by playing.
 // script.js reports what happens in a run; check() then returns anything newly earned.
 //
-// Levels: bits decrypted are XP, from Lv 1 to Lv 80. At Lv 80 the player can PRESTIGE:
-// back to Lv 1, prestige +1, and exploits lock again. Exploits (in EXPLOIT_ORDER) and exploit
-// slots unlock by level within a prestige; prestige N keeps N slots and the first N exploits
+// Levels: bits decrypted are XP, from Lv 1 to Lv 80. At Lv 80 the player can RANK UP to the
+// next DECRYPTOR rank: back to Lv 1, rank +1, and exploits lock again. Exploits (in EXPLOIT_ORDER)
+// and exploit slots unlock by level within a rank; DECRYPTOR N keeps N slots and the first N exploits
 // for good, and the rest unlock sooner. Only exploits equipped in a slot are awarded. Each
-// prestige also permanently unlocks the next theme in THEME_ORDER. Tracks and Hard mode are
+// rank also permanently unlocks the next theme in THEME_ORDER. Tracks and Hard mode are
 // permanent unlocks and never reset.
 const Progress = (() => {
   const KEY = 'bytefall-progress';
@@ -37,13 +37,13 @@ const Progress = (() => {
     puzzles: {}, // puzzle index -> true once solved
     earned: {}, // unlock id -> true, kept once earned
     achieved: {}, // achievement id -> true
-    prestige: 0,
-    xp: 0, // bits decrypted this prestige
-    prestigePoints: 0, // points earned this prestige
+    decryptor: 0, // DECRYPTOR rank
+    xp: 0, // bits decrypted this rank
+    decryptorPoints: 0, // points earned this rank
     equipped: [], // exploit ids in the loadout slots
     lastLevel: 1, // for LEVEL UP announcements
-    exploitsSeen: {}, // exploit id -> true once announced this prestige
-    slotsSeen: 0, // slots announced this prestige
+    exploitsSeen: {}, // exploit id -> true once announced this rank
+    slotsSeen: 0, // slots announced this rank
     firstDropClears: 0, // sessions where the first drop decrypted something
     bestClearStreak: 0, // most drops in a row that each decrypted a bit
     bestNoToolsScore: 0, // best score in a session with no exploit run
@@ -94,13 +94,13 @@ const Progress = (() => {
 
   // Best scores live under script.js's keys (named before the rename to ByteFall).
   const best = (difficulty) => {
-    const key = difficulty === 'hard' ? 'blockchain-best-hard-8x8' : `blockchain-best-${difficulty}`;
+    const key = `bytefall-best-${difficulty}`;
     try { return Number(localStorage.getItem(key)) || 0; } catch (e) { return 0; }
   };
 
   // Credit players from before progression: anyone with a Hard score keeps Hard.
   try {
-    if (best('hard') > 0 || Number(localStorage.getItem('blockchain-best-hard')) > 0) d.earned['mode-hard'] = true;
+    if (best('hard') > 0) d.earned['mode-hard'] = true;
   } catch (e) {}
 
   // Tracks 02-10: each roughly 1.5-2.8x the last, so the early ones come quickly
@@ -108,34 +108,34 @@ const Progress = (() => {
 
   const MAX_LEVEL = 80;
   // 100 bits (12.5 bytes) per level. Lv 80 starts at 7,900 bits and its bar fills at 8,000,
-  // when PRESTIGE opens: a full prestige is exactly 1 kilobyte.
+  // when RANK UP opens: a full DECRYPTOR rank is exactly 1 kilobyte.
   const BITS_PER_LEVEL = 100;
-  const PRESTIGE_BITS = MAX_LEVEL * BITS_PER_LEVEL;
+  const RANK_BITS = MAX_LEVEL * BITS_PER_LEVEL;
   function levelInfo() {
     const level = Math.min(MAX_LEVEL, Math.floor(d.xp / BITS_PER_LEVEL) + 1);
     const into = Math.min(BITS_PER_LEVEL, d.xp - (level - 1) * BITS_PER_LEVEL);
-    return { level, into, need: BITS_PER_LEVEL, maxed: d.xp >= PRESTIGE_BITS, prestige: d.prestige, xp: Math.min(d.xp, PRESTIGE_BITS), prestigeBits: PRESTIGE_BITS };
+    return { level, into, need: BITS_PER_LEVEL, maxed: d.xp >= RANK_BITS, decryptor: d.decryptor, xp: Math.min(d.xp, RANK_BITS), rankBits: RANK_BITS };
   }
 
-  // Weakest first. After the ones a prestige keeps, each unlocks at the next level in EXPLOIT_LEVELS.
-  const EXPLOIT_ORDER = ['rng', 'bitflip', 'overflow', 'trojan', 'pivot', 'worm', 'keylogger', 'sniffer',
-    'backdoor', 'logicbomb', 'honeypot', 'dictionary', 'rainbow'];
+  // Weakest first. After the ones a rank keeps, each unlocks at the next level in EXPLOIT_LEVELS.
+  const EXPLOIT_ORDER = ['rng', 'bitflip', 'buffer-overflow', 'trojan', 'pivot', 'worm-virus', 'keylogger', 'packet-sniffer',
+    'backdoor', 'logic-bomb', 'honeypot', 'dictionary-attack', 'rainbow-table'];
   const EXPLOIT_LEVELS = [3, 8, 13, 18, 23, 29, 35, 41, 47, 53, 59, 65, 70];
-  // Loadout slots: prestige N keeps N (up to MAX_SLOTS); the rest unlock at SLOT_LEVELS in turn
+  // Loadout slots: DECRYPTOR N keeps N (up to MAX_SLOTS); the rest unlock at SLOT_LEVELS in turn
   const MAX_SLOTS = 6;
   const SLOT_LEVELS = [5, 15, 30, 45, 60, 75];
   let exploitNames = {}; // id -> name, from script.js
 
   function exploitInfo(id) {
     const k = EXPLOIT_ORDER.indexOf(id);
-    const kept = Math.min(d.prestige, EXPLOIT_ORDER.length);
+    const kept = Math.min(d.decryptor, EXPLOIT_ORDER.length);
     if (k < kept) return { unlocked: true, kept: true, level: 0 };
     const level = EXPLOIT_LEVELS[k - kept];
     return { unlocked: Unlocks.hasFullAccess() || levelInfo().level >= level, kept: false, level };
   }
   function slotInfo() {
     if (Unlocks.hasFullAccess()) return { slots: MAX_SLOTS, max: MAX_SLOTS, kept: MAX_SLOTS, nextLevel: 0 };
-    const kept = Math.min(d.prestige, MAX_SLOTS);
+    const kept = Math.min(d.decryptor, MAX_SLOTS);
     const { level } = levelInfo();
     const levels = SLOT_LEVELS.slice(0, MAX_SLOTS - kept);
     const earned = levels.filter((l) => level >= l).length;
@@ -160,9 +160,9 @@ const Progress = (() => {
     }
   }
 
-  // Each prestige permanently unlocks the next theme
-  const THEME_ORDER = [['cipher', 'CIPHER'], ['amber', 'AMBER CRT'], ['mono', 'MONOCHROME'], ['redline', 'REDLINE'],
-    ['synthwave', 'SYNTHWAVE'], ['dotmatrix', 'DOT MATRIX'], ['paper', 'PAPER'], ['glyph', 'GLYPH'], ['spectrum', 'SPECTRUM']];
+  // Each DECRYPTOR rank permanently unlocks the next theme
+  const THEME_ORDER = [['cipher', 'CIPHER'], ['amber-crt', 'AMBER CRT'], ['monochrome', 'MONOCHROME'], ['redline', 'REDLINE'],
+    ['synthwave', 'SYNTHWAVE'], ['dot-matrix', 'DOT MATRIX'], ['paper', 'PAPER'], ['glyph', 'GLYPH'], ['spectrum', 'SPECTRUM']];
 
   // group: where it shows in the UNLOCKS list. value() / goal drive its tracker.
   const UNLOCKS = [
@@ -172,7 +172,7 @@ const Progress = (() => {
       need: `Decrypt ${goal.toLocaleString('en-US')} bits`, value: () => d.bits, goal,
     })),
     ...THEME_ORDER.map(([id, name], i) => ({
-      id: `theme-${id}`, group: 'THEMES', name, need: `Reach DECRYPTOR ${i + 1}`, value: () => d.prestige, goal: i + 1,
+      id: `theme-${id}`, group: 'THEMES', name, need: `Reach DECRYPTOR ${i + 1}`, value: () => d.decryptor, goal: i + 1,
     })),
   ];
 
@@ -194,9 +194,9 @@ const Progress = (() => {
     { id: 'handshake', name: 'HANDSHAKE', desc: 'Decrypt 100 bits', value: () => d.bits, goal: 100 },
     // Data decrypted, in decimal units of bits decrypted (8 bits to a byte)
     { id: 'kilobit', name: 'KILOBIT', desc: 'Decrypt 1,000 bits', value: () => d.bits, goal: 1000 },
-    { id: 'kilobyte-8k', name: 'KILOBYTE', desc: 'Decrypt 8,000 bits', value: () => d.bits, goal: 8000 },
+    { id: 'kilobyte', name: 'KILOBYTE', desc: 'Decrypt 8,000 bits', value: () => d.bits, goal: 8000 },
     { id: 'megabit', name: 'MEGABIT', desc: 'Decrypt 1,000,000 bits', value: () => d.bits, goal: 1000000 },
-    { id: 'megabyte-8m', name: 'MEGABYTE', desc: 'Decrypt 8,000,000 bits', value: () => d.bits, goal: 8000000 },
+    { id: 'megabyte', name: 'MEGABYTE', desc: 'Decrypt 8,000,000 bits', value: () => d.bits, goal: 8000000 },
     { id: 'chain-reaction', name: 'CHAIN REACTION', desc: 'Get a 4x chain', value: () => d.bestChain, goal: 4 },
     { id: 'cascade', name: 'CASCADE', desc: 'Get a 6x chain', value: () => d.bestChain, goal: 6 },
     { id: 'overclocked', name: 'OVERCLOCKED', desc: 'Get an 8x chain', value: () => d.bestChain, goal: 8 },
@@ -218,8 +218,8 @@ const Progress = (() => {
     { id: 'daily-driver', name: 'DAILY DRIVER', desc: 'Play a Daily game 7 days in a row', value: () => d.bestDailyStreak, goal: 7 },
     { id: 'locksmith', name: 'LOCKSMITH', desc: 'Solve 10 puzzles', value: () => Object.keys(d.puzzles).length, goal: 10 },
     { id: 'master-key', name: 'MASTER KEY', desc: 'Solve every puzzle', value: () => Object.keys(d.puzzles).length, goal: () => puzzleCount },
-    { id: 'maxed-out', name: 'MAXED OUT', desc: 'Fill Lv 80 as DECRYPTOR 9', value: () => (d.prestige >= 10 || (d.prestige >= 9 && levelInfo().maxed) ? 1 : 0), goal: 1 },
-    { id: 'rollover', name: 'ROLLOVER', desc: 'Rank up to DECRYPTOR 1', value: () => d.prestige, goal: 1 },
+    { id: 'maxed-out', name: 'MAXED OUT', desc: 'Fill Lv 80 as DECRYPTOR 9', value: () => (d.decryptor >= 10 || (d.decryptor >= 9 && levelInfo().maxed) ? 1 : 0), goal: 1 },
+    { id: 'rollover', name: 'ROLLOVER', desc: 'Rank up to DECRYPTOR 1', value: () => d.decryptor, goal: 1 },
     { id: 'full-spectrum', name: 'FULL SPECTRUM', desc: 'Unlock every theme', value: () => themeIds.filter(isUnlocked).length, goal: themeIds.length },
     { id: 'collector', name: 'COLLECTOR', desc: 'Unlock every music track (15,000 bits)', value: () => trackIds.filter(isUnlocked).length, goal: trackIds.length },
     // Skill
@@ -250,7 +250,7 @@ const Progress = (() => {
     { id: 'dj', name: 'DJ', desc: 'Listen to every track', value: () => count(d.tracksHeard), goal: () => trackCount },
     { id: 'audiophile', name: 'AUDIOPHILE', desc: 'Play a full session (10+ drops) on every track', value: () => count(d.tracksPlayed), goal: () => trackCount },
     { id: 'chameleon', name: 'CHAMELEON', desc: 'Play a full session (10+ drops) in every theme', value: () => count(d.themesPlayed), goal: () => themeCount },
-    { id: 'lv-40', name: 'LV 40', desc: 'Reach level 40', value: () => (d.prestige > 0 ? 40 : levelInfo().level), goal: 40 },
+    { id: 'lv-40', name: 'LV 40', desc: 'Reach level 40', value: () => (d.decryptor > 0 ? 40 : levelInfo().level), goal: 40 },
     { id: 'gigabit', name: 'GIGABIT', desc: 'Decrypt 1,000,000,000 bits', value: () => d.bits, goal: 1000000000, impossible: true },
     { id: 'insomniac', name: 'INSOMNIAC', desc: 'Play between 2 and 4 AM', value: () => d.lateNight, goal: 1 },
     { id: 'birthday', name: 'BIRTHDAY', desc: "Play on September 23, ByteFall's birthday", value: () => d.birthday, goal: 1, hidden: true },
@@ -266,7 +266,7 @@ const Progress = (() => {
     { id: 'triple-byte', name: 'TRIPLE BYTE', desc: 'Decrypt 3 bytes with one drop', value: () => d.bestDropBytes, goal: 3 },
     { id: 'onion-core', name: 'ONION CORE', desc: 'Peel 10,000 encryption layers', value: () => d.peeled, goal: 10000 },
     { id: 'demolition', name: 'DEMOLITION', desc: 'Break 500 encryption layers all the way open', value: () => d.broken, goal: 500 },
-    { id: 'apt', name: 'ADVANCED PERSISTENT THREAT', desc: 'Run 500 exploits', value: () => d.exploits, goal: 500 },
+    { id: 'advanced-persistent-threat', name: 'ADVANCED PERSISTENT THREAT', desc: 'Run 500 exploits', value: () => d.exploits, goal: 500 },
     { id: 'hypervisor', name: 'HYPERVISOR', desc: 'Score 20,000 in one session', value: () => d.bestScore, goal: 20000 },
     { id: 'hard-target', name: 'HARD TARGET', desc: 'Score 5,000 on Hard', value: () => best('hard'), goal: 5000 },
     { id: 'full-range', name: 'FULL RANGE', desc: 'Decrypt 100 of every number from [1] to [7]', value: () => Math.min(...[1, 2, 3, 4, 5, 6, 7].map((n) => d.bitsByValue[n] || 0)), goal: 100 },
@@ -279,7 +279,7 @@ const Progress = (() => {
     { id: 'sunday-best', name: 'SUNDAY BEST', desc: "Solve a Sunday daily puzzle (the week's hardest)", value: () => d.sundaySolves, goal: 1 },
     { id: 'safecracker', name: 'SAFECRACKER', desc: 'Solve 30 puzzles', value: () => count(d.puzzles), goal: 30 },
     { id: 'century', name: 'CENTURY', desc: 'Play a Daily game 100 days in a row', value: () => d.bestDailyStreak, goal: 100 },
-    { id: 'triple-crown', name: 'TRIPLE CROWN', desc: 'Reach DECRYPTOR 3', value: () => d.prestige, goal: 3 },
+    { id: 'triple-crown', name: 'TRIPLE CROWN', desc: 'Reach DECRYPTOR 3', value: () => d.decryptor, goal: 3 },
     // Nibbles (Easy and Normal: 4 bits decrypted by one drop)
     ...[
       ['just-a-crumb', 'JUST A CRUMB', 'Decrypt your first nibble', 1],
@@ -326,13 +326,13 @@ const Progress = (() => {
   // bottom whatever their group; the group is also the category in achievements.csv.
   const ACHIEVEMENT_GROUPS = [
     ['SESSIONS', ['first-contact', 'regular', 'veteran', 'lifer', 'marathon', 'rage-quit']],
-    ['BITS DECRYPTED', ['handshake', 'kilobit', 'kilobyte-8k', 'megabit', 'megabyte-8m', '106473', 'full-range', 'lucky-sevens', 'jackpot', 'gigabit']],
+    ['BITS DECRYPTED', ['handshake', 'kilobit', 'kilobyte', 'megabit', 'megabyte', '106473', 'full-range', 'lucky-sevens', 'jackpot', 'gigabit']],
     ['NIBBLES', ['just-a-crumb', 'a-full-byte', '64-bit-architecture', 'snack-attack', 'nibbling', 'kilonibble', 'kibinibble', 'kibibyte', 'dial-up-speeds', '16-bit-era', '64k-memory-limit', 'meganibble', 'mebinibble', 'mebibyte', '32-bit-overflow']],
     ['CHAINS AND SKILL', ['chain-reaction', 'cascade', 'overclocked', 'supernova', 'heap-spray', 'surgical', 'zero-day', 'clean-sweep', 'close-call', 'second-wind', 'full-stack', 'full-house']],
     ['SCORE', ['root-access', 'superuser', 'kernel-mode', 'hypervisor', 'no-tools', 'snake-eyes', '1337', 'not-found', 'deep-thought', 'palindrome', 'gigabyte', 'terabyte']],
     ['HARD MODE AND BYTES', ['hardened', 'ghost', 'hard-target', 'first-byte', 'double-byte', 'triple-byte', 'byte-stream', 'byte-array']],
     ['ENCRYPTION LAYERS', ['layer-peeler', 'onion-router', 'onion-core', 'demolition', 'firewall-breach']],
-    ['EXPLOITS', ['script-kiddie', 'black-hat', 'apt', 'full-toolkit', 'chained-exploits', 'arsenal', 'time-bomb', 'sting', 'wiretap', 'lateral-movement', 'overkill', 'double-trouble']],
+    ['EXPLOITS', ['script-kiddie', 'black-hat', 'advanced-persistent-threat', 'full-toolkit', 'chained-exploits', 'arsenal', 'time-bomb', 'sting', 'wiretap', 'lateral-movement', 'overkill', 'double-trouble']],
     ['BLITZ AND ZEN', ['speed-run', 'blitzkrieg', 'lightspeed', 'zen-master', 'last-second']],
     ['DAILY', ['daily-driver', 'daily-grind', 'streak', 'century', 'daily-sweep', 'perfect-daily', 'breached', 'one-shot', 'sunday-best', 'stubborn', 'so-close']],
     ['PUZZLES', ['first-try', 'locksmith', 'safecracker', 'master-key', 'pickpocket']],
@@ -407,10 +407,10 @@ const Progress = (() => {
     save();
     return quiet ? [] : earned;
   }
-  // Exploits and slots a prestige starts with aren't announced
+  // Exploits and slots a rank starts with aren't announced
   const markKept = () => {
     EXPLOIT_ORDER.forEach((id) => { if (exploitInfo(id).kept) d.exploitsSeen[id] = true; });
-    d.slotsSeen = Math.max(d.slotsSeen, Math.min(d.prestige, MAX_SLOTS));
+    d.slotsSeen = Math.max(d.slotsSeen, Math.min(d.decryptor, MAX_SLOTS));
   };
   markKept();
   if (!d.equipped.length) fillLoadout(); // first load, or a new Full Access / dev unlock
@@ -443,11 +443,11 @@ const Progress = (() => {
     },
     levelInfo,
     // Lv 80 only: back to Lv 1 with exploits locked again; the next theme unlocks for good
-    prestige() {
+    rankUp() {
       if (!levelInfo().maxed) return false;
-      d.prestige++;
+      d.decryptor++;
       d.xp = 0;
-      d.prestigePoints = 0;
+      d.decryptorPoints = 0;
       d.lastLevel = 1;
       d.exploitsSeen = {};
       d.slotsSeen = 0;
@@ -619,7 +619,7 @@ const Progress = (() => {
     addPoints(n) {
       if (n <= 0) return;
       d.points += n;
-      d.prestigePoints += n;
+      d.decryptorPoints += n;
     },
     sweep() { d.sweeps++; },
     closeCall() {

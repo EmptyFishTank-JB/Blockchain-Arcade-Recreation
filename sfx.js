@@ -2,7 +2,7 @@
 // (echoes-boardgame/dev-tools/artifacts/terminal-audio-compendium.html).
 const SFX = (() => {
   const VOL = 0.18;
-  const STORAGE_KEY = 'blockchain-sound';
+  const STORAGE_KEY = 'bytefall-sound';
   let ctx = null;
   let muted = false;
   try { muted = localStorage.getItem(STORAGE_KEY) === 'off'; } catch (e) {}
