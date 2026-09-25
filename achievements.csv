@@ -37,7 +37,7 @@ CHAINS AND SKILL,SUPERNOVA,Get a 10x chain,10,Standard,supernova
 CHAINS AND SKILL,HEAP SPRAY,Decrypt 15 bits with one drop,15,Standard,heap-spray
 CHAINS AND SKILL,SURGICAL,20 drops in a row that each decrypt a bit (exploit drops skip),20,Standard,surgical
 CHAINS AND SKILL,ZERO-DAY,Decrypt a bit with the first drop of a session,1,Standard,zero-day
-CHAINS AND SKILL,CLEAN SWEEP,"Clear the whole board after 10+ drops (Classic, Blitz or Zen)",1,Standard,clean-sweep
+CHAINS AND SKILL,CLEAN SWEEP,Clear the whole board after 10+ drops,1,Standard,clean-sweep
 CHAINS AND SKILL,CLOSE CALL,Decrypt your way back under the line,1,Standard,close-call
 CHAINS AND SKILL,SECOND WIND,Get two CLOSE CALLs in one session,2,Standard,second-wind
 CHAINS AND SKILL,FULL STACK,"Fill a column to the line, then bring it back down to half height",1,Standard,full-stack
@@ -56,7 +56,7 @@ SCORE,GIGABYTE,"Earn 8,000,000,000 points in total","8,000,000,000",Impossible,g
 SCORE,TERABYTE,"Earn 8,000,000,000,000 points in total","8,000,000,000,000",Impossible,terabyte
 HARD MODE AND BYTES,HARDENED,Unlock Hard mode,1,Standard,hardened
 HARD MODE AND BYTES,GHOST,Last 100 drops in one Hard session,100,Standard,ghost
-HARD MODE AND BYTES,HARD TARGET,"Score 7,500 on Hard","7,500",Standard,hard-target
+HARD MODE AND BYTES,HARD TARGET,"Score 5,000 on Hard","5,000",Standard,hard-target
 HARD MODE AND BYTES,FIRST BYTE,Decrypt a BYTE on Hard,1,Standard,first-byte
 HARD MODE AND BYTES,DOUBLE BYTE,Decrypt 2 bytes with one drop,2,Standard,double-byte
 HARD MODE AND BYTES,TRIPLE BYTE,Decrypt 3 bytes with one drop,3,Standard,triple-byte
@@ -79,13 +79,13 @@ EXPLOITS,WIRETAP,Use all 3 Packet Sniffer bits without losing the session,1,Stan
 EXPLOITS,LATERAL MOVEMENT,Start a chain with a PIVOT,1,Standard,lateral-movement
 EXPLOITS,OVERKILL,Run an exploit on an empty board,1,Hidden,overkill
 EXPLOITS,DOUBLE TROUBLE,Have a Logic Bomb and a Honeypot armed at the same time,1,Hidden,double-trouble
-BLITZ AND ZEN,SPEED RUN,"Score 1,500 in one Blitz","1,500",Standard,speed-run
+BLITZ AND ZEN,SPEED RUN,"Score 1,000 in one Blitz","1,000",Standard,speed-run
 BLITZ AND ZEN,BLITZKRIEG,"Score 3,000 in one Blitz","3,000",Standard,blitzkrieg
-BLITZ AND ZEN,LIGHTSPEED,"Score 6,000 in one Blitz","6,000",Standard,lightspeed
+BLITZ AND ZEN,LIGHTSPEED,"Score 5,000 in one Blitz","5,000",Standard,lightspeed
 BLITZ AND ZEN,ZEN MASTER,Last 300 drops in one Zen session,300,Standard,zen-master
 BLITZ AND ZEN,LAST SECOND,Decrypt a bit in Blitz with under a second left,1,Hidden,last-second
 DAILY,DAILY DRIVER,Play a Daily game 7 days in a row,7,Standard,daily-driver
-DAILY,DAILY GRIND,Play the Daily on 50 different days,50,Standard,daily-grind
+DAILY,DAILY GRIND,Play the Daily on 30 different days,30,Standard,daily-grind
 DAILY,STREAK,Play a Daily game 30 days in a row,30,Standard,streak
 DAILY,CENTURY,Play a Daily game 100 days in a row,100,Standard,century
 DAILY,DAILY SWEEP,Play all four daily games on the same day,1,Standard,daily-sweep

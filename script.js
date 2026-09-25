@@ -756,8 +756,7 @@ async function attemptDrop(col) {
   }
   if (!overflowed()) {
     if (wentOver) Progress.closeCall();
-    // (not in the daily games or PUZZLE, whose own achievements cover a cleared board)
-    if (!daily && mode !== 'puzzle' && piecesBefore >= 5 && Progress.runDrops() >= 10 && columns.every((c) => c.length === 0)) Progress.sweep();
+    if (piecesBefore >= 5 && Progress.runDrops() >= 10 && columns.every((c) => c.length === 0)) Progress.sweep();
     if (sniffedOut) Progress.wiretap();
   }
   Progress.endDrop({
@@ -1782,7 +1781,10 @@ freeBtn.addEventListener('click', () => {
   updateFreeBtn();
 });
 
-// UNLOCKED / ACHIEVEMENT pop-ups, shown one at a time
+// UNLOCKED / ACHIEVEMENT pop-ups, shown one at a time: each pops in, holds, bursts apart, and
+// only then does the next one show
+const TOAST_SHOW_MS = 2200;
+const TOAST_GAP_MS = 1250; // the burst's longest particles live 1.2s
 const toastEl = document.getElementById('toast');
 const toastQueue = [];
 let toastShowing = false;
@@ -1803,8 +1805,8 @@ function nextToast() {
   setTimeout(() => {
     FX.burst([{ el: toastEl, type: 'warning' }]);
     toastEl.hidden = true;
-    setTimeout(nextToast, 250);
-  }, 2200);
+    setTimeout(nextToast, TOAST_GAP_MS); // the next one waits until this one has crumbled away
+  }, TOAST_SHOW_MS);
 }
 
 // Centers the pop-up over the overflow row, masking its blocks; falls back to
@@ -1994,6 +1996,11 @@ function renderRecords() {
       return list;
     };
     const section = (title, items) => {
+      const sep = document.createElement('div');
+      sep.className = 'rec-sep';
+      sep.setAttribute('aria-hidden', 'true');
+      sep.textContent = '='.repeat(80);
+      recordsBodyEl.appendChild(sep);
       const head = document.createElement('p');
       head.className = 'rec-group';
       head.textContent = title;
