@@ -2,6 +2,11 @@
 
 A browser number puzzle about cracking encrypted data, inspired by
 **Blockchain**, the hacker-themed arcade cabinet game in *Arcade Paradise*.
+
+- **Play:** https://emptyfishtank-jb.github.io/ByteFall/
+- **Studio:** Empty Fish Tank
+- **Born:** September 23, 2026, 8:13 PM CST
+
 Mechanically it's a Drop7-style puzzle:
 
 - Encrypted bits numbered 1-7 fall into a 7×7 terminal, one column at a time
