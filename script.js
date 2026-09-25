@@ -1881,6 +1881,18 @@ function recordRow({ name, desc, current, goal, done }) {
   return li;
 }
 
+// A RECORDS section title in amber, after an amber ======= line
+function recHead(title) {
+  const sep = document.createElement('div');
+  sep.className = 'rec-sep';
+  sep.setAttribute('aria-hidden', 'true');
+  sep.textContent = '='.repeat(80);
+  const head = document.createElement('p');
+  head.className = 'rec-group';
+  head.textContent = title;
+  recordsBodyEl.append(sep, head);
+}
+
 function renderRecords() {
   recordsEl.querySelectorAll('.records-tabs button').forEach((b) => {
     b.setAttribute('aria-selected', String(b.dataset.tab === recordsTab));
@@ -1901,6 +1913,9 @@ function renderRecords() {
       done: lv.maxed,
     });
     row.style.borderBottom = 'none';
+    // Bright green labels with amber numbers
+    row.querySelector('.rec-name').innerHTML = `LV <em>${lv.level}</em> // DECRYPTOR <em>${lv.prestige}</em>`;
+    row.querySelector('.rec-state').innerHTML = `<em>${fmt(lv.maxed ? lv.need : lv.into)}</em> / <em>${fmt(lv.need)}</em>`;
     const rowList = document.createElement('ul');
     rowList.className = 'rec-list';
     rowList.appendChild(row);
@@ -1932,10 +1947,8 @@ function renderRecords() {
     recordsBodyEl.appendChild(box);
 
     // This prestige's exploit unlocks
-    const exHead = document.createElement('p');
-    exHead.className = 'rec-group';
-    exHead.textContent = `// EXPLOITS (DECRYPTOR ${lv.prestige})`;
-    recordsBodyEl.appendChild(exHead);
+    const exUnlocked = Progress.exploitOrder().filter((id) => Progress.exploitInfo(id).unlocked).length;
+    recHead(`// EXPLOITS // DECRYPTOR ${lv.prestige} (${exUnlocked} / ${Progress.exploitOrder().length})`);
     const exList = document.createElement('ul');
     exList.className = 'rec-list';
     const slotsNow = Progress.slotInfo();
@@ -1960,13 +1973,12 @@ function renderRecords() {
 
     let group = '';
     let list = null;
-    for (const u of Progress.unlocks()) {
+    const unlocks = Progress.unlocks();
+    for (const u of unlocks) {
       if (u.group !== group) {
         group = u.group;
-        const h = document.createElement('p');
-        h.className = 'rec-group';
-        h.textContent = `// ${group}`;
-        recordsBodyEl.appendChild(h);
+        const inGroup = unlocks.filter((x) => x.group === group);
+        recHead(`// ${group} (${inGroup.filter((x) => x.done).length} / ${inGroup.length})`);
         list = document.createElement('ul');
         list.className = 'rec-list';
         recordsBodyEl.appendChild(list);
@@ -1996,15 +2008,7 @@ function renderRecords() {
       return list;
     };
     const section = (title, items) => {
-      const sep = document.createElement('div');
-      sep.className = 'rec-sep';
-      sep.setAttribute('aria-hidden', 'true');
-      sep.textContent = '='.repeat(80);
-      recordsBodyEl.appendChild(sep);
-      const head = document.createElement('p');
-      head.className = 'rec-group';
-      head.textContent = title;
-      recordsBodyEl.appendChild(head);
+      recHead(title);
       recordsBodyEl.appendChild(listOf(items));
     };
     // Standard ones under their group's // TITLE

@@ -46,7 +46,7 @@ SCORE,ROOT ACCESS,"Score 1,000 in one session","1,000",Standard,root-access
 SCORE,SUPERUSER,"Score 5,000 in one session","5,000",Standard,superuser
 SCORE,KERNEL MODE,"Score 10,000 in one session","10,000",Standard,kernel-mode
 SCORE,HYPERVISOR,"Score 20,000 in one session","20,000",Standard,hypervisor
-SCORE,NO TOOLS,"Score 2,500 in one session without running an exploit","2,500",Standard,no-tools
+SCORE,NO TOOLS,"Score 2,000 in one session without running an exploit","2,000",Standard,no-tools
 SCORE,SNAKE EYES,Lose a session with 0 points,1,Hidden,snake-eyes
 SCORE,1337,"Finish a session on exactly 1,337 points",1,Hidden,1337
 SCORE,NOT FOUND,Finish a session on exactly 404 points,1,Hidden,not-found
@@ -101,10 +101,10 @@ PUZZLES,SAFECRACKER,Solve 30 puzzles,30,Standard,safecracker
 PUZZLES,MASTER KEY,Solve every puzzle,60,Standard,master-key
 PUZZLES,PICKPOCKET,Solve 5 puzzles in a row without failing one,5,Standard,pickpocket
 LEVELS AND DECRYPTOR RANKS,LV 40,Reach level 40,40,Standard,lv-40
-LEVELS AND DECRYPTOR RANKS,MAXED OUT,Fill Lv 80 again as a DECRYPTOR,1,Standard,maxed-out
+LEVELS AND DECRYPTOR RANKS,MAXED OUT,Fill Lv 80 as DECRYPTOR 9,1,Standard,maxed-out
 LEVELS AND DECRYPTOR RANKS,ROLLOVER,Rank up to DECRYPTOR 1,1,Standard,rollover
 LEVELS AND DECRYPTOR RANKS,TRIPLE CROWN,Reach DECRYPTOR 3,3,Standard,triple-crown
-LEVELS AND DECRYPTOR RANKS,FULL SPECTRUM,Reach DECRYPTOR 9,9,Standard,full-spectrum
+LEVELS AND DECRYPTOR RANKS,FULL SPECTRUM,Unlock every theme,9,Standard,full-spectrum
 THEMES AND MUSIC,COLLECTOR,"Unlock every music track (15,000 bits)",8,Standard,collector
 THEMES AND MUSIC,CHAMELEON,Play a full session (10+ drops) in every theme,10,Standard,chameleon
 THEMES AND MUSIC,DJ,Listen to every track,7,Standard,dj
