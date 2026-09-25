@@ -36,7 +36,7 @@ lands:
 | Keylogger `[@]` * | 3x | Shows your next 3 bits for the next 10 drops |
 | Backdoor `[_]` * | 4x | Deletes the entire bottom row, layers included; everything drops by one |
 | Rainbow Table `[*]` * | 5x | Decrypts every bit showing the most common number on the board |
-| Pivot `[⇆]` * | 3x | Swaps the column it lands in with a neighbor: pick the column, then tap ← or → (or press the arrow keys); edge columns swap with their only neighbor |
+| Pivot `[⇆]` * | 3x | Swaps the column it lands in with a neighbor: pick the column, then tap ← or → (or press the arrow keys), with no backing out once picked; edge columns swap with their only neighbor |
 | Packet Sniffer `[~]` * | 3x | For your next 3 bits, tap CURRENT (or press ↑ / ↓) to pick each one's number |
 | Logic Bomb `[!]` * | 4x | Lands as a `[!3]` block counting down each drop; at zero it wipes out the 5×5 around it |
 | Honeypot `[◎]` * | 4x | Lands as a trap; when a bit next to it decrypts, every bit of that number within 2 cells decrypts too |

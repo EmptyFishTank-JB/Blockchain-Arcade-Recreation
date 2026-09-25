@@ -371,7 +371,8 @@ function updateColumnButtons() {
   const buttons = columnButtonsEl.querySelectorAll('button');
   buttons.forEach((btn, c) => {
     const target = pivotFrom !== null && Math.abs(c - pivotFrom) === 1;
-    btn.disabled = gameOver || busy || (!target && columns[c].length >= MAX_ROWS);
+    // While PIVOT waits for a side, only the two neighbors can be pressed: the choice is committed
+    btn.disabled = gameOver || busy || (pivotFrom !== null ? !target : columns[c].length >= MAX_ROWS);
     btn.classList.toggle('pivot-from', c === pivotFrom);
     btn.classList.toggle('pivot-target', target);
     btn.textContent = target ? (c < pivotFrom ? '\u2190' : '\u2192') : String(c + 1);
@@ -561,7 +562,8 @@ function burstMessage(type) {
   FX.burst([{ rect: range.getBoundingClientRect(), type }]);
 }
 
-// PIVOT: a middle column asks which neighbor to swap with (second tap, or the arrow keys)
+// PIVOT: a middle column asks which neighbor to swap with (second tap, or the arrow keys).
+// Once picked, the player is committed: only the two neighbors are accepted.
 function choosePivot(col) {
   pivotFrom = col;
   setMessage(`PIVOT // SWAP COLUMN ${col + 1} WITH \u2190 ${col} OR ${col + 2} \u2192`);
@@ -578,7 +580,11 @@ function clearPivotChoice() {
 async function attemptDrop(col) {
   if (gameOver || busy || !queue.length) return;
   if (queue[0].type === 'hack' && queue[0].id === 'pivot') {
-    if (pivotFrom !== null && Math.abs(col - pivotFrom) === 1) {
+    if (pivotFrom !== null) {
+      if (Math.abs(col - pivotFrom) !== 1) {
+        SFX.play('denied');
+        return;
+      }
       pivotWith = col; // the second tap: drop into the picked column, swap with this one
       col = pivotFrom;
       clearPivotChoice();
@@ -1095,7 +1101,6 @@ document.addEventListener('keydown', (e) => {
   if (num >= 1 && num <= COLS) attemptDrop(num - 1);
   else if (e.key === 'ArrowLeft' && pivotFrom !== null) { e.preventDefault(); attemptDrop(pivotFrom - 1); }
   else if (e.key === 'ArrowRight' && pivotFrom !== null) { e.preventDefault(); attemptDrop(pivotFrom + 1); }
-  else if (e.key === 'Escape' && pivotFrom !== null) clearPivotChoice();
   else if (e.key === 'ArrowUp' && snifferBits > 0) { e.preventDefault(); sniff(1); }
   else if (e.key === 'ArrowDown' && snifferBits > 0) { e.preventDefault(); sniff(-1); }
 });
@@ -1566,10 +1571,10 @@ if (freeExploit.day !== localDay()) {
 }
 function updateFreeBtn() {
   freeBtn.hidden = !freeExploit.ready || mode === 'daily' || mode === 'puzzle';
-  freeBtn.disabled = gameOver || busy;
+  freeBtn.disabled = gameOver || busy || pivotFrom !== null;
 }
 freeBtn.addEventListener('click', () => {
-  if (!freeExploit.ready || gameOver || busy || mode === 'daily' || mode === 'puzzle') return;
+  if (!freeExploit.ready || gameOver || busy || pivotFrom !== null || mode === 'daily' || mode === 'puzzle') return;
   const ids = Progress.exploitOrder().slice(0, 5);
   const id = ids[Math.floor(Math.random() * ids.length)];
   freeExploit.ready = false;
