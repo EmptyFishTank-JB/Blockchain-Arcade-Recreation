@@ -1255,6 +1255,7 @@ function endGame(reason = 'trace') {
     Progress.endRun({
       score, reason, boardEmpty: columns.every((c) => c.length === 0),
       track: Music.isEnabled() ? Music.currentTrack() : null, theme: document.documentElement.dataset.theme || 'terminal',
+      font: shownFont().id,
       silent: SFX.isMuted() && !Music.isEnabled(),
     });
     if (mode === 'breach' && layersLeft() === 1) Progress.secret('so-close');
@@ -1911,6 +1912,54 @@ function applyTheme() {
 }
 applyTheme();
 
+// Fonts: COURIER is free; the pixel fonts unlock by earning achievements (progress.js's font-<id>)
+const FONTS = [
+  { id: 'courier', label: 'COURIER', desc: 'the classic terminal typewriter.' },
+  { id: 'press-start', label: 'PRESS START', desc: 'chunky 8-bit arcade pixels.' },
+  { id: 'bytesized', label: 'BYTESIZED', desc: 'tiny pixel type, for the hard-core.' },
+];
+const fontAvailable = (f) => f.id === 'courier' || Progress.isUnlocked(`font-${f.id}`);
+const fontListEl = document.getElementById('font-list');
+const fontNoteEl = document.getElementById('font-note');
+let fontId = FONTS.some((f) => f.id === storage.get('bytefall-font')) ? storage.get('bytefall-font') : 'courier';
+const shownFont = () => {
+  const font = FONTS.find((f) => f.id === fontId);
+  return fontAvailable(font) ? font : FONTS[0];
+};
+function applyFont() {
+  const shown = shownFont();
+  const before = document.documentElement.dataset.font;
+  if (shown.id === 'courier') delete document.documentElement.dataset.font;
+  else document.documentElement.dataset.font = shown.id;
+  if (before !== document.documentElement.dataset.font) requestAnimationFrame(fitBoard); // text sizes shift
+  fontNoteEl.textContent = `${shown.label}: ${shown.desc}`;
+  fontListEl.innerHTML = '';
+  for (const f of FONTS) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'theme-option';
+    btn.classList.toggle('active', f.id === shown.id);
+    btn.setAttribute('aria-pressed', String(f.id === shown.id));
+    btn.textContent = f.label;
+    btn.dataset.fontPreview = f.id; // each name shows in its own font
+    if (!fontAvailable(f)) {
+      btn.classList.add('locked');
+      btn.addEventListener('click', () => {
+        const u = Progress.unlock(`font-${f.id}`);
+        fontNoteEl.textContent = `${f.label} is locked. ${u.need} to unlock it (${Math.min(u.value(), u.goal).toLocaleString('en-US')} / ${u.goal.toLocaleString('en-US')}).`;
+      });
+    } else {
+      btn.addEventListener('click', () => {
+        fontId = f.id;
+        storage.set('bytefall-font', fontId);
+        applyFont();
+      });
+    }
+    fontListEl.appendChild(btn);
+  }
+}
+applyFont();
+
 const PLAYLIST_SLOTS = 10; // unmade tracks show as COMING SOON
 const settingsBtn = document.getElementById('settings-btn');
 const settingsEl = document.getElementById('settings');
@@ -2554,6 +2603,7 @@ function applyUnlocks() {
   hardBtn.title = hardLocked ? `${Progress.unlock('mode-hard').need} to unlock` : '';
   Music.refreshUnlocks();
   applyTheme();
+  applyFont();
   renderPlaylist();
 }
 Unlocks.onChange(applyUnlocks);

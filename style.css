@@ -1,3 +1,20 @@
+/* FONTS: COURIER (the default) and two unlockable pixel fonts, bundled in fonts/ (SIL OFL). Each
+   pixel font is scaled (size-adjust) so a line takes about the width it does in Courier, and the
+   layout stays put. [data-font] on <html> picks one; everything reads var(--font). */
+@font-face { font-family: 'Press Start 2P'; src: url('fonts/press-start-2p.woff2') format('woff2'); font-display: swap; size-adjust: 62%; }
+@font-face { font-family: 'Bytesized'; src: url('fonts/bytesized.woff2') format('woff2'); font-display: swap; size-adjust: 120%; }
+:root { --font: 'Courier New', Courier, monospace; }
+:root[data-font="press-start"] { --font: 'Press Start 2P', 'Courier New', monospace; }
+:root[data-font="bytesized"] { --font: 'Bytesized', 'Courier New', monospace; }
+/* The font picker shows each name in its own font */
+[data-font-preview="courier"] { font-family: 'Courier New', Courier, monospace !important; }
+[data-font-preview="press-start"] { font-family: 'Press Start 2P', 'Courier New', monospace !important; }
+[data-font-preview="bytesized"] { font-family: 'Bytesized', 'Courier New', monospace !important; }
+/* PRESS START's small labels need a floor to stay readable */
+:root[data-font="press-start"] .stat .label,
+:root[data-font="press-start"] .lock-tag,
+:root[data-font="press-start"] .combo { font-size: 12px; }
+
 /* [data-theme] also works on any element, so the settings panel's theme swatches preview each theme. */
 :root,
 [data-theme="terminal"] {
@@ -387,7 +404,7 @@ body {
   background: radial-gradient(ellipse at center, var(--bg-center) 0%, var(--bg-solid) 100%);
   /* Android Chrome samples the page's bottom edge for the system nav bar; a gradient reads as white */
   background-color: var(--bg-solid);
-  font-family: 'Courier New', Courier, monospace;
+  font-family: var(--font);
   color: var(--fg);
 }
 
@@ -475,7 +492,7 @@ h1 span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: var(--font);
   font-weight: bold;
   font-size: 16px;
 }
@@ -574,7 +591,7 @@ h1 span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: var(--font);
   font-size: clamp(11px, 3.6vw, 18px);
   font-weight: bold;
   white-space: nowrap;
@@ -1504,6 +1521,7 @@ body.vs-mode header #mode-info { display: none; }
 
 .settings-row { display: flex; gap: 6px; margin-bottom: 6px; }
 
+.font-list { display: flex; flex-wrap: wrap; gap: 6px; }
 .theme-list { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .settings .theme-option {
   flex-direction: column;

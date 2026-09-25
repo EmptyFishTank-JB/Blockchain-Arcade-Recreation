@@ -67,6 +67,7 @@ const Progress = (() => {
     tracksHeard: {}, // track id -> true once played
     tracksPlayed: {}, // track id -> true after a full session (10+ drops) on it
     themesPlayed: {}, // theme id -> true after a full session in it
+    fontsPlayed: {}, // font id -> true after a full session in it
     lateNight: 0, // dropped a bit between 2 and 4 AM
     birthday: 0, // dropped a bit on Sep 23
     rageQuit: 0, // restarted 10 live sessions in one sitting
@@ -164,6 +165,9 @@ const Progress = (() => {
   const THEME_ORDER = [['cipher', 'CIPHER'], ['amber-crt', 'AMBER CRT'], ['monochrome', 'MONOCHROME'], ['redline', 'REDLINE'],
     ['synthwave', 'SYNTHWAVE'], ['dot-matrix', 'DOT MATRIX'], ['paper', 'PAPER'], ['glyph', 'GLYPH'], ['spectrum', 'SPECTRUM']];
 
+  // Pixel fonts (COURIER is free): [id, name, achievements needed]
+  const FONT_ORDER = [['press-start', 'PRESS START', 10], ['bytesized', 'BYTESIZED', 25]];
+
   // group: where it shows in the UNLOCKS list. value() / goal drive its tracker.
   const UNLOCKS = [
     { id: 'mode-hard', group: 'MODE', name: 'HARD MODE', need: 'Score 2,000 on Normal', value: () => best('normal'), goal: 2000 },
@@ -173,6 +177,10 @@ const Progress = (() => {
     })),
     ...THEME_ORDER.map(([id, name], i) => ({
       id: `theme-${id}`, group: 'THEMES', name, need: `Reach DECRYPTOR ${i + 1}`, value: () => d.decryptor, goal: i + 1,
+    })),
+    // Fonts unlock by achievements earned
+    ...FONT_ORDER.map(([id, name, goal]) => ({
+      id: `font-${id}`, group: 'FONTS', name, need: `Earn ${goal} achievements`, value: () => count(d.achieved), goal,
     })),
   ];
 
@@ -247,6 +255,8 @@ const Progress = (() => {
     { id: 'chained-exploits', name: 'CHAINED EXPLOITS', desc: 'Run 3 exploits in one session', value: () => d.bestRunExploits, goal: 3 },
     { id: 'arsenal', name: 'ARSENAL', desc: 'Fill all 6 exploit slots', value: () => d.bestEquipped, goal: MAX_SLOTS },
     // Collection and progress
+    { id: 'insert-coin', name: 'INSERT COIN', desc: 'Play a full session (10+ drops) in the PRESS START font', value: () => (d.fontsPlayed['press-start'] ? 1 : 0), goal: 1 },
+    { id: 'bite-sized', name: 'BITE-SIZED', desc: 'Play a full session (10+ drops) in the BYTESIZED font', value: () => (d.fontsPlayed.bytesized ? 1 : 0), goal: 1 },
     { id: 'dj', name: 'DJ', desc: 'Listen to every track', value: () => count(d.tracksHeard), goal: () => trackCount },
     { id: 'audiophile', name: 'AUDIOPHILE', desc: 'Play a full session (10+ drops) on every track', value: () => count(d.tracksPlayed), goal: () => trackCount },
     { id: 'chameleon', name: 'CHAMELEON', desc: 'Play a full session (10+ drops) in every theme', value: () => count(d.themesPlayed), goal: () => themeCount },
@@ -337,7 +347,7 @@ const Progress = (() => {
     ['DAILY', ['daily-driver', 'daily-grind', 'streak', 'century', 'daily-sweep', 'perfect-daily', 'breached', 'one-shot', 'sunday-best', 'stubborn', 'so-close']],
     ['PUZZLES', ['first-try', 'locksmith', 'safecracker', 'master-key', 'pickpocket']],
     ['LEVELS AND DECRYPTOR RANKS', ['lv-40', 'maxed-out', 'rollover', 'triple-crown', 'full-spectrum']],
-    ['THEMES AND MUSIC', ['collector', 'chameleon', 'dj', 'audiophile', 'theme-park', 'channel-surfer', 'silent-running']],
+    ['THEMES, FONTS AND MUSIC', ['collector', 'chameleon', 'insert-coin', 'bite-sized', 'dj', 'audiophile', 'theme-park', 'channel-surfer', 'silent-running']],
     ['DATES AND TIMES', ['insomniac', 'birthday', 'friday-13th', 'pi-day']],
     ['SECRETS', ['konami']],
   ];
@@ -536,7 +546,7 @@ const Progress = (() => {
       run.pivoted = false;
     },
     // A session ended (not PUZZLE): reason 'trace', 'time' or 'daily'
-    endRun({ score, reason, boardEmpty, track, theme, silent }) {
+    endRun({ score, reason, boardEmpty, track, theme, font, silent }) {
       if (score === 404) d.secrets['not-found'] = true;
       if (run.bits === 42) d.secrets['deep-thought'] = true;
       if (score >= 1000 && String(score) === [...String(score)].reverse().join('')) d.secrets.palindrome = true;
@@ -545,6 +555,7 @@ const Progress = (() => {
       if (run.drops >= 10) {
         if (track) d.tracksPlayed[track] = true;
         d.themesPlayed[theme] = true;
+        if (font) d.fontsPlayed[font] = true;
       }
       if (reason === 'trace' && score === 0 && run.drops > 0) d.snakeEyes = 1;
       if (score === 1337) d.leet = 1;
