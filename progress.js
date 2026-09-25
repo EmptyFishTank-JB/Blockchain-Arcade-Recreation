@@ -18,6 +18,7 @@ const Progress = (() => {
     bitsByValue: {}, // number -> bits of that number decrypted
     bytes: 0, // Hard: BYTE bonuses
     nibbles: 0, // Easy and Normal: NIBBLE bonuses
+    bestDropNibbles: 0, // most nibbles from a single drop
     peeled: 0, // encryption layer levels removed
     broken: 0, // layers peeled all the way, revealing a bit
     exploits: 0, // exploits run
@@ -173,6 +174,7 @@ const Progress = (() => {
   ];
 
   const themeIds = UNLOCKS.filter((u) => u.group === 'THEMES').map((u) => u.id);
+  const trackIds = UNLOCKS.filter((u) => u.group === 'TRACKS').map((u) => u.id);
   let exploitCount = 7; // set by script.js from HACKS
   let puzzleCount = 30; // set by script.js from PUZZLES
   let trackCount = 7; // set by script.js from Music.tracks()
@@ -208,28 +210,28 @@ const Progress = (() => {
     { id: 'kernel-mode', name: 'KERNEL MODE', desc: 'Score 10,000 in one session', value: () => d.bestScore, goal: 10000 },
     { id: 'hardened', name: 'HARDENED', desc: 'Unlock Hard mode', value: () => (isUnlocked('mode-hard') ? 1 : 0), goal: 1 },
     { id: 'ghost', name: 'GHOST', desc: 'Last 100 drops in one Hard session', value: () => d.bestHardDrops, goal: 100 },
-    { id: 'clean-sweep', name: 'CLEAN SWEEP', desc: 'Clear the whole board after 10+ drops', value: () => d.sweeps, goal: 1 },
+    { id: 'clean-sweep', name: 'CLEAN SWEEP', desc: 'Clear the whole board after 10+ drops (Classic, Blitz or Zen)', value: () => d.sweeps, goal: 1 },
     { id: 'close-call', name: 'CLOSE CALL', desc: 'Decrypt your way back under the line', value: () => d.closeCalls, goal: 1 },
     { id: 'daily-driver', name: 'DAILY DRIVER', desc: 'Play a Daily game 7 days in a row', value: () => d.bestDailyStreak, goal: 7 },
     { id: 'locksmith', name: 'LOCKSMITH', desc: 'Solve 10 puzzles', value: () => Object.keys(d.puzzles).length, goal: 10 },
     { id: 'master-key', name: 'MASTER KEY', desc: 'Solve every puzzle', value: () => Object.keys(d.puzzles).length, goal: () => puzzleCount },
-    { id: 'maxed-out', name: 'MAXED OUT', desc: 'Fill Lv 80: a kilobyte of bits in one DECRYPTOR rank', value: () => (levelInfo().maxed || d.prestige > 0 ? 1 : 0), goal: 1 },
+    { id: 'maxed-out', name: 'MAXED OUT', desc: 'Fill Lv 80 again as a DECRYPTOR', value: () => (d.prestige >= 2 || (d.prestige >= 1 && levelInfo().maxed) ? 1 : 0), goal: 1 },
     { id: 'rollover', name: 'ROLLOVER', desc: 'Rank up to DECRYPTOR 1', value: () => d.prestige, goal: 1 },
     { id: 'full-spectrum', name: 'FULL SPECTRUM', desc: 'Reach DECRYPTOR 9', value: () => d.prestige, goal: 9 },
-    { id: 'collector', name: 'COLLECTOR', desc: 'Unlock every theme', value: () => themeIds.filter(isUnlocked).length, goal: themeIds.length },
+    { id: 'collector', name: 'COLLECTOR', desc: 'Unlock every music track (15,000 bits)', value: () => trackIds.filter(isUnlocked).length, goal: trackIds.length },
     // Skill
     { id: 'zero-day', name: 'ZERO-DAY', desc: 'Decrypt a bit with the first drop of a session', value: () => d.firstDropClears, goal: 1 },
     { id: 'surgical', name: 'SURGICAL', desc: '20 drops in a row that each decrypt a bit (exploit drops skip)', value: () => d.bestClearStreak, goal: 20 },
-    { id: 'no-tools', name: 'NO TOOLS', desc: 'Score 2,000 in one session without running an exploit', value: () => d.bestNoToolsScore, goal: 2000 },
+    { id: 'no-tools', name: 'NO TOOLS', desc: 'Score 2,500 in one session without running an exploit', value: () => d.bestNoToolsScore, goal: 2500 },
     { id: 'heap-spray', name: 'HEAP SPRAY', desc: 'Decrypt 15 bits with one drop', value: () => d.bestDropBits, goal: 15 },
     { id: 'full-stack', name: 'FULL STACK', desc: 'Fill a column to the line, then bring it back down to half height', value: () => d.fullStacks, goal: 1 },
     { id: 'firewall-breach', name: 'FIREWALL BREACH', desc: 'Break 3 encryption layers open with one drop', value: () => d.bestDropBroken, goal: 3 },
     { id: 'second-wind', name: 'SECOND WIND', desc: 'Get two CLOSE CALLs in one session', value: () => d.bestRunCloseCalls, goal: 2 },
     // Modes
-    { id: 'speed-run', name: 'SPEED RUN', desc: 'Score 1,000 in one Blitz', value: () => d.bestBlitz, goal: 1000 },
+    { id: 'speed-run', name: 'SPEED RUN', desc: 'Score 1,500 in one Blitz', value: () => d.bestBlitz, goal: 1500 },
     { id: 'blitzkrieg', name: 'BLITZKRIEG', desc: 'Score 3,000 in one Blitz', value: () => d.bestBlitz, goal: 3000 },
     { id: 'zen-master', name: 'ZEN MASTER', desc: 'Last 300 drops in one Zen session', value: () => d.bestZenDrops, goal: 300 },
-    { id: 'daily-grind', name: 'DAILY GRIND', desc: 'Play the Daily on 30 different days', value: () => d.dailies, goal: 30 },
+    { id: 'daily-grind', name: 'DAILY GRIND', desc: 'Play the Daily on 50 different days', value: () => d.dailies, goal: 50 },
     { id: 'streak', name: 'STREAK', desc: 'Play a Daily game 30 days in a row', value: () => d.bestDailyStreak, goal: 30 },
     { id: 'perfect-daily', name: 'PERFECT DAILY', desc: 'Finish a Daily Decrypt with the board empty', value: () => d.perfectDailies, goal: 1 },
     { id: 'first-try', name: 'FIRST TRY', desc: 'Solve a puzzle on your first attempt', value: () => d.firstTries, goal: 1 },
@@ -263,11 +265,11 @@ const Progress = (() => {
     { id: 'demolition', name: 'DEMOLITION', desc: 'Break 500 encryption layers all the way open', value: () => d.broken, goal: 500 },
     { id: 'apt', name: 'ADVANCED PERSISTENT THREAT', desc: 'Run 500 exploits', value: () => d.exploits, goal: 500 },
     { id: 'hypervisor', name: 'HYPERVISOR', desc: 'Score 20,000 in one session', value: () => d.bestScore, goal: 20000 },
-    { id: 'hard-target', name: 'HARD TARGET', desc: 'Score 5,000 on Hard', value: () => best('hard'), goal: 5000 },
+    { id: 'hard-target', name: 'HARD TARGET', desc: 'Score 7,500 on Hard', value: () => best('hard'), goal: 7500 },
     { id: 'full-range', name: 'FULL RANGE', desc: 'Decrypt 100 of every number from [1] to [7]', value: () => Math.min(...[1, 2, 3, 4, 5, 6, 7].map((n) => d.bitsByValue[n] || 0)), goal: 100 },
     { id: '106473', name: '106473', desc: 'Decrypt 106,473 bits', value: () => d.bits, goal: 106473 },
     { id: 'lucky-sevens', name: 'LUCKY SEVENS', desc: 'Decrypt 1,000 [7]s', value: () => d.bitsByValue[7] || 0, goal: 1000 },
-    { id: 'lightspeed', name: 'LIGHTSPEED', desc: 'Score 5,000 in one Blitz', value: () => d.bestBlitz, goal: 5000 },
+    { id: 'lightspeed', name: 'LIGHTSPEED', desc: 'Score 6,000 in one Blitz', value: () => d.bestBlitz, goal: 6000 },
     { id: 'daily-sweep', name: 'DAILY SWEEP', desc: 'Play all four daily games on the same day', value: () => d.dailySweeps, goal: 1 },
     { id: 'breached', name: 'BREACHED', desc: 'Clear the whole board in BREACH', value: () => d.breaches, goal: 1 },
     { id: 'one-shot', name: 'ONE SHOT', desc: 'Solve a daily puzzle on the first try', value: () => d.dailyFirstTries, goal: 1 },
@@ -315,6 +317,33 @@ const Progress = (() => {
     { id: '32-bit-overflow', name: '32-BIT OVERFLOW', desc: 'Decrypt 1,073,741,824 nibbles (2^32 bits)', value: () => d.nibbles, goal: 1073741824, impossible: true },
     { id: 'gigabyte', name: 'GIGABYTE', desc: 'Earn 8,000,000,000 points in total', value: () => d.points, goal: 8e9, impossible: true },
     { id: 'terabyte', name: 'TERABYTE', desc: 'Earn 8,000,000,000,000 points in total', value: () => d.points, goal: 8e12, impossible: true },
+  ];
+
+  // RECORDS sections, in order. Hidden and impossible ones show in their own sections at the
+  // bottom whatever their group; the group is also the category in achievements.csv.
+  const ACHIEVEMENT_GROUPS = [
+    ['SESSIONS', ['first-contact', 'regular', 'veteran', 'lifer', 'marathon', 'rage-quit']],
+    ['BITS DECRYPTED', ['handshake', 'kilobit', 'kilobyte-8k', 'megabit', 'megabyte-8m', '106473', 'full-range', 'lucky-sevens', 'jackpot', 'gigabit']],
+    ['NIBBLES', ['just-a-crumb', 'a-full-byte', '64-bit-architecture', 'snack-attack', 'nibbling', 'kilonibble', 'kibinibble', 'kibibyte', 'dial-up-speeds', '16-bit-era', '64k-memory-limit', 'meganibble', 'mebinibble', 'mebibyte', '32-bit-overflow']],
+    ['CHAINS AND SKILL', ['chain-reaction', 'cascade', 'overclocked', 'supernova', 'heap-spray', 'surgical', 'zero-day', 'clean-sweep', 'close-call', 'second-wind', 'full-stack', 'full-house']],
+    ['SCORE', ['root-access', 'superuser', 'kernel-mode', 'hypervisor', 'no-tools', 'snake-eyes', '1337', 'not-found', 'deep-thought', 'palindrome', 'gigabyte', 'terabyte']],
+    ['HARD MODE AND BYTES', ['hardened', 'ghost', 'hard-target', 'first-byte', 'double-byte', 'triple-byte', 'byte-stream', 'byte-array']],
+    ['ENCRYPTION LAYERS', ['layer-peeler', 'onion-router', 'onion-core', 'demolition', 'firewall-breach']],
+    ['EXPLOITS', ['script-kiddie', 'black-hat', 'apt', 'full-toolkit', 'chained-exploits', 'arsenal', 'time-bomb', 'sting', 'wiretap', 'lateral-movement', 'overkill', 'double-trouble']],
+    ['BLITZ AND ZEN', ['speed-run', 'blitzkrieg', 'lightspeed', 'zen-master', 'last-second']],
+    ['DAILY', ['daily-driver', 'daily-grind', 'streak', 'century', 'daily-sweep', 'perfect-daily', 'breached', 'one-shot', 'sunday-best', 'stubborn', 'so-close']],
+    ['PUZZLES', ['first-try', 'locksmith', 'safecracker', 'master-key', 'pickpocket']],
+    ['LEVELS AND DECRYPTOR RANKS', ['lv-40', 'maxed-out', 'rollover', 'triple-crown', 'full-spectrum']],
+    ['THEMES AND MUSIC', ['collector', 'chameleon', 'dj', 'audiophile', 'theme-park', 'channel-surfer', 'silent-running']],
+    ['DATES AND TIMES', ['insomniac', 'birthday', 'friday-13th', 'pi-day']],
+    ['SECRETS', ['konami']],
+  ];
+  const groupOf = {};
+  ACHIEVEMENT_GROUPS.forEach(([group, ids]) => ids.forEach((id) => { groupOf[id] = group; }));
+  const byId = Object.fromEntries(ACHIEVEMENTS.map((a) => [a.id, a]));
+  const ORDERED = [
+    ...ACHIEVEMENT_GROUPS.flatMap(([, ids]) => ids.map((id) => byId[id])).filter(Boolean),
+    ...ACHIEVEMENTS.filter((a) => !groupOf[a.id]), // any not listed above land at the end
   ];
 
   const goalOf = (item) => (typeof item.goal === 'function' ? item.goal() : item.goal);
@@ -438,7 +467,8 @@ const Progress = (() => {
     puzzleFailed() { d.puzzleStreak = 0; },
     // Lists for the RECORDS panel
     unlocks: () => UNLOCKS.map((u) => ({ ...u, goal: goalOf(u), current: u.value(), done: isUnlocked(u.id) })),
-    achievements: () => ACHIEVEMENTS.map((a) => ({ ...a, goal: goalOf(a), current: a.value(), done: !!d.achieved[a.id] })),
+    // In RECORDS order, each with its section (group)
+    achievements: () => ORDERED.map((a) => ({ ...a, group: groupOf[a.id] || 'OTHER', goal: goalOf(a), current: a.value(), done: !!d.achieved[a.id] })),
     stats: () => ({ ...d, bestNormal: best('normal'), bestEasy: best('easy'), bestHard: best('hard') }),
 
     // Run events from script.js
@@ -553,7 +583,10 @@ const Progress = (() => {
       run.bytes += count;
       d.bestDropBytes = Math.max(d.bestDropBytes, count);
     },
-    nibbles(count) { d.nibbles += count; },
+    nibbles(count) {
+      d.nibbles += count;
+      d.bestDropNibbles = Math.max(d.bestDropNibbles, count);
+    },
     peeled(broken) {
       d.peeled++;
       if (broken) {

@@ -756,7 +756,8 @@ async function attemptDrop(col) {
   }
   if (!overflowed()) {
     if (wentOver) Progress.closeCall();
-    if (piecesBefore >= 5 && Progress.runDrops() >= 10 && columns.every((c) => c.length === 0)) Progress.sweep();
+    // (not in the daily games or PUZZLE, whose own achievements cover a cleared board)
+    if (!daily && mode !== 'puzzle' && piecesBefore >= 5 && Progress.runDrops() >= 10 && columns.every((c) => c.length === 0)) Progress.sweep();
     if (sniffedOut) Progress.wiretap();
   }
   Progress.endDrop({
@@ -1999,7 +2000,12 @@ function renderRecords() {
       recordsBodyEl.appendChild(head);
       recordsBodyEl.appendChild(listOf(items));
     };
-    recordsBodyEl.appendChild(listOf(counted.filter((a) => !a.hidden)));
+    // Standard ones under their group's // TITLE
+    const standard = counted.filter((a) => !a.hidden);
+    for (const group of [...new Set(standard.map((a) => a.group))]) {
+      const items = standard.filter((a) => a.group === group);
+      section(`// ${group} (${items.filter((a) => a.done).length} / ${items.length})`, items);
+    }
     const hidden = counted.filter((a) => a.hidden);
     section(`// HIDDEN ACHIEVEMENTS !? (${hidden.filter((a) => a.done).length} / ${hidden.length} FOUND)`, hidden);
     section('// IMPOSSIBLE ACHIEVEMENTS', all.filter((a) => a.impossible));
@@ -2014,6 +2020,8 @@ function renderRecords() {
       ['TOTAL DROPS', fmt(s.drops)],
       ['BITS DECRYPTED', fmt(s.bits)],
       ['NIBBLES DECRYPTED', fmt(s.nibbles)],
+      ['MOST NIBBLES IN ONE DROP', fmt(s.bestDropNibbles)],
+      ['NIBBLE BONUS POINTS', fmt(s.nibbles * NIBBLE_BONUS)],
       ['BYTES DECRYPTED', fmt(s.bytes)],
       ['LAYERS PEELED', fmt(s.peeled)],
       ['BITS REVEALED', fmt(s.broken)],

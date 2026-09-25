@@ -1,119 +1,119 @@
 Category,Name,Description,Goal,Type,ID
-Sessions,FIRST CONTACT,Start your first session,1,Standard,first-contact
-Sessions,REGULAR,Play 25 sessions,25,Standard,regular
-Sessions,VETERAN,Play 100 sessions,100,Standard,veteran
-Sessions,LIFER,Play 500 sessions,500,Standard,lifer
-Sessions,MARATHON,Last 250 drops in one Classic session,250,Standard,marathon
-Sessions,RAGE QUIT,Restart 10 sessions in one sitting,1,Hidden,rage-quit
-Bits decrypted,HANDSHAKE,Decrypt 100 bits,100,Standard,handshake
-Bits decrypted,KILOBIT,"Decrypt 1,000 bits","1,000",Standard,kilobit
-Bits decrypted,KILOBYTE,"Decrypt 8,000 bits","8,000",Standard,kilobyte-8k
-Bits decrypted,MEGABIT,"Decrypt 1,000,000 bits","1,000,000",Standard,megabit
-Bits decrypted,MEGABYTE,"Decrypt 8,000,000 bits","8,000,000",Standard,megabyte-8m
-Bits decrypted,106473,"Decrypt 106,473 bits","106,473",Standard,106473
-Bits decrypted,FULL RANGE,Decrypt 100 of every number from [1] to [7],100,Standard,full-range
-Bits decrypted,LUCKY SEVENS,"Decrypt 1,000 [7]s","1,000",Standard,lucky-sevens
-Bits decrypted,JACKPOT,Decrypt seven [7]s with one drop,1,Hidden,jackpot
-Chains and skill,CHAIN REACTION,Get a 4x chain,4,Standard,chain-reaction
-Chains and skill,CASCADE,Get a 6x chain,6,Standard,cascade
-Chains and skill,OVERCLOCKED,Get an 8x chain,8,Standard,overclocked
-Chains and skill,SUPERNOVA,Get a 10x chain,10,Standard,supernova
-Chains and skill,HEAP SPRAY,Decrypt 15 bits with one drop,15,Standard,heap-spray
-Chains and skill,SURGICAL,20 drops in a row that each decrypt a bit (exploit drops skip),20,Standard,surgical
-Chains and skill,ZERO-DAY,Decrypt a bit with the first drop of a session,1,Standard,zero-day
-Chains and skill,CLEAN SWEEP,Clear the whole board after 10+ drops,1,Standard,clean-sweep
-Chains and skill,CLOSE CALL,Decrypt your way back under the line,1,Standard,close-call
-Chains and skill,SECOND WIND,Get two CLOSE CALLs in one session,2,Standard,second-wind
-Chains and skill,FULL STACK,"Fill a column to the line, then bring it back down to half height",1,Standard,full-stack
-Chains and skill,FULL HOUSE,Survive a drop with every column one block from the line or higher,1,Hidden,full-house
-Score,ROOT ACCESS,"Score 1,000 in one session","1,000",Standard,root-access
-Score,SUPERUSER,"Score 5,000 in one session","5,000",Standard,superuser
-Score,KERNEL MODE,"Score 10,000 in one session","10,000",Standard,kernel-mode
-Score,HYPERVISOR,"Score 20,000 in one session","20,000",Standard,hypervisor
-Score,NO TOOLS,"Score 2,000 in one session without running an exploit","2,000",Standard,no-tools
-Score,SNAKE EYES,Lose a session with 0 points,1,Hidden,snake-eyes
-Score,1337,"Finish a session on exactly 1,337 points",1,Hidden,1337
-Score,NOT FOUND,Finish a session on exactly 404 points,1,Hidden,not-found
-Score,DEEP THOUGHT,Finish a session with exactly 42 bits decrypted,1,Hidden,deep-thought
-Score,PALINDROME,Finish a session on a score that reads the same backwards (4+ digits),1,Hidden,palindrome
-Hard mode and bytes,HARDENED,Unlock Hard mode,1,Standard,hardened
-Hard mode and bytes,GHOST,Last 100 drops in one Hard session,100,Standard,ghost
-Hard mode and bytes,HARD TARGET,"Score 5,000 on Hard","5,000",Standard,hard-target
-Hard mode and bytes,FIRST BYTE,Decrypt a BYTE on Hard,1,Standard,first-byte
-Hard mode and bytes,DOUBLE BYTE,Decrypt 2 bytes with one drop,2,Standard,double-byte
-Hard mode and bytes,TRIPLE BYTE,Decrypt 3 bytes with one drop,3,Standard,triple-byte
-Hard mode and bytes,BYTE STREAM,Decrypt 10 bytes,10,Standard,byte-stream
-Hard mode and bytes,BYTE ARRAY,Decrypt 100 bytes,100,Standard,byte-array
-Nibbles,JUST A CRUMB,Decrypt your first nibble,1,Standard,just-a-crumb
-Nibbles,A FULL BYTE,Decrypt 2 nibbles (8 bits: one byte),2,Standard,a-full-byte
-Nibbles,64-BIT ARCHITECTURE,Decrypt 16 nibbles (64 bits),16,Standard,64-bit-architecture
-Nibbles,SNACK ATTACK,Decrypt 100 nibbles,100,Standard,snack-attack
-Nibbles,NIBBLING,"Decrypt 250 nibbles (1,000 bits: a kilobit)",250,Standard,nibbling
-Nibbles,KILONIBBLE,"Decrypt 1,000 nibbles","1,000",Standard,kilonibble
-Nibbles,KIBINIBBLE,"Decrypt 1,024 nibbles","1,024",Standard,kibinibble
-Nibbles,KIBIBYTE,"Decrypt 2,048 nibbles (1,024 bytes)","2,048",Standard,kibibyte
-Nibbles,DIAL-UP SPEEDS,"Decrypt 16,384 nibbles (65,536 bits)","16,384",Standard,dial-up-speeds
-Nibbles,THE 16-BIT ERA,"Decrypt 65,536 nibbles (2^16)","65,536",Standard,16-bit-era
-Nibbles,64K MEMORY LIMIT,"Decrypt 131,072 nibbles (65,536 bytes: 64 KiB)","131,072",Standard,64k-memory-limit
-Nibbles,MEGANIBBLE,"Decrypt 1,000,000 nibbles","1,000,000",Standard,meganibble
-Nibbles,MEBINIBBLE,"Decrypt 1,048,576 nibbles (1,024 x 1,024)","1,048,576",Standard,mebinibble
-Nibbles,MEBIBYTE,"Decrypt 2,097,152 nibbles (1,048,576 bytes: 1 MiB)","2,097,152",Standard,mebibyte
-Encryption layers,LAYER PEELER,Peel 100 encryption layers,100,Standard,layer-peeler
-Encryption layers,ONION ROUTER,"Peel 1,000 encryption layers","1,000",Standard,onion-router
-Encryption layers,ONION CORE,"Peel 10,000 encryption layers","10,000",Standard,onion-core
-Encryption layers,DEMOLITION,Break 500 encryption layers all the way open,500,Standard,demolition
-Encryption layers,FIREWALL BREACH,Break 3 encryption layers open with one drop,3,Standard,firewall-breach
-Exploits,SCRIPT KIDDIE,Run your first exploit,1,Standard,script-kiddie
-Exploits,BLACK HAT,Run 50 exploits,50,Standard,black-hat
-Exploits,ADVANCED PERSISTENT THREAT,Run 500 exploits,500,Standard,apt
-Exploits,FULL TOOLKIT,Run every exploit at least once,13,Standard,full-toolkit
-Exploits,CHAINED EXPLOITS,Run 3 exploits in one session,3,Standard,chained-exploits
-Exploits,ARSENAL,Fill all 6 exploit slots,6,Standard,arsenal
-Exploits,TIME BOMB,Wipe 5 blocks with one Logic Bomb blast,5,Standard,time-bomb
-Exploits,STING,Spring a Honeypot,1,Standard,sting
-Exploits,WIRETAP,Use all 3 Packet Sniffer bits without losing the session,1,Standard,wiretap
-Exploits,LATERAL MOVEMENT,Start a chain with a PIVOT,1,Standard,lateral-movement
-Exploits,OVERKILL,Run an exploit on an empty board,1,Hidden,overkill
-Exploits,DOUBLE TROUBLE,Have a Logic Bomb and a Honeypot armed at the same time,1,Hidden,double-trouble
-Blitz and Zen,SPEED RUN,"Score 1,000 in one Blitz","1,000",Standard,speed-run
-Blitz and Zen,BLITZKRIEG,"Score 3,000 in one Blitz","3,000",Standard,blitzkrieg
-Blitz and Zen,LIGHTSPEED,"Score 5,000 in one Blitz","5,000",Standard,lightspeed
-Blitz and Zen,ZEN MASTER,Last 300 drops in one Zen session,300,Standard,zen-master
-Blitz and Zen,LAST SECOND,Decrypt a bit in Blitz with under a second left,1,Hidden,last-second
-Daily,DAILY DRIVER,Play a Daily game 7 days in a row,7,Standard,daily-driver
-Daily,DAILY GRIND,Play the Daily on 30 different days,30,Standard,daily-grind
-Daily,STREAK,Play a Daily game 30 days in a row,30,Standard,streak
-Daily,CENTURY,Play a Daily game 100 days in a row,100,Standard,century
-Daily,DAILY SWEEP,Play all four daily games on the same day,1,Standard,daily-sweep
-Daily,PERFECT DAILY,Finish a Daily Decrypt with the board empty,1,Standard,perfect-daily
-Daily,BREACHED,Clear the whole board in BREACH,1,Standard,breached
-Daily,ONE SHOT,Solve a daily puzzle on the first try,1,Standard,one-shot
-Daily,SUNDAY BEST,Solve a Sunday daily puzzle (the week's hardest),1,Standard,sunday-best
-Daily,STUBBORN,Try the same daily puzzle 10 times,1,Hidden,stubborn
-Daily,SO CLOSE,End a BREACH with one layer left,1,Hidden,so-close
-Puzzles,FIRST TRY,Solve a puzzle on your first attempt,1,Standard,first-try
-Puzzles,LOCKSMITH,Solve 10 puzzles,10,Standard,locksmith
-Puzzles,SAFECRACKER,Solve 30 puzzles,30,Standard,safecracker
-Puzzles,MASTER KEY,Solve every puzzle,60,Standard,master-key
-Puzzles,PICKPOCKET,Solve 5 puzzles in a row without failing one,5,Standard,pickpocket
-Levels and DECRYPTOR ranks,LV 40,Reach level 40,40,Standard,lv-40
-Levels and DECRYPTOR ranks,MAXED OUT,Fill Lv 80: a kilobyte of bits in one DECRYPTOR rank,1,Standard,maxed-out
-Levels and DECRYPTOR ranks,ROLLOVER,Rank up to DECRYPTOR 1,1,Standard,rollover
-Levels and DECRYPTOR ranks,TRIPLE CROWN,Reach DECRYPTOR 3,3,Standard,triple-crown
-Levels and DECRYPTOR ranks,FULL SPECTRUM,Reach DECRYPTOR 9,9,Standard,full-spectrum
-Themes and music,COLLECTOR,Unlock every theme,9,Standard,collector
-Themes and music,CHAMELEON,Play a full session (10+ drops) in every theme,10,Standard,chameleon
-Themes and music,DJ,Listen to every track,7,Standard,dj
-Themes and music,AUDIOPHILE,Play a full session (10+ drops) on every track,7,Standard,audiophile
-Themes and music,THEME PARK,Change the theme 10 times in one sitting,1,Hidden,theme-park
-Themes and music,CHANNEL SURFER,Pick a track 10 times in one sitting,1,Hidden,channel-surfer
-Themes and music,SILENT RUNNING,Play a full session (10+ drops) with the sound and music off,1,Hidden,silent-running
-Dates and times,INSOMNIAC,Play between 2 and 4 AM,1,Standard,insomniac
-Dates and times,BIRTHDAY,"Play on September 23, ByteFall's birthday",1,Hidden,birthday
-Dates and times,FRIDAY THE 13TH,Play on a Friday the 13th,1,Hidden,friday-13th
-Dates and times,PI DAY,Play on March 14,1,Hidden,pi-day
-Secrets,KONAMI,Enter the Konami code,1,Hidden,konami
-Impossible (not counted),32-BIT OVERFLOW,"Decrypt 1,073,741,824 nibbles (2^32 bits)","1,073,741,824",Impossible,32-bit-overflow
-Impossible (not counted),GIGABIT,"Decrypt 1,000,000,000 bits","1,000,000,000",Impossible,gigabit
-Impossible (not counted),GIGABYTE,"Earn 8,000,000,000 points in total","8,000,000,000",Impossible,gigabyte
-Impossible (not counted),TERABYTE,"Earn 8,000,000,000,000 points in total","8,000,000,000,000",Impossible,terabyte
+SESSIONS,FIRST CONTACT,Start your first session,1,Standard,first-contact
+SESSIONS,REGULAR,Play 25 sessions,25,Standard,regular
+SESSIONS,VETERAN,Play 100 sessions,100,Standard,veteran
+SESSIONS,LIFER,Play 500 sessions,500,Standard,lifer
+SESSIONS,MARATHON,Last 250 drops in one Classic session,250,Standard,marathon
+SESSIONS,RAGE QUIT,Restart 10 sessions in one sitting,1,Hidden,rage-quit
+BITS DECRYPTED,HANDSHAKE,Decrypt 100 bits,100,Standard,handshake
+BITS DECRYPTED,KILOBIT,"Decrypt 1,000 bits","1,000",Standard,kilobit
+BITS DECRYPTED,KILOBYTE,"Decrypt 8,000 bits","8,000",Standard,kilobyte-8k
+BITS DECRYPTED,MEGABIT,"Decrypt 1,000,000 bits","1,000,000",Standard,megabit
+BITS DECRYPTED,MEGABYTE,"Decrypt 8,000,000 bits","8,000,000",Standard,megabyte-8m
+BITS DECRYPTED,106473,"Decrypt 106,473 bits","106,473",Standard,106473
+BITS DECRYPTED,FULL RANGE,Decrypt 100 of every number from [1] to [7],100,Standard,full-range
+BITS DECRYPTED,LUCKY SEVENS,"Decrypt 1,000 [7]s","1,000",Standard,lucky-sevens
+BITS DECRYPTED,JACKPOT,Decrypt seven [7]s with one drop,1,Hidden,jackpot
+BITS DECRYPTED,GIGABIT,"Decrypt 1,000,000,000 bits","1,000,000,000",Impossible,gigabit
+NIBBLES,JUST A CRUMB,Decrypt your first nibble,1,Standard,just-a-crumb
+NIBBLES,A FULL BYTE,Decrypt 2 nibbles (8 bits: one byte),2,Standard,a-full-byte
+NIBBLES,64-BIT ARCHITECTURE,Decrypt 16 nibbles (64 bits),16,Standard,64-bit-architecture
+NIBBLES,SNACK ATTACK,Decrypt 100 nibbles,100,Standard,snack-attack
+NIBBLES,NIBBLING,"Decrypt 250 nibbles (1,000 bits: a kilobit)",250,Standard,nibbling
+NIBBLES,KILONIBBLE,"Decrypt 1,000 nibbles","1,000",Standard,kilonibble
+NIBBLES,KIBINIBBLE,"Decrypt 1,024 nibbles","1,024",Standard,kibinibble
+NIBBLES,KIBIBYTE,"Decrypt 2,048 nibbles (1,024 bytes)","2,048",Standard,kibibyte
+NIBBLES,DIAL-UP SPEEDS,"Decrypt 16,384 nibbles (65,536 bits)","16,384",Standard,dial-up-speeds
+NIBBLES,THE 16-BIT ERA,"Decrypt 65,536 nibbles (2^16)","65,536",Standard,16-bit-era
+NIBBLES,64K MEMORY LIMIT,"Decrypt 131,072 nibbles (65,536 bytes: 64 KiB)","131,072",Standard,64k-memory-limit
+NIBBLES,MEGANIBBLE,"Decrypt 1,000,000 nibbles","1,000,000",Standard,meganibble
+NIBBLES,MEBINIBBLE,"Decrypt 1,048,576 nibbles (1,024 x 1,024)","1,048,576",Standard,mebinibble
+NIBBLES,MEBIBYTE,"Decrypt 2,097,152 nibbles (1,048,576 bytes: 1 MiB)","2,097,152",Standard,mebibyte
+NIBBLES,32-BIT OVERFLOW,"Decrypt 1,073,741,824 nibbles (2^32 bits)","1,073,741,824",Impossible,32-bit-overflow
+CHAINS AND SKILL,CHAIN REACTION,Get a 4x chain,4,Standard,chain-reaction
+CHAINS AND SKILL,CASCADE,Get a 6x chain,6,Standard,cascade
+CHAINS AND SKILL,OVERCLOCKED,Get an 8x chain,8,Standard,overclocked
+CHAINS AND SKILL,SUPERNOVA,Get a 10x chain,10,Standard,supernova
+CHAINS AND SKILL,HEAP SPRAY,Decrypt 15 bits with one drop,15,Standard,heap-spray
+CHAINS AND SKILL,SURGICAL,20 drops in a row that each decrypt a bit (exploit drops skip),20,Standard,surgical
+CHAINS AND SKILL,ZERO-DAY,Decrypt a bit with the first drop of a session,1,Standard,zero-day
+CHAINS AND SKILL,CLEAN SWEEP,"Clear the whole board after 10+ drops (Classic, Blitz or Zen)",1,Standard,clean-sweep
+CHAINS AND SKILL,CLOSE CALL,Decrypt your way back under the line,1,Standard,close-call
+CHAINS AND SKILL,SECOND WIND,Get two CLOSE CALLs in one session,2,Standard,second-wind
+CHAINS AND SKILL,FULL STACK,"Fill a column to the line, then bring it back down to half height",1,Standard,full-stack
+CHAINS AND SKILL,FULL HOUSE,Survive a drop with every column one block from the line or higher,1,Hidden,full-house
+SCORE,ROOT ACCESS,"Score 1,000 in one session","1,000",Standard,root-access
+SCORE,SUPERUSER,"Score 5,000 in one session","5,000",Standard,superuser
+SCORE,KERNEL MODE,"Score 10,000 in one session","10,000",Standard,kernel-mode
+SCORE,HYPERVISOR,"Score 20,000 in one session","20,000",Standard,hypervisor
+SCORE,NO TOOLS,"Score 2,500 in one session without running an exploit","2,500",Standard,no-tools
+SCORE,SNAKE EYES,Lose a session with 0 points,1,Hidden,snake-eyes
+SCORE,1337,"Finish a session on exactly 1,337 points",1,Hidden,1337
+SCORE,NOT FOUND,Finish a session on exactly 404 points,1,Hidden,not-found
+SCORE,DEEP THOUGHT,Finish a session with exactly 42 bits decrypted,1,Hidden,deep-thought
+SCORE,PALINDROME,Finish a session on a score that reads the same backwards (4+ digits),1,Hidden,palindrome
+SCORE,GIGABYTE,"Earn 8,000,000,000 points in total","8,000,000,000",Impossible,gigabyte
+SCORE,TERABYTE,"Earn 8,000,000,000,000 points in total","8,000,000,000,000",Impossible,terabyte
+HARD MODE AND BYTES,HARDENED,Unlock Hard mode,1,Standard,hardened
+HARD MODE AND BYTES,GHOST,Last 100 drops in one Hard session,100,Standard,ghost
+HARD MODE AND BYTES,HARD TARGET,"Score 7,500 on Hard","7,500",Standard,hard-target
+HARD MODE AND BYTES,FIRST BYTE,Decrypt a BYTE on Hard,1,Standard,first-byte
+HARD MODE AND BYTES,DOUBLE BYTE,Decrypt 2 bytes with one drop,2,Standard,double-byte
+HARD MODE AND BYTES,TRIPLE BYTE,Decrypt 3 bytes with one drop,3,Standard,triple-byte
+HARD MODE AND BYTES,BYTE STREAM,Decrypt 10 bytes,10,Standard,byte-stream
+HARD MODE AND BYTES,BYTE ARRAY,Decrypt 100 bytes,100,Standard,byte-array
+ENCRYPTION LAYERS,LAYER PEELER,Peel 100 encryption layers,100,Standard,layer-peeler
+ENCRYPTION LAYERS,ONION ROUTER,"Peel 1,000 encryption layers","1,000",Standard,onion-router
+ENCRYPTION LAYERS,ONION CORE,"Peel 10,000 encryption layers","10,000",Standard,onion-core
+ENCRYPTION LAYERS,DEMOLITION,Break 500 encryption layers all the way open,500,Standard,demolition
+ENCRYPTION LAYERS,FIREWALL BREACH,Break 3 encryption layers open with one drop,3,Standard,firewall-breach
+EXPLOITS,SCRIPT KIDDIE,Run your first exploit,1,Standard,script-kiddie
+EXPLOITS,BLACK HAT,Run 50 exploits,50,Standard,black-hat
+EXPLOITS,ADVANCED PERSISTENT THREAT,Run 500 exploits,500,Standard,apt
+EXPLOITS,FULL TOOLKIT,Run every exploit at least once,13,Standard,full-toolkit
+EXPLOITS,CHAINED EXPLOITS,Run 3 exploits in one session,3,Standard,chained-exploits
+EXPLOITS,ARSENAL,Fill all 6 exploit slots,6,Standard,arsenal
+EXPLOITS,TIME BOMB,Wipe 5 blocks with one Logic Bomb blast,5,Standard,time-bomb
+EXPLOITS,STING,Spring a Honeypot,1,Standard,sting
+EXPLOITS,WIRETAP,Use all 3 Packet Sniffer bits without losing the session,1,Standard,wiretap
+EXPLOITS,LATERAL MOVEMENT,Start a chain with a PIVOT,1,Standard,lateral-movement
+EXPLOITS,OVERKILL,Run an exploit on an empty board,1,Hidden,overkill
+EXPLOITS,DOUBLE TROUBLE,Have a Logic Bomb and a Honeypot armed at the same time,1,Hidden,double-trouble
+BLITZ AND ZEN,SPEED RUN,"Score 1,500 in one Blitz","1,500",Standard,speed-run
+BLITZ AND ZEN,BLITZKRIEG,"Score 3,000 in one Blitz","3,000",Standard,blitzkrieg
+BLITZ AND ZEN,LIGHTSPEED,"Score 6,000 in one Blitz","6,000",Standard,lightspeed
+BLITZ AND ZEN,ZEN MASTER,Last 300 drops in one Zen session,300,Standard,zen-master
+BLITZ AND ZEN,LAST SECOND,Decrypt a bit in Blitz with under a second left,1,Hidden,last-second
+DAILY,DAILY DRIVER,Play a Daily game 7 days in a row,7,Standard,daily-driver
+DAILY,DAILY GRIND,Play the Daily on 50 different days,50,Standard,daily-grind
+DAILY,STREAK,Play a Daily game 30 days in a row,30,Standard,streak
+DAILY,CENTURY,Play a Daily game 100 days in a row,100,Standard,century
+DAILY,DAILY SWEEP,Play all four daily games on the same day,1,Standard,daily-sweep
+DAILY,PERFECT DAILY,Finish a Daily Decrypt with the board empty,1,Standard,perfect-daily
+DAILY,BREACHED,Clear the whole board in BREACH,1,Standard,breached
+DAILY,ONE SHOT,Solve a daily puzzle on the first try,1,Standard,one-shot
+DAILY,SUNDAY BEST,Solve a Sunday daily puzzle (the week's hardest),1,Standard,sunday-best
+DAILY,STUBBORN,Try the same daily puzzle 10 times,1,Hidden,stubborn
+DAILY,SO CLOSE,End a BREACH with one layer left,1,Hidden,so-close
+PUZZLES,FIRST TRY,Solve a puzzle on your first attempt,1,Standard,first-try
+PUZZLES,LOCKSMITH,Solve 10 puzzles,10,Standard,locksmith
+PUZZLES,SAFECRACKER,Solve 30 puzzles,30,Standard,safecracker
+PUZZLES,MASTER KEY,Solve every puzzle,60,Standard,master-key
+PUZZLES,PICKPOCKET,Solve 5 puzzles in a row without failing one,5,Standard,pickpocket
+LEVELS AND DECRYPTOR RANKS,LV 40,Reach level 40,40,Standard,lv-40
+LEVELS AND DECRYPTOR RANKS,MAXED OUT,Fill Lv 80 again as a DECRYPTOR,1,Standard,maxed-out
+LEVELS AND DECRYPTOR RANKS,ROLLOVER,Rank up to DECRYPTOR 1,1,Standard,rollover
+LEVELS AND DECRYPTOR RANKS,TRIPLE CROWN,Reach DECRYPTOR 3,3,Standard,triple-crown
+LEVELS AND DECRYPTOR RANKS,FULL SPECTRUM,Reach DECRYPTOR 9,9,Standard,full-spectrum
+THEMES AND MUSIC,COLLECTOR,"Unlock every music track (15,000 bits)",8,Standard,collector
+THEMES AND MUSIC,CHAMELEON,Play a full session (10+ drops) in every theme,10,Standard,chameleon
+THEMES AND MUSIC,DJ,Listen to every track,7,Standard,dj
+THEMES AND MUSIC,AUDIOPHILE,Play a full session (10+ drops) on every track,7,Standard,audiophile
+THEMES AND MUSIC,THEME PARK,Change the theme 10 times in one sitting,1,Hidden,theme-park
+THEMES AND MUSIC,CHANNEL SURFER,Pick a track 10 times in one sitting,1,Hidden,channel-surfer
+THEMES AND MUSIC,SILENT RUNNING,Play a full session (10+ drops) with the sound and music off,1,Hidden,silent-running
+DATES AND TIMES,INSOMNIAC,Play between 2 and 4 AM,1,Standard,insomniac
+DATES AND TIMES,BIRTHDAY,"Play on September 23, ByteFall's birthday",1,Hidden,birthday
+DATES AND TIMES,FRIDAY THE 13TH,Play on a Friday the 13th,1,Hidden,friday-13th
+DATES AND TIMES,PI DAY,Play on March 14,1,Hidden,pi-day
+SECRETS,KONAMI,Enter the Konami code,1,Hidden,konami
