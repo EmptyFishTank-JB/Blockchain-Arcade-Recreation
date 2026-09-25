@@ -1724,19 +1724,25 @@ footer p.accent { color: var(--accent); }
 /* ===== Lower corners and START =====
    RESTART (QUIT in VS) sits in the game card's lower-left corner during a session; the exploit
    button in the lower-right. Before a session, START sits where the messages show. */
-.crt { padding-bottom: 56px; }
+/* The corner buttons are 60x30 (2:1) with the bit cells' square corners, level with each other
+   and mirrored 12px in from each side. The message line / START sits centered between the column
+   buttons and the corner buttons' tops: its 12px top gap matches the room left above them in the
+   52px bottom padding (52 - 10 below - 30 tall). */
+.crt { padding-bottom: 52px; }
+.message-slot { margin-top: 12px; }
+.message-slot .message { margin-top: 0; }
 .corner-btn {
   position: absolute;
   bottom: 10px;
-  width: 40px;
-  height: 40px;
+  width: 60px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
-  background: none;
+  background: rgba(255, 255, 255, 0.02);
   border: 1px solid var(--grid-line);
-  border-radius: 8px;
+  border-radius: 3px;
   color: var(--fg);
   cursor: pointer;
 }
@@ -1744,12 +1750,12 @@ footer p.accent { color: var(--accent); }
 #restart-btn.corner-btn, #vs-quit.corner-btn { padding: 0; letter-spacing: 0; } /* not the old text buttons' padding */
 #restart-btn.corner-btn.danger, #vs-quit.corner-btn.danger { background: rgba(var(--accent-rgb), 0.1); color: var(--accent); border-color: var(--accent); }
 #restart-btn.corner-btn:hover { background: rgba(var(--fg-rgb), 0.08); }
-.corner-btn svg { width: 22px; height: 22px; display: block; }
+.corner-btn svg { width: 20px; height: 20px; display: block; }
 .restart-icon, .quit-icon { left: 12px; }
 .quit-icon { color: var(--danger); border-color: rgba(var(--danger-rgb), 0.5); }
 .exploit-icon { right: 12px; color: var(--fg-dim); opacity: 0.6; }
-.exploit-glyph { display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; line-height: 1; }
-.exploit-glyph svg { width: 22px; height: 22px; }
+.exploit-glyph { display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold; line-height: 1; }
+.exploit-glyph svg { width: 20px; height: 20px; }
 .exploit-count { position: absolute; top: -7px; right: -7px; padding: 0 4px; border-radius: 6px; background: var(--fg); color: var(--panel); font-size: 10px; font-weight: bold; }
 .exploit-count[hidden] { display: none; }
 .exploit-free { position: absolute; right: calc(100% + 8px); top: 50%; transform: translateY(-50%); font-size: 12px; font-weight: bold; letter-spacing: 1px; white-space: nowrap; color: var(--accent); text-shadow: 0 0 6px rgba(var(--accent-rgb), 0.7); animation: warn-pulse 1.6s ease-in-out infinite; }
@@ -1768,7 +1774,7 @@ footer p.accent { color: var(--accent); }
 .start-btn {
   position: absolute;
   left: 50%;
-  top: calc(50% + 5px);
+  top: 50%;
   transform: translate(-50%, -50%);
   z-index: 2;
   padding: 8px 34px;
@@ -1792,3 +1798,17 @@ body.cards-in-settings .settings footer { margin-top: 12px; display: block; font
 body.cards-in-settings .settings .dev-link { display: inline-flex; margin-top: 6px; }
 .panel-hacks.flash { animation: card-flash 0.9s ease-out; }
 @keyframes card-flash { from { box-shadow: 0 0 0 2px var(--fg); } to { box-shadow: 0 0 0 0 transparent; } }
+
+/* Shorter HUD: SCORE, CHAIN, NEW LAYER IN, CURRENT and NEXT take less height */
+.hud .stat { padding-top: 3px; padding-bottom: 3px; }
+.hud .stat .value { font-size: 16px; margin-top: 0; }
+.hud .bit-sq { width: 30px; height: 30px; margin-top: 2px; font-size: 15px; }
+.stat.keylogger .bit-row .bit-sq { width: 26px; height: 26px; font-size: 12px; }
+/* On phones all five boxes share one row, even with NEXT showing (Easy) */
+@media (max-width: 480px) {
+  .hud { gap: 5px; }
+  .hud .stat { min-width: 0; padding-left: 2px; padding-right: 2px; }
+  .hud-bits { gap: 5px; }
+  .hud-bits.has-next { flex: 2 1 110px; }
+  .hud .stat .label { font-size: 8px; letter-spacing: 0.5px; }
+}
