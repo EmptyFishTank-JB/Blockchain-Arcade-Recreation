@@ -1285,10 +1285,13 @@ body.vs-mode header #mode-info { display: none; }
   transition: opacity 0.25s ease, filter 0.25s ease;
 }
 .records-btn svg { width: 48px; height: 19px; display: block; }
-.records-btn:hover,
 .records-btn[aria-expanded="true"] {
   opacity: 1;
   filter: drop-shadow(0 0 4px rgba(var(--fg-rgb), 0.6));
+}
+/* (hover only with a real pointer: on touch screens it sticks after the tap that closes the panel) */
+@media (hover: hover) {
+  .records-btn:hover { opacity: 1; filter: drop-shadow(0 0 4px rgba(var(--fg-rgb), 0.6)); }
 }
 
 .records {
@@ -1449,10 +1452,13 @@ body.vs-mode header #mode-info { display: none; }
 
 .settings-btn svg { width: 48px; height: 19px; display: block; }
 
-.settings-btn:hover,
 .settings-btn[aria-expanded="true"] {
   opacity: 1;
   filter: drop-shadow(0 0 4px rgba(var(--fg-rgb), 0.6));
+}
+/* (hover only with a real pointer: on touch screens it sticks after the tap that closes the panel) */
+@media (hover: hover) {
+  .settings-btn:hover { opacity: 1; filter: drop-shadow(0 0 4px rgba(var(--fg-rgb), 0.6)); }
 }
 
 .settings {
@@ -1768,6 +1774,8 @@ footer p.accent { color: var(--accent); }
 /* ===== Phones and the app: no page scroll ===== the footer sits inside SETTINGS (moved there
    by script.js) */
 body.cards-in-settings .settings footer { margin-top: 12px; display: block; font-size: 10px; }
+/* An amber ===== line between the footer and the settings above it */
+body.cards-in-settings .settings footer::before { content: "================================================================================"; display: block; margin-bottom: 10px; overflow: hidden; white-space: nowrap; font-size: 11px; line-height: 11px; letter-spacing: 2px; color: var(--accent); opacity: 0.7; }
 body.cards-in-settings .settings .dev-link { display: inline-flex; margin-top: 6px; }
 .panel-hacks.flash { animation: card-flash 0.9s ease-out; }
 @keyframes card-flash { from { box-shadow: 0 0 0 2px var(--fg); } to { box-shadow: 0 0 0 0 transparent; } }
@@ -1791,6 +1799,8 @@ body.cards-in-settings .settings .dev-link { display: inline-flex; margin-top: 6
 body.cards-in-settings { padding: 16px; height: 100vh; height: 100dvh; height: var(--app-h, 100dvh); min-height: 0; }
 body.cards-in-settings .cabinet { height: 100%; grid-template-areas: "game"; grid-template-rows: minmax(0, 1fr); gap: 0; }
 body.cards-in-settings .crt { height: 100%; display: flex; flex-direction: column; justify-content: center; }
+/* VS places its HUD from the top itself (script.js's layoutVsTop) */
+body.cards-in-settings.vs-mode .crt { justify-content: flex-start; }
 body.cards-in-settings .crt.measuring { height: auto; align-self: start; } /* script.js's fitBoard measures the contents */
 /* The header sits at the top of the card, level with the trophy and settings icons; the HUD, grid
    and message stay centered in the card (auto margins around them, plus a spacer after them as

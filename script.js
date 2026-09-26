@@ -1777,6 +1777,7 @@ vsQuitBtn.addEventListener('click', () => {
 function updateVsChrome() {
   const rows = [...document.querySelectorAll('.hud > .stat:not(.cpu-stat), .hud > .hud-bits')].filter((el) => !el.hidden).length;
   document.getElementById('vs-status').textContent = `VS ${CpuBoard.LEVELS[vsLevel].label} CPU // LAYERS ${vsLayers ? 'ON' : 'OFF'}`;
+  fitVsStatus();
   document.querySelector('.hud').style.setProperty('--vs-rows', rows);
 }
 
@@ -1799,7 +1800,10 @@ function layoutVsTop() {
   // (relative to the game card, which can move as the page re-centers)
   const cardTop = () => crtEl.getBoundingClientRect().top;
   const bottom = hud.getBoundingClientRect().bottom - cardTop();
-  const top = document.querySelector('.records-btn').getBoundingClientRect().bottom - cardTop() + 8;
+  // Below the top icons by the same gap as between their tops and the card's top border
+  const icon = document.querySelector('.records-btn svg').getBoundingClientRect();
+  const iconGap = icon.top - cardTop() - crtEl.clientTop;
+  const top = icon.bottom - cardTop() + iconGap;
   [diffRow.hidden, info.hidden] = wasHidden;
   cpuStatEl.hidden = false;
   document.body.classList.remove('vs-measure');
@@ -1811,6 +1815,20 @@ function layoutVsTop() {
   // The CPU's board fills the height (its label takes ~24px), up to 60% of the width
   const gridH = bottom - top - 24;
   hud.style.setProperty('--vs-cpu-w', `${Math.round(Math.min(hud.clientWidth * 0.6, gridH * 7 / 8 + 14))}px`);
+  fitVsStatus();
+}
+// The VS info line shrinks to fit its column
+function fitVsStatus() {
+  const el = document.getElementById('vs-status');
+  el.style.fontSize = '';
+  el.style.letterSpacing = '';
+  if (mode !== 'vs') return;
+  let size = parseFloat(getComputedStyle(el).fontSize);
+  if (el.scrollWidth > el.clientWidth) el.style.letterSpacing = '0px';
+  while (el.scrollWidth > el.clientWidth && size > 6) {
+    size -= 0.5;
+    el.style.fontSize = `${size}px`;
+  }
 }
 
 function showVs() {
