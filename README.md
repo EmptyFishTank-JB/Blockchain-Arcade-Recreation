@@ -25,6 +25,22 @@ Mechanically it's a Drop7-style puzzle:
   still resolve there (a lone `[1]` decrypts itself), but anything left above
   the line afterwards completes the trace and ends the run.
 
+## Repo layout
+
+```
+index.html              the game page (GitHub Pages serves it from the root)
+manifest.webmanifest    the installed app's name, colors and icons
+css/style.css           all the styles and the themes
+js/                     the game: script.js (the game itself), progress.js (levels, unlocks,
+                        achievements, stats), unlocks.js, cpu.js (VS CPU), sfx.js, fx.js,
+                        viz.js, grid-bg.js
+js/data/                puzzles.js, daily-puzzles.js
+js/music/               music.js (the player) and one music-*.js per track
+assets/                 fonts/, icons/, audio/ (WAV renders of the tracks, not used by the game)
+dev-tools/audio.html    the audio compendium
+docs/achievements.csv   every achievement, grouped
+```
+
 ## Exploits
 
 On Normal and Hard, a 5x chain unlocks a random exploit. On Easy, each exploit
@@ -60,11 +76,11 @@ A drop earns at most one exploit, picked from the longest chain it set off.
 | Mode | What changes |
 |---|---|
 | CLASSIC | The main game, on EASY / NORMAL / HARD |
-| DAILY | Four daily games, picked on a second row under the modes. Each is the same for everyone that UTC day, and each keeps a daily streak. **DECRYPT**: a fixed stack of 40 bits dealt from a seed of the date (Normal rules, the five standard exploits); it ends when the stack runs out. **PUZZLE**: a new puzzle every day (from `daily-puzzles.js`), harder through the week: Monday is 1 bit, Sunday 4 bits with layers; you get 4 tries a day (a try counts from its first drop); once it's solved or the tries are used up, later runs are practice. **BLITZ**: the same bits for everyone against a 60-second clock. **BREACH** (daily only): the board starts with a 3-row firewall of level 1 and 2 layers and you get 30 bits to break through; each layer broken is +25 and clearing the whole board is +1,000. For DECRYPT, BLITZ and BREACH your first run each day is the official score and later runs are practice. SHARE on the results screen (every daily game, win or lose; the puzzle shares one square per try) sends or copies your result |
+| DAILY | Four daily games, picked on a second row under the modes. Each is the same for everyone that UTC day, and each keeps a daily streak. **DECRYPT**: a fixed stack of 40 bits dealt from a seed of the date (Normal rules, the five standard exploits); it ends when the stack runs out. **PUZZLE**: a new puzzle every day (from `js/data/daily-puzzles.js`), harder through the week: Monday is 1 bit, Sunday 4 bits with layers; you get 4 tries a day (a try counts from its first drop); once it's solved or the tries are used up, later runs are practice. **BLITZ**: the same bits for everyone against a 60-second clock. **BREACH** (daily only): the board starts with a 3-row firewall of level 1 and 2 layers and you get 30 bits to break through; each layer broken is +25 and clearing the whole board is +1,000. For DECRYPT, BLITZ and BREACH your first run each day is the official score and later runs are practice. SHARE on the results screen (every daily game, win or lose; the puzzle shares one square per try) sends or copies your result |
 | BLITZ | Normal rules against a 2-minute clock that starts on your first drop (paused while the tab is hidden) |
 | ZEN | Normal rules with no encryption layers and no clock |
-| VS | VS CPU (`cpu.js`): you against a computer opponent at EASY / NORMAL / HARD / INSANE (faster and smarter up the levels; HARD unlocks after 5 wins on NORMAL, INSANE after 5 on HARD), played by one of four bots with their own look, lines and play style: BOT (balanced), GRIFTER (greedy: chases big chains, takes risks; 3 wins), BUNKER (defensive: low and flat, a little slower; 10 wins) and GLITCH (fast and erratic; 20 wins). The level sets the bot's resting face (EASY happy, NORMAL confident, HARD angry, INSANE red-eyed with bared teeth); switching bots pixelates one out and the next in. EXPLOITS: ON / OFF (setup screen) lets both sides use exploits: yours as in the other modes, and the CPU earns one with a chain of 3+ (WORM VIRUS on its tallest column, DICTIONARY ATTACK peeling every layer), wearing a devious grin while it holds one. Toggling a setting gets a -_- from the bot; a locked bot or level shows a notice above the setup title, on Normal rules with the same bits in the same order. A setup screen over your board picks the level and, below it, ENCRYPTED LAYERS: ON / OFF (the usual layer row every 8 drops, on both boards); START bursts it apart and starts the CPU's clock, and it comes back after the win / loss screen. Every 30 points a drop scores sends one encrypted block (a one-peel layer hiding a random bit) onto the other board, falling from the top into random columns, one at a time, after its next move; your chains cancel blocks headed your way first, and only the rest go to the other side. At most 8 / 16 / 24 / 32 blocks (EASY / NORMAL / HARD / INSANE) can wait to land on either board; any sent past that are lost. The first to overflow loses. In a match the header gives way to a VS. CPU title between the top icons (green VS., amber CPU), the level and layers line, your stats in a 2x2 grid of squares (SCORE, CHAIN / ENCRYPT IN, CURRENT, each value centered with its label centered above; a KEYLOGGER's preview splits the CURRENT square) and BOT (the CPU's face: a pixel chip with legs that idles and blinks, looks around before each move, grins when it scores, flinches when your blocks land, sweats with a tall stack, and ends on X eyes or a smug GG), the CPU's board (with its numbers, playing each move back: bits falling, decrypting and layers peeling; press and hold it to see it full size over yours with all your board's effects), laid out so your board keeps its regular size and place; QUIT (the lower-left corner) in a match turns red and a second press ends it, back to the setup screen; on the setup screen one press goes back to your previous mode (dragging off the button before letting go cancels a press). CURRENT shows [?] until START. The CPU pauses while a panel is open. RECORDS → STATS keeps wins and losses per level |
-| PUZZLE | 60 set boards (in `puzzles.js`): decrypt every block using exactly the bits given, in order. Solving one opens the next; the arrow buttons move between them. No new layers rise and no exploits drop; puzzle layers hide a fixed bit |
+| VS | VS CPU (`js/cpu.js`): you against a computer opponent at EASY / NORMAL / HARD / INSANE (faster and smarter up the levels; HARD unlocks after 5 wins on NORMAL, INSANE after 5 on HARD), played by one of four bots with their own look, lines and play style: BOT (balanced), GRIFTER (greedy: chases big chains, takes risks; 3 wins), BUNKER (defensive: low and flat, a little slower; 10 wins) and GLITCH (fast and erratic; 20 wins). The level sets the bot's resting face (EASY happy, NORMAL confident, HARD angry, INSANE red-eyed with bared teeth); switching bots pixelates one out and the next in. EXPLOITS: ON / OFF (setup screen) lets both sides use exploits: yours as in the other modes, and the CPU earns one with a chain of 3+ (WORM VIRUS on its tallest column, DICTIONARY ATTACK peeling every layer), wearing a devious grin while it holds one. Toggling a setting gets a -_- from the bot; a locked bot or level shows a notice above the setup title, on Normal rules with the same bits in the same order. A setup screen over your board picks the level and, below it, ENCRYPTED LAYERS: ON / OFF (the usual layer row every 8 drops, on both boards); START bursts it apart and starts the CPU's clock, and it comes back after the win / loss screen. Every 30 points a drop scores sends one encrypted block (a one-peel layer hiding a random bit) onto the other board, falling from the top into random columns, one at a time, after its next move; your chains cancel blocks headed your way first, and only the rest go to the other side. At most 8 / 16 / 24 / 32 blocks (EASY / NORMAL / HARD / INSANE) can wait to land on either board; any sent past that are lost. The first to overflow loses. In a match the header gives way to a VS. CPU title between the top icons (green VS., amber CPU), the level and layers line, your stats in a 2x2 grid of squares (SCORE, CHAIN / ENCRYPT IN, CURRENT, each value centered with its label centered above; a KEYLOGGER's preview splits the CURRENT square) and BOT (the CPU's face: a pixel chip with legs that idles and blinks, looks around before each move, grins when it scores, flinches when your blocks land, sweats with a tall stack, and ends on X eyes or a smug GG), the CPU's board (with its numbers, playing each move back: bits falling, decrypting and layers peeling; press and hold it to see it full size over yours with all your board's effects), laid out so your board keeps its regular size and place; QUIT (the lower-left corner) in a match turns red and a second press ends it, back to the setup screen; on the setup screen one press goes back to your previous mode (dragging off the button before letting go cancels a press). CURRENT shows [?] until START. The CPU pauses while a panel is open. RECORDS → STATS keeps wins and losses per level |
+| PUZZLE | 60 set boards (in `js/data/puzzles.js`): decrypt every block using exactly the bits given, in order. Solving one opens the next; the arrow buttons move between them. No new layers rise and no exploits drop; puzzle layers hide a fixed bit |
 
 Switching modes mid-run asks to confirm, like RESTART. Each mode keeps its
 own best score.
@@ -119,7 +135,7 @@ the default, SHARE TECH MONO opens at 10 achievements, PRESS START (Press Start
 achievement for playing a full session in it (TECH SUPPORT, INSERT COIN, BIT BY
 BIT, BITE-SIZED). The font changes all the
 game's text (the particles and the dev page too); the fonts are bundled in
-`fonts/` and scaled so the layout stays the same as in Courier.
+`assets/fonts/` and scaled so the layout stays the same as in Courier.
 
 **Permanent unlocks:** Hard mode (score 2,000 on Normal) and tracks 02-16
 (125 / 350 / 800 / 1,600 / 3,000 / 5,000 / 7,500 / 11,000 / 15,000 / 20,000 / 26,000 /
@@ -134,7 +150,7 @@ every unlock and achievement with a progress tracker, and lifetime stats
 and achievements pop up as they happen. Progress is saved in the browser
 (`bytefall-progress`).
 
-`progress.js` holds the stats, levels, unlocks and achievements; `script.js`
+`js/progress.js` holds the stats, levels, unlocks and achievements; `js/script.js`
 reports each drop, decrypt, peel, byte, exploit and point to it.
 
 **Dev switches.** The `</>` dev page has UNLOCK EVERYTHING (like owning Full
@@ -148,7 +164,7 @@ press and hold any exploit card for 2 seconds to make it your next drop.
   desktop browsers; iPhones don't allow it for web pages, so it's hidden there).
 - **Add to Home Screen** (Chrome's menu on Android, Share on iPhone) installs
   ByteFall with its own icon, and it opens full screen like an app, without
-  browser bars. `manifest.webmanifest` and `icons/` (the icon's source is
+  browser bars. `manifest.webmanifest` and `assets/icons/` (the icon's source is
   `icons/icon.svg`) set that up.
 
 ## Daily bonus, vibration and resetting
@@ -169,7 +185,7 @@ press and hold any exploit card for 2 seconds to make it your next drop.
 
 The Android app is planned as free with a banner ad, plus one purchase,
 **Full Access**: no ads, and every unlock straight away. Nothing needs it;
-everything can also be earned. `unlocks.js` holds that check (never owned on
+everything can also be earned. `js/unlocks.js` holds that check (never owned on
 the website; the app will set it from Google Play). Add `?unlockall` to the
 URL to preview everything unlocked.
 
@@ -203,9 +219,9 @@ number in the corner. SPECTRUM gives every bit its own random hue speed,
 direction and phase, slowly hue-rotates the rest of the page, and turns the
 background grid into dimmed rainbow blocks; it holds still under reduced motion.
 
-Every color in `style.css` is a named role in `:root`; a theme is a
+Every color in `css/style.css` is a named role in `:root`; a theme is a
 `[data-theme="…"]` block that overrides those values, plus an entry in
-`THEMES` in `script.js` and in the small theme script in `index.html`'s
+`THEMES` in `js/script.js` and in the small theme script in `index.html`'s
 head. All but TERMINAL are unlocked by playing (see below).
 
 **The corners.** RESTART is the arrows icon in the game card's lower-left
@@ -232,27 +248,27 @@ tag. Bump `N` on all of those links whenever any of those files change, so brows
 with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
 
 - `index.html` — page structure, HUD, rules and exploits panels
-- `style.css` — terminal/hacker visual theme
-- `script.js` — game state, rendering, chain resolution and exploits
-- `unlocks.js` — the Full Access check (never owned on the website; `?unlockall` previews it)
-- `fonts/` — the unlockable fonts, Share Tech Mono (Carrois Type Design), Press Start 2P (CodeMan38), Bitcount Single (Petr van Blokland) and Bytesized (Baltdev), from Google Fonts, with their SIL Open Font License files
-- `cpu.js` — VS CPU: the computer opponent (a copy of the board rules with no animation, and a player that tries every column)
-- `progress.js` — lifetime stats, earnable unlocks and achievements
-- `achievements.csv` — every achievement grouped by what it's about (category, name, description, goal, and whether it's standard, hidden or impossible)
-- `manifest.webmanifest`, `icons/` — the home-screen app view and icons
-- `puzzles.js` — the PUZZLE boards, generated and verified by brute force (1-3 solutions each, none solvable in fewer drops)
-- `daily-puzzles.js` — the DAILY PUZZLE boards, one per UTC day for about three years (then they loop), generated and verified the same way (1-3 solutions each)
-- `fx.js` — particle overlay: cleared cells dissolve into pixel fragments and
+- `css/style.css` — terminal/hacker visual theme
+- `js/script.js` — game state, rendering, chain resolution and exploits
+- `js/unlocks.js` — the Full Access check (never owned on the website; `?unlockall` previews it)
+- `assets/fonts/` — the unlockable fonts, Share Tech Mono (Carrois Type Design), Press Start 2P (CodeMan38), Bitcount Single (Petr van Blokland) and Bytesized (Baltdev), from Google Fonts, with their SIL Open Font License files
+- `js/cpu.js` — VS CPU: the computer opponent (a copy of the board rules with no animation, and a player that tries every column)
+- `js/progress.js` — lifetime stats, earnable unlocks and achievements
+- `docs/achievements.csv` — every achievement grouped by what it's about (category, name, description, goal, and whether it's standard, hidden or impossible)
+- `manifest.webmanifest`, `assets/icons/` — the home-screen app view and icons
+- `js/data/puzzles.js` — the PUZZLE boards, generated and verified by brute force (1-3 solutions each, none solvable in fewer drops)
+- `js/data/daily-puzzles.js` — the DAILY PUZZLE boards, one per UTC day for about three years (then they loop), generated and verified the same way (1-3 solutions each)
+- `js/fx.js` — particle overlay: cleared cells dissolve into pixel fragments and
   drifting hex/binary glyphs (skipped under reduced motion)
-- `viz.js` — the shared music visualizer (LED bars or auto-gained
+- `js/viz.js` — the shared music visualizer (LED bars or auto-gained
   oscilloscope wave with a CRT trail) used by the playlist and the dev page;
   the chosen style is remembered for both
-- `grid-bg.js` — the dim "defragmenting" micro-grid animated behind the board
+- `js/grid-bg.js` — the dim "defragmenting" micro-grid animated behind the board
   (static when the OS asks for reduced motion)
-- `sfx.js` — synthesized sound effects, mostly ported from the ECHOES terminal
+- `js/sfx.js` — synthesized sound effects, mostly ported from the ECHOES terminal
   audio compendium, plus a retro 8-bit "data burst" for clears; toggle with
   the SOUND button in settings
-- `music.js` — the music player: scheduler, playlist and intensity input.
+- `js/music/music.js` — the music player: scheduler, playlist and intensity input.
   Music starts on your first click or key press, on the track you last picked or played (track 01 at first) (toggle with the
   MUSIC button in settings) and intensifies as your tallest stack nears the
   red line (from height 4, full at 6; one higher on Hard's 8×8). The settings panel holds the playlist,
@@ -263,41 +279,41 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
   BACKGROUND PLAY toggle (keep playing or pause when you switch tabs or
   apps). New tracks go in the `TRACKS` list here, with their engine in a
   `music-*.js` file
-- `music-bytefall-theme.js` — track 01, BYTEFALL THEME: an original synthwave loop
+- `js/music/music-bytefall-theme.js` — track 01, BYTEFALL THEME: an original synthwave loop
   (intro, melody 1, section B with melody 2, octave-doubled climax)
-- `music-sleep-mode.js` — track 02, SLEEP MODE: original electronicore
+- `js/music/music-sleep-mode.js` — track 02, SLEEP MODE: original electronicore
   (music box, trance synths, chugging distorted guitars, double-kick) at
   150 BPM, built on the public-domain lullaby "Schlaf, Kindlein, schlaf".
   Unlocked at 125 bits.
-- `music-brute-force.js` — track 03, BRUTE FORCE: original NES-style
+- `js/music/music-brute-force.js` — track 03, BRUTE FORCE: original NES-style
   chiptune at 140 BPM (pulse-wave leads, stepped triangle bass, noise drums,
   arpeggiated chords; boot, level 1, level 2, boss duet).
-- `music-deep-web.js` — track 04, DEEP WEB: original dark ambient techno at
+- `js/music/music-deep-web.js` — track 04, DEEP WEB: original dark ambient techno at
   124 BPM (muffled kick, rolling bass, drone, modem bleeps; connect, tunnel,
   deep, surface).
-- `music-zero-day.js` — track 05, ZERO DAY: original drum & bass at 172 BPM
+- `js/music/music-zero-day.js` — track 05, ZERO DAY: original drum & bass at 172 BPM
   (two-step break, reese bass, saw pad; infiltrate, payload, exploit,
   escape).
-- `music-system-restore.js` — track 06, SYSTEM RESTORE: original lo-fi at
+- `js/music/music-system-restore.js` — track 06, SYSTEM RESTORE: original lo-fi at
   85 BPM (electric piano sevenths with tape warble, upright bass, swung
   drums, vinyl crackle, flute; standby, restore, recovery, reboot).
   Each track lists its intensity layers (`LAYERS`) with the level each fades
   in at: hi-hats from 5% (stack 4), heavier drums/guitars from 40% (stack 5),
   the alarm layer from 72% (stack 6+); the brightening grows the whole way
-- `music-night-drive.js` — track 07, NIGHT DRIVE: original synthwave / outrun
+- `js/music/music-night-drive.js` — track 07, NIGHT DRIVE: original synthwave / outrun
   at 100 BPM in F♯ minor (pumping octave bass ducking under the kick, detuned
   saw pads, gated-reverb snare and tom fills, arpeggio and gliding lead through
   a dotted-8th echo; ignition, cruise, neon, overdrive). Unlocked at 5,000 bits.
-- `music-standby-mode.js` — track 08, STANDBY MODE: an original early-60s
+- `js/music/music-standby-mode.js` — track 08, STANDBY MODE: an original early-60s
   soul ballad at 112 BPM in B♭ major (walking upright bass, finger snaps and
   guiro, clean guitar, a breathy saxophone melody in a warm room reverb;
   standby, signal, connected, hold). Unlocked at 7,500 bits.
-- `music-core-dump.js` — track 09, CORE DUMP: original 8-bit tech-death at
+- `js/music/music-core-dump.js` — track 09, CORE DUMP: original 8-bit tech-death at
   190 BPM in A harmonic minor (distorted pulse-wave guitars: tremolo riffs,
   gallop chugs and octave dives; square bass; noise-channel blast beats and a
   china cymbal; 32nd-note sweep arpeggios; segfault, stack trace, overflow,
   core dump). Unlocked at 11,000 bits.
-- `music-handshake.js` — track 10, HANDSHAKE: an original 8-bit battle theme
+- `js/music/music-handshake.js` — track 10, HANDSHAKE: an original 8-bit battle theme
   in the style of Game Boy-era handheld RPG battles, at 176 BPM in C minor
   (lead pulse with delayed vibrato, a second pulse, a 4-bit wave-channel bass,
   a noise-channel kit; a falling intro run the first time through; encounter,
@@ -311,7 +327,7 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
   that were taken out of a track (NIGHT DRIVE's wailing siren, DEEP WEB's
   dial-up modem, ZERO DAY's air-raid siren): the game never plays them, and
   here they start muted so they can still be heard
-- `audio/` — offline WAV renders of the music for reference (not loaded by
+- `assets/audio/` — offline WAV renders of the music for reference (not loaded by
   the game). `01-bytefall-theme.wav` through `10-handshake.wav` are one full
   loop of each track at full intensity (stack 6+, every layer the game plays,
   archived layers left out). Older versions: `bytefall-theme-v1.wav` is the

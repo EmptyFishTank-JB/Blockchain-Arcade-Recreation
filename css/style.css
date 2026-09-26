@@ -1,10 +1,10 @@
 /* FONTS: COURIER (the default) and two unlockable pixel fonts, bundled in fonts/ (SIL OFL). Each
    pixel font is scaled (size-adjust) so a line takes about the width it does in Courier, and the
    layout stays put. [data-font] on <html> picks one; everything reads var(--font). */
-@font-face { font-family: 'Press Start 2P'; src: url('fonts/press-start-2p.woff2') format('woff2'); font-display: swap; size-adjust: 62%; }
-@font-face { font-family: 'Share Tech Mono'; src: url('fonts/share-tech-mono.woff2') format('woff2'); font-display: swap; size-adjust: 111%; }
-@font-face { font-family: 'Bitcount Single'; src: url('fonts/bitcount-single.woff2') format('woff2'); font-display: swap; }
-@font-face { font-family: 'Bytesized'; src: url('fonts/bytesized.woff2') format('woff2'); font-display: swap; size-adjust: 120%; }
+@font-face { font-family: 'Press Start 2P'; src: url('../assets/fonts/press-start-2p.woff2') format('woff2'); font-display: swap; size-adjust: 62%; }
+@font-face { font-family: 'Share Tech Mono'; src: url('../assets/fonts/share-tech-mono.woff2') format('woff2'); font-display: swap; size-adjust: 111%; }
+@font-face { font-family: 'Bitcount Single'; src: url('../assets/fonts/bitcount-single.woff2') format('woff2'); font-display: swap; }
+@font-face { font-family: 'Bytesized'; src: url('../assets/fonts/bytesized.woff2') format('woff2'); font-display: swap; size-adjust: 120%; }
 :root { --font: 'Courier New', Courier, monospace; }
 :root[data-font="share-tech"] { --font: 'Share Tech Mono', 'Courier New', monospace; }
 :root[data-font="press-start"] { --font: 'Press Start 2P', 'Courier New', monospace; }
