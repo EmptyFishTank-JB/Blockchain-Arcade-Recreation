@@ -469,10 +469,38 @@ function fitBoard() {
   crtEl.classList.remove('measuring');
   const pad = parseFloat(getComputedStyle(document.body).paddingTop) * 2;
   const ratio = frame.offsetHeight / frame.offsetWidth;
-  const width = Math.max(MIN_BOARD, Math.min(cssMax, (window.innerHeight - pad - rest) / ratio));
+  const width = Math.max(MIN_BOARD, Math.min(cssMax, (viewportHeight() - pad - rest) / ratio));
   boardWrapEl.style.maxWidth = `${Math.floor(width)}px`;
 }
-window.addEventListener('resize', fitBoard);
+
+// The screen's real size. The installed app on Android can report a stale height at launch (and
+// fires no resize when it settles), so the page sets its own height (--app-h, used instead of
+// 100dvh) from the smallest of the browser's measures, and re-checks it on every viewport event
+// plus a cheap poll, refitting the board whenever anything changed.
+function viewportHeight() {
+  const vv = window.visualViewport;
+  const heights = [window.innerHeight, document.documentElement.clientHeight];
+  if (vv) heights.push(vv.height * vv.scale);
+  return Math.floor(Math.min(...heights.filter((h) => h > 0)));
+}
+let viewportKey = '';
+function checkViewport(force) {
+  const h = viewportHeight();
+  const key = `${window.innerWidth}x${h}`;
+  if (!force && key === viewportKey) return;
+  viewportKey = key;
+  document.documentElement.style.setProperty('--app-h', `${h}px`);
+  fitBoard();
+}
+const refit = () => checkViewport(true);
+window.addEventListener('resize', refit);
+window.addEventListener('orientationchange', () => setTimeout(refit, 250));
+window.addEventListener('pageshow', refit);
+window.addEventListener('load', refit);
+document.addEventListener('visibilitychange', () => document.hidden || refit());
+if (window.visualViewport) window.visualViewport.addEventListener('resize', refit);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(refit);
+setInterval(() => document.hidden || checkViewport(false), 500);
 
 function buildColumnButtons() {
   columnButtonsEl.innerHTML = '';
@@ -2222,7 +2250,7 @@ function showExploitsCard() {
   hacksPanelBox.classList.add('flash');
 }
 
-// The lower corners: RESTART (QUIT in VS) once a session is going (after its first drop), and the
+// The lower corners: RESTART (QUIT in VS; greyed out until the first drop), and the
 // exploit button
 const exploitBtn = document.getElementById('exploit-btn');
 const LIGHTNING_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 10-13h-7z" fill="currentColor"/></svg>';
@@ -2235,7 +2263,9 @@ function nextExploit() {
 }
 function updateFreeBtn() {
   const inVs = mode === 'vs';
-  restartBtn.hidden = inVs || !started || gameOver;
+  // Always there outside VS; greyed out until the first drop (and once the run is over)
+  restartBtn.hidden = inVs;
+  restartBtn.disabled = !started || gameOver;
   vsQuitBtn.hidden = !inVs;
   const ready = nextExploit();
   const shown = armedHack || ready;
