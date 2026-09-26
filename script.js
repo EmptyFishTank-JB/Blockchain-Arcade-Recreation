@@ -1775,14 +1775,51 @@ document.getElementById('vs-start').addEventListener('click', startMatch);
 
 // QUIT: back to the mode you came from (two presses mid-match, like RESTART)
 const vsQuitBtn = document.getElementById('vs-quit');
-vsQuitBtn.addEventListener('click', () => {
-  requestReset(vsQuitBtn, 'TAP AGAIN TO QUIT', () => {
-    const back = storage.get('bytefall-before-vs');
-    topMode = TOP_MODES.includes(back) && back !== 'vs' ? back : 'classic';
-    storage.set('bytefall-mode', topMode);
-    setModeFromChoice();
+// QUIT: in a match, a second press (it turns red on the first) ends it and goes back to the VS
+// menu; on the VS menu, one press goes back to the previous mode
+function quitVs() {
+  if (vsStarted) {
+    requestReset(vsQuitBtn, 'TAP AGAIN TO QUIT'); // the new run starts at the VS menu
+    return;
+  }
+  if (busy && !gameOver) return;
+  disarmReset();
+  const back = storage.get('bytefall-before-vs');
+  topMode = TOP_MODES.includes(back) && back !== 'vs' ? back : 'classic';
+  storage.set('bytefall-mode', topMode);
+  setModeFromChoice();
+  resetNow();
+}
+// Red while pressed; dragging off the button before letting go cancels the press
+function pressButton(btn, action) {
+  let pointer = null;
+  const inside = (e) => {
+    const r = btn.getBoundingClientRect();
+    return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+  };
+  btn.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    pointer = e.pointerId;
+    btn.setPointerCapture(e.pointerId);
+    btn.classList.add('pressing');
   });
-});
+  btn.addEventListener('pointermove', (e) => {
+    if (e.pointerId === pointer) btn.classList.toggle('pressing', inside(e));
+  });
+  btn.addEventListener('pointerup', (e) => {
+    if (e.pointerId !== pointer) return;
+    pointer = null;
+    btn.classList.remove('pressing');
+    if (inside(e)) action();
+  });
+  btn.addEventListener('pointercancel', () => {
+    pointer = null;
+    btn.classList.remove('pressing');
+  });
+  // Pointer presses act on pointerup above; this is the keyboard (Enter / Space)
+  btn.addEventListener('click', (e) => { if (e.detail === 0) action(); });
+}
+pressButton(vsQuitBtn, quitVs);
 
 // The status line in the mode row's place, and how many stat rows the left column has
 function updateVsChrome() {

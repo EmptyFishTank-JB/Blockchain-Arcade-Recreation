@@ -1769,7 +1769,8 @@ footer p.accent { color: var(--accent); }
 #restart-btn.corner-btn:disabled { color: var(--fg-dim); opacity: 0.4; cursor: default; background: rgba(255, 255, 255, 0.02); }
 .corner-btn svg { width: 20px; height: 20px; display: block; }
 .restart-icon, .quit-icon { left: 12px; }
-.quit-icon { color: var(--danger); border-color: rgba(var(--danger-rgb), 0.5); }
+/* QUIT: dim like the exploit button beside it; red while pressed and while it waits to confirm */
+.quit-icon { color: var(--fg-dim); opacity: 0.6; touch-action: none; }
 .exploit-icon { right: 12px; color: var(--fg-dim); opacity: 0.6; }
 .exploit-glyph { display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold; line-height: 1; }
 .exploit-glyph svg { width: 20px; height: 20px; }
@@ -1828,11 +1829,13 @@ body.cards-in-settings:not(.vs-mode):not(.vs-measure) .crt > .message-slot { mar
 body.cards-in-settings:not(.vs-mode):not(.vs-measure) .crt::after { content: ""; flex: 0 1 var(--head-space, 0px); min-height: 0; }
 body.cards-in-settings .crt.measuring::after { display: none; }
 
-/* Every confirm (RESTART, QUIT, mode / difficulty / DAILY / VS switches mid-run, DECRYPTOR,
+/* Every confirm (and QUIT while pressed) (RESTART, QUIT, mode / difficulty / DAILY / VS switches mid-run, DECRYPTOR,
    reset progress) looks the same while it waits for the second press: red border and text on
    a red tint, no glow, whatever state or hover the button is in */
 button.danger,
-button.danger:hover {
+button.danger:hover,
+button.pressing,
+button.pressing:hover {
   color: var(--danger) !important;
   border-color: var(--danger) !important;
   background: rgba(var(--danger-rgb), 0.12) !important;
