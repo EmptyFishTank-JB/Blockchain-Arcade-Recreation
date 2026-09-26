@@ -74,10 +74,9 @@ function startGridBackground(canvas, { defrag = true } = {}) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const fg = getComputedStyle(document.documentElement).getPropertyValue('--fg-rgb').trim() || '57, 255, 143';
     const rainbow = document.documentElement.dataset.theme === 'spectrum';
-    // ANAGLYPH: each block as a red copy shifted left and a cyan one shifted right, added
-    // together (white where they overlap), like the bits
+    // ANAGLYPH: each block drifts between red and cyan at its own speed and phase (like
+    // SPECTRUM's hues), over a red fringe on its left and a cyan one on its right, like the bits
     const anaglyph = document.documentElement.dataset.theme === 'anaglyph';
-    ctx.globalCompositeOperation = anaglyph ? 'lighter' : 'source-over';
     const secs = performance.now() / 1000;
     const offX = (canvas.clientWidth - cols * PITCH + GAP) / 2;
     const offY = (canvas.clientHeight - rows * PITCH + GAP) / 2;
@@ -89,11 +88,16 @@ function startGridBackground(canvas, { defrag = true } = {}) {
       const x = offX + (i % cols) * PITCH;
       const y = offY + Math.floor(i / cols) * PITCH;
       if (anaglyph) {
-        const a = (alpha * 1.4).toFixed(3);
-        ctx.fillStyle = `rgba(255, 40, 80, ${a})`;
+        const fringe = (alpha * 1.2).toFixed(3);
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.fillStyle = `rgba(255, 40, 80, ${fringe})`;
         ctx.fillRect(x - 1, y, BLOCK, BLOCK);
-        ctx.fillStyle = `rgba(0, 220, 255, ${a})`;
+        ctx.fillStyle = `rgba(0, 220, 255, ${fringe})`;
         ctx.fillRect(x + 1, y, BLOCK, BLOCK);
+        ctx.globalCompositeOperation = 'source-over';
+        const t = 0.5 + 0.5 * Math.sin(secs * (0.5 + hash(i, 2) * 1.5) + hash(i, 1) * 6.283); // 0 red .. 1 cyan
+        ctx.fillStyle = `rgba(${Math.round(255 - 255 * t)}, ${Math.round(40 + 180 * t)}, ${Math.round(80 + 175 * t)}, ${(alpha * 1.3).toFixed(3)})`;
+        ctx.fillRect(x, y, BLOCK, BLOCK);
         continue;
       }
       ctx.fillStyle = rainbow
