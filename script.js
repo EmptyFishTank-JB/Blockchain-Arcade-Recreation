@@ -1516,7 +1516,6 @@ function applyModeUi() {
   info.textContent = mode === 'classic' ? '' : MODES[mode].info(todayKey());
   document.getElementById('difficulty-row').hidden = mode !== 'classic';
   document.getElementById('daily-kinds').hidden = !daily;
-  updateVsChrome();
   document.querySelectorAll('#vs-levels button[data-vs]').forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.vs === vsLevel);
   });
@@ -1525,6 +1524,7 @@ function applyModeUi() {
   document.body.classList.toggle('vs-mode', mode === 'vs'); // a slimmer header, room for the boards
   document.getElementById('pulse-stat').hidden = !!MODES[mode].noLayers && mode !== 'puzzle' && mode !== 'breach';
   document.getElementById('pulse-label').textContent = mode === 'puzzle' ? 'BITS LEFT' : mode === 'breach' ? 'LAYERS LEFT' : 'NEW LAYER IN';
+  updateVsChrome(); // (after NEW LAYER IN shows or hides: it counts the stat rows)
   puzzleNavEl.hidden = mode !== 'puzzle' || daily;
   if (mode === 'puzzle' && !daily) updatePuzzleNav();
   // The overlay goes back to its trace look until a puzzle result changes it
