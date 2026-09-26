@@ -436,6 +436,31 @@ h1 {
 
 h1 span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
 
+/* VS: the title sits between the top icons, colored like the main title (green VS., amber CPU) */
+.vs-title { display: none; }
+body.vs-mode .vs-title {
+  position: absolute;
+  top: 12px;
+  left: 76px;
+  right: 76px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  font-size: 22px;
+  font-weight: bold;
+  letter-spacing: 3px;
+  text-indent: 3px; /* balances the spacing after the last letter */
+  line-height: 1;
+  white-space: pre;
+  color: var(--fg);
+  text-shadow: 0 0 8px var(--fg);
+  pointer-events: none;
+  transform: translateY(var(--vs-title-nudge, 0px));
+}
+body.vs-mode .vs-title span { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
+
 .tagline {
   margin: 4px 0 0;
   font-size: 11px;

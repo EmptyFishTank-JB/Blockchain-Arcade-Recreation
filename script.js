@@ -1776,7 +1776,7 @@ vsQuitBtn.addEventListener('click', () => {
 // The status line in the mode row's place, and how many stat rows the left column has
 function updateVsChrome() {
   const rows = [...document.querySelectorAll('.hud > .stat:not(.cpu-stat), .hud > .hud-bits')].filter((el) => !el.hidden).length;
-  document.getElementById('vs-status').textContent = `VS ${CpuBoard.LEVELS[vsLevel].label} CPU // LAYERS ${vsLayers ? 'ON' : 'OFF'}`;
+  document.getElementById('vs-status').textContent = `${CpuBoard.LEVELS[vsLevel].label} // LAYERS ${vsLayers ? 'ON' : 'OFF'}`;
   fitVsStatus();
   document.querySelector('.hud').style.setProperty('--vs-rows', rows);
 }
@@ -1816,6 +1816,23 @@ function layoutVsTop() {
   const gridH = bottom - top - 24;
   hud.style.setProperty('--vs-cpu-w', `${Math.round(Math.min(hud.clientWidth * 0.6, gridH * 7 / 8 + 14))}px`);
   fitVsStatus();
+  alignVsTitle();
+}
+// The VS title's letters centered on the top icons (each font sits differently in its line)
+function alignVsTitle() {
+  const el = document.querySelector('.vs-title');
+  el.style.removeProperty('--vs-title-nudge');
+  const cs = getComputedStyle(el);
+  measureCtx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+  const m = measureCtx.measureText(el.textContent);
+  if (!m.fontBoundingBoxAscent) return;
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  const box = range.getBoundingClientRect();
+  const baseline = box.top + (box.height - m.fontBoundingBoxAscent - m.fontBoundingBoxDescent) / 2 + m.fontBoundingBoxAscent;
+  const inkMid = baseline - m.actualBoundingBoxAscent / 2; // (no descenders)
+  const icon = document.querySelector('.records-btn svg').getBoundingClientRect();
+  el.style.setProperty('--vs-title-nudge', `${(icon.top + icon.height / 2 - inkMid).toFixed(1)}px`);
 }
 // The VS info line shrinks to fit its column
 function fitVsStatus() {
