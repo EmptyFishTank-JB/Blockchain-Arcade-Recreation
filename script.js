@@ -1790,36 +1790,7 @@ function quitVs() {
   setModeFromChoice();
   resetNow();
 }
-// Red while pressed; dragging off the button before letting go cancels the press
-function pressButton(btn, action) {
-  let pointer = null;
-  const inside = (e) => {
-    const r = btn.getBoundingClientRect();
-    return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
-  };
-  btn.addEventListener('pointerdown', (e) => {
-    if (e.button !== 0) return;
-    pointer = e.pointerId;
-    btn.setPointerCapture(e.pointerId);
-    btn.classList.add('pressing');
-  });
-  btn.addEventListener('pointermove', (e) => {
-    if (e.pointerId === pointer) btn.classList.toggle('pressing', inside(e));
-  });
-  btn.addEventListener('pointerup', (e) => {
-    if (e.pointerId !== pointer) return;
-    pointer = null;
-    btn.classList.remove('pressing');
-    if (inside(e)) action();
-  });
-  btn.addEventListener('pointercancel', () => {
-    pointer = null;
-    btn.classList.remove('pressing');
-  });
-  // Pointer presses act on pointerup above; this is the keyboard (Enter / Space)
-  btn.addEventListener('click', (e) => { if (e.detail === 0) action(); });
-}
-pressButton(vsQuitBtn, quitVs);
+vsQuitBtn.addEventListener('click', quitVs);
 
 // The status line in the mode row's place, and how many stat rows the left column has
 function updateVsChrome() {
@@ -2920,3 +2891,46 @@ fetch('https://api.github.com/repos/EmptyFishTank-JB/ByteFall/commits?sha=main&p
     document.getElementById('commitInfo').textContent = 'unavailable';
     document.getElementById('updatedInfo').textContent = 'unavailable';
   });
+
+// Every button (and link): tinted while held (RESTART and QUIT turn red), and sliding the finger
+// or mouse off it before letting go cancels the press, even where the browser would still click
+(() => {
+  let held = null; // { el, id }
+  let cancelled = null; // the button whose next click is swallowed
+  const inside = (el, e) => {
+    const r = el.getBoundingClientRect();
+    return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+  };
+  const release = () => {
+    if (held) held.el.classList.remove('pressing');
+    held = null;
+  };
+  document.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    const el = e.target.closest('button, a[href]');
+    if (!el || el.disabled) return;
+    held = { el, id: e.pointerId };
+    cancelled = null;
+    el.classList.add('pressing');
+  }, true);
+  document.addEventListener('pointermove', (e) => {
+    if (held && e.pointerId === held.id) held.el.classList.toggle('pressing', inside(held.el, e));
+  }, true);
+  document.addEventListener('pointerup', (e) => {
+    if (!held || e.pointerId !== held.id) return;
+    if (!inside(held.el, e)) {
+      const el = held.el;
+      cancelled = el;
+      setTimeout(() => { if (cancelled === el) cancelled = null; }, 400); // (no click came)
+    }
+    release();
+  }, true);
+  document.addEventListener('pointercancel', release, true);
+  document.addEventListener('click', (e) => {
+    if (cancelled && cancelled.contains(e.target) && e.detail !== 0) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      cancelled = null;
+    }
+  }, true);
+})();
