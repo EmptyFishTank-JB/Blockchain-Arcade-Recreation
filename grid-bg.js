@@ -74,6 +74,10 @@ function startGridBackground(canvas, { defrag = true } = {}) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const fg = getComputedStyle(document.documentElement).getPropertyValue('--fg-rgb').trim() || '57, 255, 143';
     const rainbow = document.documentElement.dataset.theme === 'spectrum';
+    // ANAGLYPH: each block as a red copy shifted left and a cyan one shifted right, added
+    // together (white where they overlap), like the bits
+    const anaglyph = document.documentElement.dataset.theme === 'anaglyph';
+    ctx.globalCompositeOperation = anaglyph ? 'lighter' : 'source-over';
     const secs = performance.now() / 1000;
     const offX = (canvas.clientWidth - cols * PITCH + GAP) / 2;
     const offY = (canvas.clientHeight - rows * PITCH + GAP) / 2;
@@ -82,10 +86,20 @@ function startGridBackground(canvas, { defrag = true } = {}) {
       for (const { pass, weight } of layers) {
         alpha += weight * ((pass.data[i] ? 0.06 : 0.018) + pass.glow[i] * 0.22);
       }
+      const x = offX + (i % cols) * PITCH;
+      const y = offY + Math.floor(i / cols) * PITCH;
+      if (anaglyph) {
+        const a = (alpha * 1.4).toFixed(3);
+        ctx.fillStyle = `rgba(255, 40, 80, ${a})`;
+        ctx.fillRect(x - 1, y, BLOCK, BLOCK);
+        ctx.fillStyle = `rgba(0, 220, 255, ${a})`;
+        ctx.fillRect(x + 1, y, BLOCK, BLOCK);
+        continue;
+      }
       ctx.fillStyle = rainbow
         ? `hsla(${((hash(i, 1) * 360 + secs * (36 + hash(i, 2) * 84)) % 360).toFixed(0)}, 100%, 60%, ${alpha.toFixed(3)})`
         : `rgba(${fg}, ${alpha.toFixed(3)})`;
-      ctx.fillRect(offX + (i % cols) * PITCH, offY + Math.floor(i / cols) * PITCH, BLOCK, BLOCK);
+      ctx.fillRect(x, y, BLOCK, BLOCK);
     }
   }
 
