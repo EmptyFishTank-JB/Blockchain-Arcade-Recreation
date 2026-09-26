@@ -25,6 +25,7 @@ const Music = (() => {
     { id: 'night-drive', title: 'NIGHT DRIVE', create: createNightDrive },
     { id: 'standby-mode', title: 'STANDBY MODE', create: createStandbyMode },
     { id: 'core-dump', title: 'CORE DUMP', create: createCoreDump },
+    { id: 'handshake', title: 'HANDSHAKE', create: createHandshake },
   ];
   let enabled = true;
   let backgroundPlay = false;

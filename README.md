@@ -123,7 +123,7 @@ game's text (the particles and the dev page too); the fonts are bundled in
 
 **Permanent unlocks:** Hard mode (score 2,000 on Normal) and tracks 02-16
 (125 / 350 / 800 / 1,600 / 3,000 / 5,000 / 7,500 / 11,000 / 15,000 / 20,000 / 26,000 /
-33,000 / 41,000 / 50,000 / 60,000 bits decrypted in total; 10-16 are still to come).
+33,000 / 41,000 / 50,000 / 60,000 bits decrypted in total; 11-16 are still to come).
 COLLECTOR, DJ and AUDIOPHILE need all 16 tracks, so they open up once the last
 one is made.
 
@@ -295,6 +295,12 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
   gallop chugs and octave dives; square bass; noise-channel blast beats and a
   china cymbal; 32nd-note sweep arpeggios; segfault, stack trace, overflow,
   core dump). Unlocked at 11,000 bits.
+- `music-handshake.js` — track 10, HANDSHAKE: an original 8-bit battle theme
+  in the style of Game Boy-era handheld RPG battles, at 176 BPM in C minor
+  (lead pulse with delayed vibrato, a second pulse, a 4-bit wave-channel bass,
+  a noise-channel kit; a falling intro run the first time through; encounter,
+  battle, bridge, critical; a low-HP alarm at the top of the stack). Unlocked
+  at 15,000 bits.
 - `dev-tools/audio.html` — the audio compendium, opened by the `</>` icon in
   the footer: every sound effect and track with a play button, where each is
   used in the game, a seekable progress line and a live intensity slider for
@@ -304,7 +310,7 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
   dial-up modem, ZERO DAY's air-raid siren): the game never plays them, and
   here they start muted so they can still be heard
 - `audio/` — offline WAV renders of the music for reference (not loaded by
-  the game). `01-bytefall-theme.wav` through `09-core-dump.wav` are one full
+  the game). `01-bytefall-theme.wav` through `10-handshake.wav` are one full
   loop of each track at full intensity (stack 6+, every layer the game plays,
   archived layers left out). Older versions: `bytefall-theme-v1.wav` is the
   original 16-bar theme loop, `bytefall-theme-v2.wav` the first 32-bar
