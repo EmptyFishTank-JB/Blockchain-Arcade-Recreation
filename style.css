@@ -1806,3 +1806,12 @@ body.cards-in-settings { padding: 16px; height: 100vh; height: 100dvh; height: v
 body.cards-in-settings .cabinet { height: 100%; grid-template-areas: "game"; grid-template-rows: minmax(0, 1fr); gap: 0; }
 body.cards-in-settings .crt { height: 100%; display: flex; flex-direction: column; justify-content: center; }
 body.cards-in-settings .crt.measuring { height: auto; align-self: start; } /* script.js's fitBoard measures the contents */
+/* The header sits at the top of the card, level with the trophy and settings icons; the HUD, grid
+   and message stay centered in the card (auto margins around them, plus a spacer after them as
+   tall as what sits above them, --head-space, set by script.js's fitBoard) */
+body.cards-in-settings:not(.vs-mode):not(.vs-measure) .crt { justify-content: flex-start; padding-top: 12px; }
+body.cards-in-settings:not(.vs-mode):not(.vs-measure) header { margin-top: var(--head-nudge, 0px); }
+body.cards-in-settings:not(.vs-mode):not(.vs-measure) .crt > .hud { margin-top: auto; }
+body.cards-in-settings:not(.vs-mode):not(.vs-measure) .crt > .message-slot { margin-bottom: auto; }
+body.cards-in-settings:not(.vs-mode):not(.vs-measure) .crt::after { content: ""; flex: 0 1 var(--head-space, 0px); min-height: 0; }
+body.cards-in-settings .crt.measuring::after { display: none; }

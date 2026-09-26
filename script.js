@@ -458,8 +458,29 @@ document.getElementById('puzzle-next').addEventListener('click', () => {
 // bottom), between MIN_BOARD and the CSS maximum.
 const MIN_BOARD = 240;
 const crtEl = document.querySelector('.crt');
+// Phones: nudge the header so the tops of the title's letters sit level with the tops of the
+// trophy and settings icons (each font draws its letters at a different height in the line)
+const headerEl = document.querySelector('header');
+const titleEl = headerEl.querySelector('h1');
+const measureCtx = document.createElement('canvas').getContext('2d');
+function alignHeader() {
+  headerEl.style.removeProperty('--head-nudge');
+  if (!document.body.classList.contains('cards-in-settings') || mode === 'vs') return;
+  const cs = getComputedStyle(titleEl);
+  measureCtx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+  const m = measureCtx.measureText(titleEl.textContent);
+  if (!m.fontBoundingBoxAscent) return;
+  const lineHeight = titleEl.getBoundingClientRect().height;
+  const content = m.fontBoundingBoxAscent + m.fontBoundingBoxDescent;
+  const inkTop = titleEl.getBoundingClientRect().top + (lineHeight - content) / 2 + m.fontBoundingBoxAscent - m.actualBoundingBoxAscent;
+  const icon = document.querySelector('.records-btn svg').getBoundingClientRect();
+  const iconTop = icon.top + icon.height * (2 / 24); // the trophy's outline starts 2 units down its 24-unit box
+  headerEl.style.setProperty('--head-nudge', `${(iconTop - inkTop).toFixed(1)}px`);
+}
+
 function fitBoard() {
   layoutVsTop();
+  alignHeader();
   const frame = document.querySelector('.board-frame');
   boardWrapEl.style.maxWidth = '';
   const cssMax = boardWrapEl.getBoundingClientRect().width;
@@ -467,6 +488,12 @@ function fitBoard() {
   crtEl.classList.add('measuring');
   const rest = crtEl.getBoundingClientRect().height - frame.getBoundingClientRect().height;
   crtEl.classList.remove('measuring');
+  // The spacer that keeps the HUD, grid and message centered in the card under the top-pinned
+  // header (see style.css): what's above them minus what's below them
+  const cs = getComputedStyle(crtEl);
+  const header = document.querySelector('header');
+  const above = parseFloat(cs.paddingTop) + header.offsetHeight + parseFloat(getComputedStyle(header).marginTop) + parseFloat(getComputedStyle(header).marginBottom);
+  crtEl.style.setProperty('--head-space', `${Math.max(0, above - parseFloat(cs.paddingBottom))}px`);
   const pad = parseFloat(getComputedStyle(document.body).paddingTop) * 2;
   const ratio = frame.offsetHeight / frame.offsetWidth;
   const width = Math.max(MIN_BOARD, Math.min(cssMax, (viewportHeight() - pad - rest) / ratio));
@@ -1765,6 +1792,7 @@ function layoutVsTop() {
   const info = document.getElementById('mode-info');
   const wasHidden = [diffRow.hidden, info.hidden];
   document.body.classList.remove('vs-mode');
+  document.body.classList.add('vs-measure'); // (with Classic's header unpinned, all centered)
   cpuStatEl.hidden = true;
   diffRow.hidden = false;
   info.hidden = true;
@@ -1774,6 +1802,7 @@ function layoutVsTop() {
   const top = document.querySelector('.records-btn').getBoundingClientRect().bottom - cardTop() + 8;
   [diffRow.hidden, info.hidden] = wasHidden;
   cpuStatEl.hidden = false;
+  document.body.classList.remove('vs-measure');
   document.body.classList.add('vs-mode');
   hud.style.marginTop = '0px';
   const vsTop = hud.getBoundingClientRect().top - cardTop();
