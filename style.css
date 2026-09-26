@@ -20,11 +20,12 @@
 :root[data-font="press-start"] .lock-tag,
 :root[data-font="press-start"] .combo { font-size: 12px; }
 :root[data-font="press-start"] .stat .label { font-size: 10px; }
-/* PRESS START's glyphs fill their whole line, so wrapped lines touch: give them room */
-:root[data-font="press-start"] .stat .label,
+/* PRESS START's glyphs fill their whole line, so wrapped lines touch: give them room (a quarter
+   of the text's height between the mode description's and the footer's lines) */
+:root[data-font="press-start"] .stat .label { line-height: 1.7; }
 :root[data-font="press-start"] .mode-info,
 :root[data-font="press-start"] footer p,
-:root[data-font="press-start"] .footer-meta { line-height: 1.7; }
+:root[data-font="press-start"] .footer-meta { line-height: 1.25; }
 
 /* [data-theme] also works on any element, so the settings panel's theme swatches preview each theme. */
 :root,
@@ -1868,6 +1869,11 @@ body.cards-in-settings .settings .dev-link { display: inline-flex; margin-top: 6
 /* Phones and the app: the game card fills the screen height with the same 16px gap at the top and
    bottom as at the sides; its contents center vertically inside it */
 body.cards-in-settings { padding: 16px; height: 100vh; height: 100dvh; height: var(--app-h, 100dvh); min-height: 0; }
+/* Tall screens (tablets, fullscreen) let the card grow wider with the height, so the extra
+   room goes to a bigger board rather than empty space (phones stay limited by their width) */
+body.cards-in-settings .cabinet,
+body.cards-in-settings .crt { max-width: max(480px, calc(var(--app-h, 100dvh) * 0.56)); }
+body.cards-in-settings .board-wrap { max-width: none; } /* (script.js's fitBoard sizes it to the height) */
 body.cards-in-settings .cabinet { height: 100%; grid-template-areas: "game"; grid-template-rows: minmax(0, 1fr); gap: 0; }
 body.cards-in-settings .crt { height: 100%; display: flex; flex-direction: column; justify-content: center; }
 /* VS places its HUD from the top itself (script.js's layoutVsTop) */
