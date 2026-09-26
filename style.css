@@ -946,7 +946,6 @@ body.vs-mode .stat-best { display: none; }
   font-family: inherit;
   font-size: 10px;
   letter-spacing: 1px;
-  cursor: pointer;
 }
 .level-bar #level-label { color: var(--accent); }
 .level-bar .xp { display: block; width: 90px; height: 4px; background: rgba(var(--fg-rgb), 0.12); border-radius: 2px; overflow: hidden; }

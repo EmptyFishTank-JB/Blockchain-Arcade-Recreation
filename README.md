@@ -89,8 +89,7 @@ fresh when it moved to 8×8).
 
 **Levels.** Every bit you decrypt is XP: **100 bits (12.5 bytes) per level**,
 Lv 1 to **Lv 80**. Lv 80's bar fills at 8,000 bits, so a full DECRYPTOR rank
-is exactly **1 kilobyte**. The level bar sits under the title; tapping it opens
-RECORDS.
+is exactly **1 kilobyte**. The level bar sits under the title.
 
 **DECRYPTOR ranks** (the game's prestige). With Lv 80 full, RANK UP TO
 DECRYPTOR (in RECORDS → UNLOCKS, four presses) starts you again at Lv 1 one

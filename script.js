@@ -2551,10 +2551,6 @@ function updateLevelBar() {
   document.getElementById('xp-label').textContent = lv.maxed ? 'DECRYPTOR READY' : `${fmt(lv.into)} / ${fmt(lv.need)} BITS`;
   levelBarEl.classList.toggle('maxed', lv.maxed);
 }
-levelBarEl.addEventListener('click', () => {
-  recordsTab = 'unlocks';
-  setRecordsOpen(true, 'records');
-});
 
 // The MENU (the button top left): RULES, EXPLOITS and RECORDS tabs. RECORDS has unlocks and
 // achievements with trackers, and lifetime stats.
