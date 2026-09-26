@@ -1618,6 +1618,7 @@ let cpuDown = false; // the CPU overflowed (the win shows once your drop finishe
 let vsStarted = false; // START pressed on the setup overlay
 let cpuClock = 0;
 const cpuStatEl = document.getElementById('cpu-stat');
+const cpuFaceEl = document.getElementById('cpu-face'); // BOT, the CPU's face
 const incomingEl = document.getElementById('incoming');
 const vsBlocks = (points) => Math.min(VS_MAX_BLOCKS, Math.floor(points / VS_POINTS_PER_BLOCK));
 
@@ -1697,11 +1698,14 @@ async function takeGarbage(n) {
 
 // One CPU move: it drops a bit, attacks, then takes the blocks headed its way
 function cpuMove() {
-  sendToPlayer(vsBlocks(cpu.step()));
+  const scored = cpu.step();
+  sendToPlayer(vsBlocks(scored));
+  if (scored > 0) botMood('happy', 1100);
   if (cpuPending > 0 && !cpu.isDead()) {
     const n = Math.min(cpuPending, VS_MAX_BLOCKS);
     cpuPending -= n;
     sendToPlayer(vsBlocks(cpu.takeGarbage(n)));
+    botMood('hit', 900); // your blocks land on its board
   }
   queueCpuFrames();
   if (cpu.isDead() && !cpuDown) {
@@ -1843,6 +1847,26 @@ cpuStatEl.addEventListener('pointerdown', (e) => {
 for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) cpuStatEl.addEventListener(type, () => holdCpu(false));
 cpuStatEl.addEventListener('contextmenu', (e) => e.preventDefault()); // a long press shouldn't open a menu
 
+// BOT, the CPU's face: a mood for a moment (happy when it scores, hit when your blocks land),
+// otherwise its standing mood: dead / smug once the match is over, worried with a tall stack,
+// thinking just before a move, idle
+const botSayEl = document.getElementById('bot-say');
+const BOT_SAYS = { idle: 'READY', think: '...', happy: 'HA!', hit: 'OOF', worried: 'UH OH', dead: 'ERR', smug: 'GG' };
+let botFlash = null; // { mood, until }
+function botMood(flash = null, ms = 900) {
+  if (flash) botFlash = { mood: flash, until: performance.now() + ms };
+  let mood = 'idle';
+  if (gameOver && vsStarted) mood = cpuDown ? 'dead' : 'smug';
+  else if (botFlash && performance.now() < botFlash.until) mood = botFlash.mood;
+  else if (cpu && Math.max(...cpu.columns().map((c) => c.length)) >= CpuBoard.ROWS - 1) mood = 'worried';
+  else if (vsStarted && cpu && cpuClock > cpu.delay - 450) mood = 'think';
+  if (cpuFaceEl.dataset.mood !== mood) {
+    cpuFaceEl.dataset.mood = mood;
+    botSayEl.textContent = BOT_SAYS[mood];
+  }
+}
+setInterval(() => { if (mode === 'vs' && cpu) botMood(); }, 150);
+
 // START: the setup overlay bursts apart and the match (and the CPU's clock) begins
 const vsSetupEl = document.getElementById('vs-setup');
 function startMatch() {
@@ -1876,7 +1900,7 @@ vsQuitBtn.addEventListener('click', quitVs);
 
 // The status line in the mode row's place, and how many stat rows the left column has
 function updateVsChrome() {
-  const rows = [...document.querySelectorAll('.hud > .stat:not(.cpu-stat), .hud > .hud-bits')].filter((el) => !el.hidden && getComputedStyle(el).display !== 'none').length;
+  const rows = [...document.querySelectorAll('.hud > .stat:not(.cpu-stat):not(.cpu-face), .hud > .hud-bits')].filter((el) => !el.hidden && getComputedStyle(el).display !== 'none').length;
   document.getElementById('vs-status').textContent = `${CpuBoard.LEVELS[vsLevel].label} // LAYERS ${vsLayers ? 'ON' : 'OFF'}`;
   fitVsStatus();
   document.querySelector('.hud').style.setProperty('--vs-rows', rows);
@@ -1896,6 +1920,7 @@ function layoutVsTop() {
   document.body.classList.remove('vs-mode');
   document.body.classList.add('vs-measure'); // (with Classic's header unpinned, all centered)
   cpuStatEl.hidden = true;
+  cpuFaceEl.hidden = true;
   diffRow.hidden = false;
   info.hidden = true;
   // (relative to the game card, which can move as the page re-centers)
@@ -1907,15 +1932,17 @@ function layoutVsTop() {
   const top = icon.bottom - cardTop() + iconGap;
   [diffRow.hidden, info.hidden] = wasHidden;
   cpuStatEl.hidden = false;
+  cpuFaceEl.hidden = false;
   document.body.classList.remove('vs-measure');
   document.body.classList.add('vs-mode');
   hud.style.marginTop = '0px';
   const vsTop = hud.getBoundingClientRect().top - cardTop();
   hud.style.marginTop = `${top - vsTop}px`;
   hud.style.height = `${bottom - top}px`;
-  // The CPU's board fills the height (its label takes ~24px), up to 60% of the width
+  // BOT's box and the CPU's board are the same width: as wide as the board's height allows (its
+  // label takes ~24px), leaving the info panels at least 96px
   const gridH = bottom - top - 24;
-  hud.style.setProperty('--vs-cpu-w', `${Math.round(Math.min(hud.clientWidth * 0.6, gridH * 7 / 8 + 14))}px`);
+  hud.style.setProperty('--vs-cpu-w', `${Math.round(Math.min((hud.clientWidth - 12 - 96) / 2, gridH * 7 / 8 + 12))}px`);
   fitVsStatus();
   alignVsTitle();
 }
@@ -1952,6 +1979,8 @@ function fitVsStatus() {
 function showVs() {
   const vs = mode === 'vs' && !!cpu;
   cpuStatEl.hidden = !vs;
+  cpuFaceEl.hidden = !vs;
+  if (vs) botMood();
   incomingEl.hidden = !vs || incoming === 0;
   if (!vs) return;
   incomingEl.textContent = `\u25BC ${incoming} INCOMING`;

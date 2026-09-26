@@ -157,7 +157,7 @@ startGridBackground(document.getElementById('board-bg'));
 // VS setup: the defrag behind its options (the board's cells are covered)
 startGridBackground(document.getElementById('vs-setup-bg'));
 // The HUD boxes (SCORE, CHAIN, NEW LAYER IN, CURRENT...): the starlight only
-document.querySelectorAll('.hud .stat:not(.cpu-stat)').forEach((stat) => {
+document.querySelectorAll('.hud .stat:not(.cpu-stat):not(.cpu-face)').forEach((stat) => {
   const canvas = document.createElement('canvas');
   canvas.className = 'stat-bg';
   canvas.setAttribute('aria-hidden', 'true');
