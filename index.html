@@ -22,39 +22,134 @@
   } catch (e) {}
 </script>
 <title>BYTEFALL // decryption terminal</title>
-<link rel="stylesheet" href="style.css?v=120">
+<link rel="stylesheet" href="style.css?v=121">
 </head>
 <body>
   <main class="cabinet">
-    <aside class="panel panel-rules" id="rules-panel">
-      <h2>RULES</h2>
-      <p>Encrypted bits fall into the terminal. Drop each one into a column.</p>
-      <p>A bit decrypts when its number matches the length of the unbroken line it sits in, across or down. Decrypting can bring more bits down into new matches for a chain.</p>
-      <p>A decrypted bit scores 10 plus its number (a <b>[4]</b> is 14), multiplied by the chain. Blocks wiped out by exploits score a flat 10.</p>
-      <p>Encryption layers <b>[=]</b> rise from below <span id="rules-pulse">every 8 drops</span>. Decrypt a bit beside one to peel a layer off; the second peel (<b>[-]</b>) reveals the bit hidden underneath.</p>
-      <p>Keep your columns below the <b>========</b> line. If anything is still above it once the decrypting stops, the trace completes and you're caught.</p>
-      <p>On <b>Easy</b> and <b>Normal</b>, every 4 bits a single drop decrypts make a <b>NIBBLE</b>, worth 16 bonus points.</p>
-      <p><b>Easy</b> shows the next bit, and shorter chains unlock exploits.</p>
-      <p><b>Hard</b> is a full byte: an 8&times;8 terminal with bits up to 8, and new layers come faster as your score climbs. Every 8 bits a single drop decrypts make a <b>BYTE</b>, worth 256 bonus points.</p>
-      <p class="keys" id="rules-keys">Click a column or press 1&ndash;7 to drop</p>
-    </aside>
-
     <div class="crt">
-      <button type="button" id="records-btn" class="records-btn" aria-label="Records: unlocks, achievements and stats" aria-expanded="false" aria-controls="records">
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path d="M7 3 H17 V9 A5 5 0 0 1 7 9 Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-          <path d="M7 5 H3 V7 A4 4 0 0 0 7.5 11 M17 5 H21 V7 A4 4 0 0 1 16.5 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-          <path d="M12 14 V18 M8 21 H16 M9.5 18 H14.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <button type="button" id="records-btn" class="records-btn" aria-label="Menu: rules, exploits and records" aria-expanded="false" aria-controls="records">
+        <svg viewBox="0 0 60 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M2 6 H18 M2 12 H18 M2 18 H18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M28 3 L22 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <g transform="translate(33 0)">
+            <path d="M7 3 H17 V9 A5 5 0 0 1 7 9 Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+            <path d="M7 5 H3 V7 A4 4 0 0 0 7.5 11 M17 5 H21 V7 A4 4 0 0 1 16.5 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M12 14 V18 M8 21 H16 M9.5 18 H14.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </g>
         </svg>
       </button>
       <div id="records" class="records" hidden>
-        <p class="settings-title">// RECORDS</p>
-        <div class="records-tabs" role="tablist">
-          <button type="button" role="tab" data-tab="unlocks">UNLOCKS</button>
-          <button type="button" role="tab" data-tab="achievements">ACHIEVEMENTS</button>
-          <button type="button" role="tab" data-tab="stats">STATS</button>
+        <div class="menu-tabs" role="tablist">
+          <button type="button" role="tab" data-pane="rules">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 2 H15 L19 6 V22 H6 Z M15 2 V6 H19 M9 11 H16 M9 14.5 H16 M9 18 H13" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+            RULES
+          </button>
+          <button type="button" role="tab" data-pane="exploits">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 10-13h-7z" fill="currentColor"/></svg>
+            EXPLOITS
+          </button>
+          <button type="button" role="tab" data-pane="records">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 3 H17 V9 A5 5 0 0 1 7 9 Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M7 5 H3 V7 A4 4 0 0 0 7.5 11 M17 5 H21 V7 A4 4 0 0 1 16.5 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 14 V18 M8 21 H16 M9.5 18 H14.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            RECORDS
+          </button>
         </div>
-        <div id="records-body" class="records-body"></div>
+        <div class="menu-pane" data-pane="rules">
+          <aside class="panel panel-rules" id="rules-panel">
+            <h2>RULES</h2>
+            <p>Encrypted bits fall into the terminal. Drop each one into a column.</p>
+            <p>A bit decrypts when its number matches the length of the unbroken line it sits in, across or down. Decrypting can bring more bits down into new matches for a chain.</p>
+            <p>A decrypted bit scores 10 plus its number (a <b>[4]</b> is 14), multiplied by the chain. Blocks wiped out by exploits score a flat 10.</p>
+            <p>Encryption layers <b>[=]</b> rise from below <span id="rules-pulse">every 8 drops</span>. Decrypt a bit beside one to peel a layer off; the second peel (<b>[-]</b>) reveals the bit hidden underneath.</p>
+            <p>Keep your columns below the <b>========</b> line. If anything is still above it once the decrypting stops, the trace completes and you're caught.</p>
+            <p>On <b>Easy</b> and <b>Normal</b>, every 4 bits a single drop decrypts make a <b>NIBBLE</b>, worth 16 bonus points.</p>
+            <p><b>Easy</b> shows the next bit, and shorter chains unlock exploits.</p>
+            <p><b>Hard</b> is a full byte: an 8&times;8 terminal with bits up to 8, and new layers come faster as your score climbs. Every 8 bits a single drop decrypts make a <b>BYTE</b>, worth 256 bonus points.</p>
+            <p class="keys" id="rules-keys">Click a column or press 1&ndash;7 to drop</p>
+          </aside>
+        </div>
+        <div class="menu-pane" data-pane="exploits">
+          <aside class="panel panel-hacks" id="hacks-panel">
+            <h2>EXPLOITS</h2>
+            <p class="slot-info" id="slot-info"></p>
+            <p><span id="hack-intro">Chain 5 decrypts in one drop to unlock a random exploit.</span> It waits in the exploit button (lower right): tap it to arm the exploit as your next drop, then drop it like a bit and it runs wherever it lands. Once armed, there's no taking it back.</p>
+            <div class="hack-item" data-hack="worm-virus">
+              <h3><span class="icon">§</span> WORM VIRUS<span class="combo"></span></h3>
+              <p>Burrows down the column it lands in and wipes out every block there.</p>
+              <p class="lock-tag"></p>
+            </div>
+            <div class="hack-item" data-hack="buffer-overflow">
+              <h3><span class="icon">+</span> BUFFER OVERFLOW<span class="combo"></span></h3>
+              <p>Floods memory: every bit goes up by 1. A bit pushed past <span id="overflow-top">7</span> gets re-encrypted under two layers.</p>
+              <p class="lock-tag"></p>
+            </div>
+            <div class="hack-item" data-hack="trojan">
+              <h3><span class="icon">◈</span> TROJAN<span class="combo"></span></h3>
+              <p>Slips in quietly, then wipes out every block touching the spot where it lands.</p>
+              <p class="lock-tag"></p>
+            </div>
+            <div class="hack-item" data-hack="rng">
+              <h3><span class="icon">?</span> RNG<span class="combo"></span></h3>
+              <p>Scrambles every bit to a new random number.</p>
+              <p class="lock-tag"></p>
+            </div>
+            <div class="hack-item" data-hack="bitflip">
+              <h3><span class="icon"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M7 8l5-5 5 5M7 16l5 5 5-5"/></svg></span> BITFLIP<span class="combo"></span></h3>
+              <p>Turns every column upside down.</p>
+              <p class="lock-tag"></p>
+            </div>
+            <div class="hack-item" data-hack="dictionary-attack">
+              <h3><span class="icon">#</span> DICTIONARY ATTACK<span class="combo"></span></h3>
+              <p>Throws every known key at the encryption: every layer on the board loses one level at once.</p>
+              <p class="lock-tag"></p>
+            </div>
+            <div class="hack-item" data-hack="keylogger">
+              <h3><span class="icon">@</span> KEYLOGGER<span class="combo"></span></h3>
+              <p>Records the incoming stream: shows your next 3 bits for the next 10 drops.</p>
+              <p class="lock-tag"></p>
+            </div>
+            <div class="hack-item" data-hack="pivot">
+              <h3><span class="icon">&#8646;</span> PIVOT<span class="combo"></span></h3>
+              <p>Moves sideways through the network: the column it lands in swaps places with the one beside it. Pick the column, then tap the neighbor (&larr; or &rarr;) to swap with: once picked, you're committed. Edge columns swap with their only neighbor.</p>
+              <p class="lock-tag"></p>
+            </div>
+            <div class="hack-item" data-hack="packet-sniffer">
+              <h3><span class="icon">~</span> PACKET SNIFFER<span class="combo"></span></h3>
+              <p>Taps the incoming stream: for your next 3 bits, tap CURRENT (or press &uarr; / &darr;) to choose each one's number.</p>
+              <p class="lock-tag"></p>
+            </div>
+            <div class="hack-item" data-hack="logic-bomb">
+              <h3><span class="icon">!</span> LOGIC BOMB<span class="combo"></span></h3>
+              <p>Lands as a block counting down from 3. Three drops later it detonates, wiping out everything in the 5&times;5 around it.</p>
+              <p class="lock-tag"></p>
+            </div>
+            <div class="hack-item" data-hack="honeypot">
+              <h3><span class="icon">&#9678;</span> HONEYPOT<span class="combo"></span></h3>
+              <p>Lands as a trap. When a bit next to it decrypts, every bit with that number within 2 cells of the trap decrypts too.</p>
+              <p class="lock-tag"></p>
+            </div>
+            <div class="hack-item" data-hack="backdoor">
+              <h3><span class="icon">_</span> BACKDOOR<span class="combo"></span></h3>
+              <p>Opens a way in underneath: the entire bottom row is deleted, layers included, and everything drops by one.</p>
+              <p class="lock-tag"></p>
+            </div>
+            <div class="hack-item" data-hack="rainbow-table">
+              <h3><span class="icon">*</span> RAINBOW TABLE<span class="combo"></span></h3>
+              <p>Looks up the most common number on the board and decrypts every bit showing it.</p>
+              <p class="lock-tag"></p>
+            </div>
+          </aside>
+        </div>
+        <div class="menu-pane" data-pane="records">
+          <section class="panel panel-records">
+            <h2>RECORDS</h2>
+            <div class="records-tabs" role="tablist">
+              <button type="button" role="tab" data-tab="unlocks">UNLOCKS</button>
+              <button type="button" role="tab" data-tab="achievements">ACHIEVEMENTS</button>
+              <button type="button" role="tab" data-tab="stats">STATS</button>
+            </div>
+            <div id="records-body" class="records-body"></div>
+          </section>
+        </div>
       </div>
       <button type="button" id="settings-btn" class="settings-btn" aria-label="Settings and music" aria-expanded="false" aria-controls="settings">
         <svg viewBox="0 0 60 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -220,76 +315,6 @@
     </div>
 
 
-    <aside class="panel panel-hacks" id="hacks-panel">
-      <h2>EXPLOITS</h2>
-      <p class="slot-info" id="slot-info"></p>
-      <p><span id="hack-intro">Chain 5 decrypts in one drop to unlock a random exploit.</span> It waits in the exploit button (lower right): tap it to arm the exploit as your next drop, then drop it like a bit and it runs wherever it lands. Once armed, there's no taking it back.</p>
-      <div class="hack-item" data-hack="worm-virus">
-        <h3><span class="icon">§</span> WORM VIRUS<span class="combo"></span></h3>
-        <p>Burrows down the column it lands in and wipes out every block there.</p>
-        <p class="lock-tag"></p>
-      </div>
-      <div class="hack-item" data-hack="buffer-overflow">
-        <h3><span class="icon">+</span> BUFFER OVERFLOW<span class="combo"></span></h3>
-        <p>Floods memory: every bit goes up by 1. A bit pushed past <span id="overflow-top">7</span> gets re-encrypted under two layers.</p>
-        <p class="lock-tag"></p>
-      </div>
-      <div class="hack-item" data-hack="trojan">
-        <h3><span class="icon">◈</span> TROJAN<span class="combo"></span></h3>
-        <p>Slips in quietly, then wipes out every block touching the spot where it lands.</p>
-        <p class="lock-tag"></p>
-      </div>
-      <div class="hack-item" data-hack="rng">
-        <h3><span class="icon">?</span> RNG<span class="combo"></span></h3>
-        <p>Scrambles every bit to a new random number.</p>
-        <p class="lock-tag"></p>
-      </div>
-      <div class="hack-item" data-hack="bitflip">
-        <h3><span class="icon"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M7 8l5-5 5 5M7 16l5 5 5-5"/></svg></span> BITFLIP<span class="combo"></span></h3>
-        <p>Turns every column upside down.</p>
-        <p class="lock-tag"></p>
-      </div>
-      <div class="hack-item" data-hack="dictionary-attack">
-        <h3><span class="icon">#</span> DICTIONARY ATTACK<span class="combo"></span></h3>
-        <p>Throws every known key at the encryption: every layer on the board loses one level at once.</p>
-        <p class="lock-tag"></p>
-      </div>
-      <div class="hack-item" data-hack="keylogger">
-        <h3><span class="icon">@</span> KEYLOGGER<span class="combo"></span></h3>
-        <p>Records the incoming stream: shows your next 3 bits for the next 10 drops.</p>
-        <p class="lock-tag"></p>
-      </div>
-      <div class="hack-item" data-hack="pivot">
-        <h3><span class="icon">&#8646;</span> PIVOT<span class="combo"></span></h3>
-        <p>Moves sideways through the network: the column it lands in swaps places with the one beside it. Pick the column, then tap the neighbor (&larr; or &rarr;) to swap with: once picked, you're committed. Edge columns swap with their only neighbor.</p>
-        <p class="lock-tag"></p>
-      </div>
-      <div class="hack-item" data-hack="packet-sniffer">
-        <h3><span class="icon">~</span> PACKET SNIFFER<span class="combo"></span></h3>
-        <p>Taps the incoming stream: for your next 3 bits, tap CURRENT (or press &uarr; / &darr;) to choose each one's number.</p>
-        <p class="lock-tag"></p>
-      </div>
-      <div class="hack-item" data-hack="logic-bomb">
-        <h3><span class="icon">!</span> LOGIC BOMB<span class="combo"></span></h3>
-        <p>Lands as a block counting down from 3. Three drops later it detonates, wiping out everything in the 5&times;5 around it.</p>
-        <p class="lock-tag"></p>
-      </div>
-      <div class="hack-item" data-hack="honeypot">
-        <h3><span class="icon">&#9678;</span> HONEYPOT<span class="combo"></span></h3>
-        <p>Lands as a trap. When a bit next to it decrypts, every bit with that number within 2 cells of the trap decrypts too.</p>
-        <p class="lock-tag"></p>
-      </div>
-      <div class="hack-item" data-hack="backdoor">
-        <h3><span class="icon">_</span> BACKDOOR<span class="combo"></span></h3>
-        <p>Opens a way in underneath: the entire bottom row is deleted, layers included, and everything drops by one.</p>
-        <p class="lock-tag"></p>
-      </div>
-      <div class="hack-item" data-hack="rainbow-table">
-        <h3><span class="icon">*</span> RAINBOW TABLE<span class="combo"></span></h3>
-        <p>Looks up the most common number on the board and decrypts every bit showing it.</p>
-        <p class="lock-tag"></p>
-      </div>
-    </aside>
   </main>
 
   <footer>
@@ -325,24 +350,24 @@
     </div>
   </div>
 
-  <script src="unlocks.js?v=120"></script>
-  <script src="progress.js?v=120"></script>
-  <script src="sfx.js?v=120"></script>
-  <script src="music-bytefall-theme.js?v=120"></script>
-  <script src="music-sleep-mode.js?v=120"></script>
-  <script src="music-brute-force.js?v=120"></script>
-  <script src="music-deep-web.js?v=120"></script>
-  <script src="music-zero-day.js?v=120"></script>
-  <script src="music-system-restore.js?v=120"></script>
-  <script src="music-night-drive.js?v=120"></script>
-  <script src="music-standby-mode.js?v=120"></script>
-  <script src="music.js?v=120"></script>
-  <script src="puzzles.js?v=120"></script>
-  <script src="daily-puzzles.js?v=120"></script>
-  <script src="cpu.js?v=120"></script>
-  <script src="fx.js?v=120"></script>
-  <script src="viz.js?v=120"></script>
-  <script src="script.js?v=120"></script>
-  <script src="grid-bg.js?v=120"></script>
+  <script src="unlocks.js?v=121"></script>
+  <script src="progress.js?v=121"></script>
+  <script src="sfx.js?v=121"></script>
+  <script src="music-bytefall-theme.js?v=121"></script>
+  <script src="music-sleep-mode.js?v=121"></script>
+  <script src="music-brute-force.js?v=121"></script>
+  <script src="music-deep-web.js?v=121"></script>
+  <script src="music-zero-day.js?v=121"></script>
+  <script src="music-system-restore.js?v=121"></script>
+  <script src="music-night-drive.js?v=121"></script>
+  <script src="music-standby-mode.js?v=121"></script>
+  <script src="music.js?v=121"></script>
+  <script src="puzzles.js?v=121"></script>
+  <script src="daily-puzzles.js?v=121"></script>
+  <script src="cpu.js?v=121"></script>
+  <script src="fx.js?v=121"></script>
+  <script src="viz.js?v=121"></script>
+  <script src="script.js?v=121"></script>
+  <script src="grid-bg.js?v=121"></script>
 </body>
 </html>

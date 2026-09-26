@@ -33,7 +33,7 @@ waits in the exploit button (the game card's lower-right corner), which glows
 green and shows the exploit's icon (with a count if more are waiting). Tap it
 (or press E) to arm the exploit: the button pulses amber and the exploit is
 your next drop, with no taking it back. Drop it into a column like a bit and it
-runs where it lands. With nothing to arm, the button shows the EXPLOITS card:
+runs where it lands. With nothing to arm, the button opens the menu's EXPLOITS tab:
 
 | Exploit | Easy chain | Effect |
 |---|---|---|
@@ -126,8 +126,10 @@ game's text (the particles and the dev page too); the fonts are bundled in
 (125 / 350 / 800 / 1,600 / 3,000 / 5,000 / 7,500 / 11,000 / 15,000 bits decrypted in
 total; 09-10 are still to come).
 
-The trophy icon opens **RECORDS**: level and DECRYPTOR rank, every unlock and
-achievement with a progress tracker, and lifetime stats. New unlocks, level-ups
+The menu icon (lines / trophy, top left) opens three tabs, each its own card:
+**RULES**, **EXPLOITS** and **RECORDS**. RECORDS has level and DECRYPTOR rank,
+every unlock and achievement with a progress tracker, and lifetime stats
+(UNLOCKS / ACHIEVEMENTS / STATS). New unlocks, level-ups
 and achievements pop up as they happen. Progress is saved in the browser
 (`bytefall-progress`).
 
@@ -205,13 +207,14 @@ Every color in `style.css` is a named role in `:root`; a theme is a
 `THEMES` in `script.js` and in the small theme script in `index.html`'s
 head. All but TERMINAL are unlocked by playing (see below).
 
-**The corners.** Once a session's first bit drops, RESTART is the arrows icon
-in the game card's lower-left corner (QUIT in VS); the exploit button is in the
-lower-right.
+**The corners.** RESTART is the arrows icon in the game card's lower-left
+corner, greyed out until a session's first bit drops (QUIT in VS); the exploit
+button is in the lower-right.
 
-**No scrolling on phones.** Below 1000px wide (phones and the app) the EXPLOITS
-and RULES cards and the footer move inside SETTINGS, so the game page never
-scrolls; wider screens keep them beside the game.
+**No scrolling on phones.** Below 1000px wide (phones and the app) the footer
+moves inside SETTINGS and the game card fills the screen, so the game page never
+scrolls. The header sits at the top of the card, level with the icons; the
+board stays centered.
 
 RESTART and the difficulty buttons ask for a second press mid-run (RESTART
 glows and pulses amber; the text buttons read CONFIRM?; either cancels itself

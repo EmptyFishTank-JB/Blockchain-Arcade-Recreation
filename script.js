@@ -474,7 +474,7 @@ function alignHeader() {
   const content = m.fontBoundingBoxAscent + m.fontBoundingBoxDescent;
   const inkTop = titleEl.getBoundingClientRect().top + (lineHeight - content) / 2 + m.fontBoundingBoxAscent - m.actualBoundingBoxAscent;
   const icon = document.querySelector('.records-btn svg').getBoundingClientRect();
-  const iconTop = icon.top + icon.height * (2 / 24); // the trophy's outline starts 2 units down its 24-unit box
+  const iconTop = icon.top + icon.height * (3 / 24); // the icons' outlines start ~3 units down their 24-unit box
   headerEl.style.setProperty('--head-nudge', `${(iconTop - inkTop).toFixed(1)}px`);
 }
 
@@ -2246,21 +2246,14 @@ function freeExploitId() {
   return freeExploit.id;
 }
 
-// Phones and the app: the RULES and EXPLOITS cards (and the footer) live inside SETTINGS so
-// the game page never scrolls. Wide screens keep them beside the game.
-const rulesPanelEl = document.getElementById('rules-panel');
-const hacksPanelBox = document.getElementById('hacks-panel');
+// Phones and the app: the footer lives inside SETTINGS so the game page never scrolls. Wide
+// screens keep it under the game. (RULES and EXPLOITS are tabs in the MENU, top left.)
 const footerEl = document.querySelector('footer');
 const wideLayout = window.matchMedia('(min-width: 1000px)');
 function placeCards() {
   const cabinet = document.querySelector('.cabinet');
-  if (wideLayout.matches) {
-    cabinet.insertBefore(rulesPanelEl, crtEl);
-    cabinet.appendChild(hacksPanelBox);
-    cabinet.after(footerEl);
-  } else {
-    settingsEl.append(hacksPanelBox, rulesPanelEl, footerEl);
-  }
+  if (wideLayout.matches) cabinet.after(footerEl);
+  else settingsEl.append(footerEl);
   document.body.classList.toggle('cards-in-settings', !wideLayout.matches);
 }
 wideLayout.addEventListener('change', () => {
@@ -2268,12 +2261,10 @@ wideLayout.addEventListener('change', () => {
   requestAnimationFrame(fitBoard);
 });
 placeCards();
-// The exploit button with nothing to arm shows the EXPLOITS card
+// The exploit button with nothing to arm shows the EXPLOITS tab
+const hacksPanelBox = document.getElementById('hacks-panel');
 function showExploitsCard() {
-  if (!wideLayout.matches) {
-    setSettingsOpen(true);
-    hacksPanelBox.scrollIntoView({ block: 'start' });
-  }
+  setRecordsOpen(true, 'exploits');
   hacksPanelBox.classList.remove('flash');
   void hacksPanelBox.offsetWidth;
   hacksPanelBox.classList.add('flash');
@@ -2417,14 +2408,16 @@ function updateLevelBar() {
 }
 levelBarEl.addEventListener('click', () => {
   recordsTab = 'unlocks';
-  setRecordsOpen(true);
+  setRecordsOpen(true, 'records');
 });
 
-// RECORDS panel: unlocks and achievements with trackers, and lifetime stats
+// The MENU (the button top left): RULES, EXPLOITS and RECORDS tabs. RECORDS has unlocks and
+// achievements with trackers, and lifetime stats.
 const recordsBtn = document.getElementById('records-btn');
 const recordsEl = document.getElementById('records');
 const recordsBodyEl = document.getElementById('records-body');
 let recordsTab = 'unlocks';
+let menuPane = 'rules';
 const fmt = (n) => Number(n).toLocaleString('en-US');
 // Bits decrypted as data, in decimal units: 1 kilobit = 1,000 bits, 1 kilobyte = 8,000 bits
 function fmtData(bits) {
@@ -2659,15 +2652,28 @@ function renderRecords() {
   }
 }
 
-function setRecordsOpen(open) {
+function showMenuPane(pane) {
+  menuPane = pane;
+  recordsEl.querySelectorAll('.menu-tabs button').forEach((b) => {
+    b.setAttribute('aria-selected', String(b.dataset.pane === pane));
+  });
+  recordsEl.querySelectorAll('.menu-pane').forEach((el) => { el.hidden = el.dataset.pane !== pane; });
+  if (pane === 'records') renderRecords();
+  recordsEl.scrollTop = 0;
+}
+// pane: which tab to show (the last one shown if left out)
+function setRecordsOpen(open, pane = menuPane) {
   recordsEl.hidden = !open;
   recordsBtn.setAttribute('aria-expanded', String(open));
   if (open) {
     setSettingsOpen(false);
-    renderRecords();
+    showMenuPane(pane);
   }
 }
 recordsBtn.addEventListener('click', () => setRecordsOpen(recordsEl.hidden));
+recordsEl.querySelectorAll('.menu-tabs button').forEach((b) => {
+  b.addEventListener('click', () => showMenuPane(b.dataset.pane));
+});
 recordsEl.querySelectorAll('.records-tabs button').forEach((b) => {
   b.addEventListener('click', () => {
     recordsTab = b.dataset.tab;
