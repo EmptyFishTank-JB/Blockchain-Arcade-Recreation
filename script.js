@@ -1708,6 +1708,9 @@ setInterval(() => {
 // the tab is hidden.
 const VS_POINTS_PER_BLOCK = 30;
 const VS_MAX_BLOCKS = 14;
+// The most blocks that can wait to land on either board, by CPU level; any sent past it are lost
+const VS_CAP = { easy: 8, normal: 16, hard: 24, insane: 32 };
+const vsCap = () => VS_CAP[vsLevel] || 16;
 let cpu = null;
 let incoming = 0; // blocks headed for you
 let cpuPending = 0; // blocks headed for the CPU
@@ -1765,13 +1768,13 @@ async function vsAfterDrop(points) {
 function sendToCpu(blocks) {
   const cancel = Math.min(blocks, incoming);
   incoming -= cancel;
-  cpuPending += blocks - cancel;
+  cpuPending = Math.min(vsCap(), cpuPending + blocks - cancel);
   showVs();
 }
 function sendToPlayer(blocks) {
   const cancel = Math.min(blocks, cpuPending);
   cpuPending -= cancel;
-  incoming += blocks - cancel;
+  incoming = Math.min(vsCap(), incoming + blocks - cancel);
   if (blocks - cancel > 0) SFX.play('alert');
   showVs();
 }
@@ -1783,10 +1786,16 @@ async function takeGarbage(n) {
     const open = columns.map((col, c) => (col.length < MAX_ROWS ? c : -1)).filter((c) => c >= 0);
     if (!open.length) break;
     const c = open[Math.floor(Math.random() * open.length)];
-    columns[c].push(newFirewall(1));
+    // Each block falls from the top (overflow) row into place, quickly, one at a time
+    const block = newFirewall(1);
+    for (let r = MAX_ROWS - 1; r > columns[c].length; r--) {
+      render([], { row: r, col: c, cell: block });
+      await sleep(11);
+    }
+    columns[c].push(block);
     render();
     SFX.play('click');
-    await sleep(70);
+    await sleep(20);
   }
   SFX.play('punct');
   await sleep(200);

@@ -2033,10 +2033,12 @@ body.vs-mode .cpu-face:not([hidden]) { display: flex; flex-direction: column; al
   66% { filter: url(#bot-pix2); opacity: 1; }
   100% { filter: none; opacity: 1; }
 }
-/* Devious (holding an exploit, or EXPLOITS switched on): a slow, scheming sway */
-.cpu-face[data-mood="devious"] .bot { animation: bot-scheme 1.6s ease-in-out infinite; transform-origin: 8px 14px; }
+/* Devious (holding an exploit, or EXPLOITS switched on): scheming, its arms rubbing up and down
+   in opposite directions */
+.cpu-face[data-mood="devious"] .arm-l { animation: bot-arm 0.5s steps(2) infinite; }
+.cpu-face[data-mood="devious"] .arm-r { animation: bot-arm 0.5s steps(2) infinite reverse; }
 .cpu-face[data-mood="devious"] .bot-say { color: var(--bot); }
-@keyframes bot-scheme { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+@keyframes bot-arm { 0% { transform: translateY(-1px); } 100% { transform: translateY(1px); } }
 /* Annoyed (-_-): a slow, flat-footed tap */
 .cpu-face[data-mood="annoyed"] .leg-b { animation: bot-step 0.6s steps(1) infinite; }
 .cpu-face[data-bot="glitch"] .slice-a { animation: bot-slip 1.7s steps(1) infinite; }
@@ -2049,7 +2051,7 @@ body.vs-mode .cpu-face:not([hidden]) { display: flex; flex-direction: column; al
 @keyframes bot-shake { 0% { transform: translateX(-0.5px); } 100% { transform: translateX(0.5px); } }
 @keyframes bot-sweat { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(3px); opacity: 0; } }
 @keyframes bot-slip { 0%, 70% { transform: translateX(0); } 75% { transform: translateX(1px); } 85% { transform: translateX(-1px); } 90% { transform: translateX(0); } }
-@media (prefers-reduced-motion: reduce) { .cpu-face .bot, .cpu-face .eyes, .cpu-face .leg, .cpu-face .sweat, .cpu-face .slice-a, .cpu-face .slice-c { animation: none !important; } }
+@media (prefers-reduced-motion: reduce) { .cpu-face .bot, .cpu-face .eyes, .cpu-face .leg, .cpu-face .arm, .cpu-face .sweat, .cpu-face .slice-a, .cpu-face .slice-c { animation: none !important; } }
 /* VS: the win / loss banner shows over the boards without darkening them */
 body.vs-mode .overlay { background: transparent; }
 /* The opponent and level pickers: four buttons a row, on one line */
