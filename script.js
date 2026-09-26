@@ -1611,6 +1611,7 @@ function startVs() {
   const rnd = seeded(hashString(`bytefall:vs:${vsSeed}:cpu`));
   const bits = seeded(hashString(`bytefall:vs:${vsSeed}:queue`)); // the same bits you get
   cpu = CpuBoard.create(vsLevel, rnd, () => 1 + Math.floor(bits() * CpuBoard.COLS), vsLayers ? BASE_INTERVAL : 0);
+  cpuFrames = []; // (a new match: nothing of the last one left to play)
   showVs();
 }
 function stopVs() {
@@ -1670,7 +1671,7 @@ function cpuMove() {
     cpuPending -= n;
     sendToPlayer(vsBlocks(cpu.takeGarbage(n)));
   }
-  drawCpu();
+  queueCpuFrames();
   if (cpu.isDead() && !cpuDown) {
     cpuDown = true;
     if (!busy && !gameOver) endGame('win');
@@ -1693,60 +1694,109 @@ setInterval(() => {
 // The CPU's board beside your stats (numbers and layers), plus the blocks headed each way
 const cpuGridEl = document.getElementById('cpu-grid');
 const cpuFullEl = document.getElementById('cpu-full');
-function drawCpu() {
+// The preview plays each CPU move back: the bit falling, landing, decrypting, layers peeling
+// (their color changing) and new rows rising. Small: light effects; held full size: the same
+// effects as your board (without its defrag background).
+let cpuFrames = [];
+let cpuPlaying = false;
+function queueCpuFrames() {
   if (!cpu) return;
-  const cols = cpu.columns();
-  const cells = [];
-  for (let r = CpuBoard.MAX_ROWS - 1; r >= 0; r--) {
-    for (let c = 0; c < CpuBoard.COLS; c++) {
-      const b = cols[c][r];
-      let cls = r >= CpuBoard.ROWS ? 'over' : '';
-      let text = '';
-      if (b && b.type === 'number') {
-        cls += ' bit';
-        text = b.val;
-      } else if (b) {
-        cls += ' layer';
-        text = b.level < 2 ? '-' : '=';
+  cpuFrames.push(...cpu.takeFrames());
+  if (!cpuPlaying) playCpuFrames();
+}
+async function playCpuFrames() {
+  cpuPlaying = true;
+  const match = cpu;
+  while (cpuFrames.length && cpu === match) {
+    const f = cpuFrames.shift();
+    const fast = cpuFrames.length > 12; // falling behind: catch up
+    if (f.fall) {
+      for (let r = CpuBoard.MAX_ROWS - 1; r > f.fall.row; r--) {
+        drawCpu(f, { row: r, col: f.fall.col, val: f.fall.val });
+        await sleep(fast ? 8 : STEP_MS);
       }
-      if (r === CpuBoard.ROWS) cls += ' over-edge';
-      cells.push(`<i class="${cls.trim()}">${text}</i>`);
+    } else {
+      drawCpu(f);
+      await sleep(fast ? 20 : f.pops ? 220 : f.gone ? 120 : f.rose ? 150 : 60);
     }
   }
-  cpuGridEl.innerHTML = cells.join('');
-  const tallest = Math.max(...cols.map((col) => col.length));
-  cpuStatEl.classList.toggle('low', tallest >= CpuBoard.ROWS - 1);
-  if (!cpuFullEl.hidden) drawCpuFull();
+  cpuPlaying = false;
+  if (cpu === match) drawCpu();
 }
+const cpuHas = (list, r, c) => !!list && list.some(([lr, lc]) => lr === r && lc === c);
 
-// Held: the CPU's board at full size, drawn like yours
-function drawCpuFull() {
-  const cols = cpu.columns();
-  cpuFullEl.innerHTML = '';
-  cpuFullEl.style.setProperty('--cols', CpuBoard.COLS);
+// frame: a recorded moment (the live board if left out); falling: a bit on its way down
+function drawCpu(frame, falling = null) {
+  if (!cpu) return;
+  if (!frame && cpuPlaying) return; // the playback draws
+  const view = frame || { columns: cpu.columns() };
+  const cols = view.columns;
+  const glyphs = themeIs('glyph');
+  cpuGridEl.innerHTML = '';
   for (let r = CpuBoard.MAX_ROWS - 1; r >= 0; r--) {
     for (let c = 0; c < CpuBoard.COLS; c++) {
-      const b = cols[c][r];
+      const b = falling && falling.row === r && falling.col === c ? { type: 'number', val: falling.val } : cols[c][r];
+      const i = document.createElement('i');
+      if (r >= CpuBoard.ROWS) i.classList.add('over');
+      if (r === CpuBoard.ROWS) i.classList.add('over-edge');
+      if (b && b.type === 'number') {
+        i.classList.add('bit');
+        if (glyphs) i.innerHTML = glyphSvg(b.val);
+        else i.textContent = b.val;
+        spinBit(i, b);
+      } else if (b && b.type === 'firewall') {
+        i.classList.add('layer');
+        if (b.level < 2) i.classList.add('cracked');
+        i.textContent = b.level < 2 ? '-' : '=';
+      }
+      if (cpuHas(view.pops, r, c)) i.classList.add('pop');
+      if (cpuHas(view.landed, r, c)) i.classList.add('landed');
+      if (cpuHas(view.peeled, r, c)) i.classList.add('peeled');
+      cpuGridEl.appendChild(i);
+    }
+  }
+  const tallest = Math.max(...cols.map((col) => col.filter(Boolean).length));
+  cpuStatEl.classList.toggle('low', tallest >= CpuBoard.ROWS - 1);
+  if (!cpuFullEl.hidden) drawCpuFull(view, falling);
+}
+
+// Held: the CPU's board at full size, drawn like yours, with your board's effects
+function drawCpuFull(view = cpuPlaying ? null : { columns: cpu.columns() }, falling = null) {
+  if (!view) return; // the playback draws it on its next frame
+  const cols = view.columns;
+  cpuFullEl.innerHTML = '';
+  cpuFullEl.style.setProperty('--cols', CpuBoard.COLS);
+  const bursts = [];
+  for (let r = CpuBoard.MAX_ROWS - 1; r >= 0; r--) {
+    for (let c = 0; c < CpuBoard.COLS; c++) {
+      const b = falling && falling.row === r && falling.col === c ? { type: 'number', val: falling.val } : cols[c][r];
       const div = document.createElement('div');
       div.className = 'cell';
       if (r >= CpuBoard.ROWS) div.classList.add('overflow');
       if (b && b.type === 'number') {
         div.classList.add('disc');
         fillBit(div, b.val);
-      } else if (b) {
+        spinBit(div, b);
+      } else if (b && b.type === 'firewall') {
         div.classList.add('firewall');
         if (b.level < 2) div.classList.add('cracked');
         div.textContent = b.level < 2 ? '[-]' : '[=]';
       }
+      if (cpuHas(view.pops, r, c)) {
+        div.classList.add('pop');
+        bursts.push({ el: div, type: 'number' });
+      }
+      if (cpuHas(view.landed, r, c)) div.classList.add('landed');
       cpuFullEl.appendChild(div);
     }
     if (r === CpuBoard.ROWS) {
       const line = document.createElement('div');
-      line.className = 'overflow-line';
+      line.className = cols.some((col) => col.filter(Boolean).length >= CpuBoard.ROWS) ? 'overflow-line hot' : 'overflow-line';
       line.textContent = '='.repeat(80);
       cpuFullEl.appendChild(line);
     }
   }
+  if (bursts.length) FX.burst(bursts);
 }
 function holdCpu(on) {
   if (!cpu || mode !== 'vs') on = false;
@@ -2300,21 +2350,11 @@ function freeExploitId() {
   return freeExploit.id;
 }
 
-// Phones and the app: the footer lives inside SETTINGS so the game page never scrolls. Wide
-// screens keep it under the game. (RULES and EXPLOITS are tabs in the MENU, top left.)
+// The footer lives inside SETTINGS and the game card fills the screen: the phone layout, on
+// every screen. (RULES and EXPLOITS are tabs in the MENU, top left.)
 const footerEl = document.querySelector('footer');
-const wideLayout = window.matchMedia('(min-width: 1000px)');
-function placeCards() {
-  const cabinet = document.querySelector('.cabinet');
-  if (wideLayout.matches) cabinet.after(footerEl);
-  else settingsEl.append(footerEl);
-  document.body.classList.toggle('cards-in-settings', !wideLayout.matches);
-}
-wideLayout.addEventListener('change', () => {
-  placeCards();
-  requestAnimationFrame(fitBoard);
-});
-placeCards();
+settingsEl.append(footerEl);
+document.body.classList.add('cards-in-settings');
 // The exploit button with nothing to arm shows the EXPLOITS tab
 const hacksPanelBox = document.getElementById('hacks-panel');
 function showExploitsCard() {

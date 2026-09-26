@@ -18,7 +18,7 @@ const CpuBoard = (() => {
     hard: { label: 'HARD', delay: 1150, blunder: 0, lookahead: true },
   };
 
-  const clone = (columns) => columns.map((col) => col.map((cell) => ({ ...cell })));
+  const clone = (columns) => columns.map((col) => col.map((cell) => cell && { ...cell }));
 
   function runLength(grid, row, col, dRow, dCol) {
     let count = 1;
@@ -28,8 +28,9 @@ const CpuBoard = (() => {
   }
 
   // Resolves every chain on `columns` (changed in place). reveal() picks a bit for a layer
-  // peeled open. Returns { points, chain, bits }.
-  function resolve(columns, reveal) {
+  // peeled open. record(frame), if given, gets each step for the preview to play back: the
+  // bits decrypting ({ pops }), then the board after ({ peeled }). Returns { points, chain, bits }.
+  function resolve(columns, reveal, record) {
     let chain = 0;
     let points = 0;
     let bits = 0;
@@ -48,6 +49,8 @@ const CpuBoard = (() => {
       chain++;
       bits += pops.length;
       points += pops.reduce((n, [r, c]) => n + 10 + grid[r][c].val, 0) * chain;
+      if (record) record({ pops, chain });
+      const peeled = [];
       for (const [r, c] of pops) {
         for (const [nr, nc] of [[r + 1, c], [r - 1, c], [r, c + 1], [r, c - 1]]) {
           if (nr < 0 || nr >= MAX_ROWS || nc < 0 || nc >= COLS) continue;
@@ -55,11 +58,14 @@ const CpuBoard = (() => {
           if (n && n.type === 'firewall') {
             n.level--;
             if (n.level <= 0) columns[nc][nr] = { type: 'number', val: reveal() };
+            peeled.push([nr, nc]);
           }
         }
       }
       for (const [r, c] of pops) columns[c][r] = null;
+      if (record) record({ gone: pops, peeled }); // the peels, with the decrypted bits gone
       for (let c = 0; c < COLS; c++) columns[c] = columns[c].filter(Boolean);
+      if (record) record({ settled: true }); // everything fallen into place
     }
     points += Math.floor(bits / NIBBLE_BITS) * NIBBLE_BONUS;
     return { points, chain, bits };
@@ -100,6 +106,10 @@ const CpuBoard = (() => {
     let score = 0;
     let dead = false;
     const reveal = () => 1 + Math.floor(rnd() * COLS);
+    // What the preview plays back (script.js takes it after each move): board snapshots, each
+    // with what's happening in it
+    let frames = [];
+    const record = (info) => frames.push({ columns: clone(columns), ...info });
 
     function chooseColumn() {
       const options = tryAll(columns, current);
@@ -131,16 +141,25 @@ const CpuBoard = (() => {
       score: () => score,
       isDead: () => dead,
       // One CPU move: returns the points it scored (0 if it didn't decrypt anything)
+      // The preview's frames since the last call
+      takeFrames() {
+        const out = frames;
+        frames = [];
+        return out;
+      },
       step() {
         if (dead) return 0;
         const col = chooseColumn();
+        record({ fall: { col, row: columns[col].length, val: current } });
         columns[col].push({ type: 'number', val: current });
-        let { points } = resolve(columns, reveal);
+        record({ landed: [[columns[col].length - 1, col]] });
+        let { points } = resolve(columns, reveal, record);
         drops++;
         if (layerEvery && drops % layerEvery === 0 && !overflowed(columns)) {
           // A row of two-peel layers rises under every column
           for (const col of columns) col.unshift({ type: 'firewall', level: 2 });
-          points += resolve(columns, reveal).points;
+          record({ rose: true });
+          points += resolve(columns, reveal, record).points;
         }
         score += points;
         current = upcoming;
@@ -152,12 +171,16 @@ const CpuBoard = (() => {
       // the board settles (garbage can complete a line and set off a chain, which counts)
       takeGarbage(count) {
         if (dead || count <= 0) return 0;
+        const landed = [];
         for (let k = 0; k < count; k++) {
           const open = columns.map((col, c) => (col.length < MAX_ROWS ? c : -1)).filter((c) => c >= 0);
           if (!open.length) break;
-          columns[open[Math.floor(rnd() * open.length)]].push({ type: 'firewall', level: 1 });
+          const c = open[Math.floor(rnd() * open.length)];
+          columns[c].push({ type: 'firewall', level: 1 });
+          landed.push([columns[c].length - 1, c]);
         }
-        const { points } = resolve(columns, reveal);
+        record({ landed, garbage: true });
+        const { points } = resolve(columns, reveal, record);
         score += points;
         if (overflowed(columns)) dead = true;
         return points;

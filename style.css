@@ -948,11 +948,9 @@ body.vs-mode .vs-title span { color: var(--accent); text-shadow: 0 0 8px var(--a
   cursor: pointer;
   letter-spacing: 1px;
 }
-/* Six modes on one row on phones */
-@media (max-width: 480px) {
-  .modes { gap: 4px; }
-  .modes button { padding: 4px 6px; letter-spacing: 0.5px; }
-}
+/* Six modes on one row */
+/* (the phone layout everywhere) */
+.modes button { padding: 4px 6px; letter-spacing: 0.5px; }
 @media (max-width: 380px) {
   .modes button { padding: 3px 5px; font-size: 10px; letter-spacing: 0; }
 }
@@ -1050,7 +1048,25 @@ body.vs-mode .vs-title span { color: var(--accent); text-shadow: 0 0 8px var(--a
 .cpu-grid i.over { border-color: rgba(var(--danger-rgb), 0.45); }
 .cpu-grid i.over-edge { border-bottom: 2px solid var(--danger); }
 .cpu-grid i.bit { background: rgba(var(--fg-rgb), 0.14); border-color: var(--fg-dim); text-shadow: 0 0 4px rgba(var(--fg-rgb), 0.6); }
-.cpu-grid i.layer { background: rgba(var(--accent-rgb), 0.16); border-color: var(--accent); color: var(--accent); }
+/* Layers colored like yours: [=] in the layer grey, [-] (cracked) in the cracked color */
+.cpu-grid i.layer { background: repeating-linear-gradient(45deg, var(--layer-a), var(--layer-a) 2px, var(--layer-b) 2px, var(--layer-b) 4px); border: 1px dashed var(--layer-border); color: var(--layer-text); }
+.cpu-grid i.layer.cracked { border-color: var(--cracked); color: var(--cracked); }
+.cpu-grid i.over.bit, .cpu-grid i.over.layer { border-color: var(--danger); color: var(--danger); }
+.cpu-grid i .glyph { width: 78%; height: 78%; }
+/* The preview's effects, lighter than your board's: a flash as a bit decrypts, a small drop as one
+   lands, a blink as a layer peels */
+.cpu-grid i.pop { animation: cpu-pop 0.22s ease-out forwards; }
+@keyframes cpu-pop { 0% { filter: brightness(2); } 100% { opacity: 0.1; filter: brightness(1); } }
+.cpu-grid i.landed { animation: land 0.15s ease; }
+.cpu-grid i.peeled { animation: cpu-peel 0.2s ease-out; }
+@keyframes cpu-peel { 0% { filter: brightness(1.9); } 100% { filter: brightness(1); } }
+[data-theme="spectrum"] .cpu-grid i.bit {
+  color: hsl(var(--bit-h) 100% 64%);
+  border-color: hsl(var(--bit-h) 100% 64%);
+  background: hsl(var(--bit-h) 100% 64% / 0.14);
+  animation: bit-hue var(--spin, 6s) linear var(--spin-delay, 0s) infinite var(--spin-dir, normal);
+}
+[data-theme="spectrum"] .cpu-grid i.bit.pop { animation: cpu-pop 0.22s ease-out forwards; }
 /* Held: the CPU's board full size over yours */
 .cpu-full { position: absolute; inset: 0; z-index: 4; background: var(--board-bg); }
 .cpu-full[hidden] { display: none; }
@@ -1127,6 +1143,10 @@ body.vs-mode .hud .stat:not(.cpu-stat) .sub { display: none; }
 body.vs-mode .hud > .stat:not(.cpu-stat), body.vs-mode .hud-bits .stat { padding-top: 2px; padding-bottom: 2px; }
 /* CURRENT in VS: a bare [n], no box */
 body.vs-mode .hud-bits #current-piece { width: auto; height: auto; aspect-ratio: auto; margin-left: auto; background: none; border: none; box-shadow: none; font-size: 16px; }
+/* GLYPH: the shape at the size of a HUD bit, with its number (not stretched to the box) */
+body.vs-mode .hud-bits #current-piece.has-glyph { position: relative; width: 30px; height: 30px; flex: none; }
+body.vs-mode .hud-bits #current-piece.has-glyph .glyph { width: 80%; height: 80%; }
+body.vs-mode .hud-bits #current-piece.has-glyph .glyph-num { right: -4px; bottom: -2px; }
 body.vs-mode .hud-bits, body.vs-mode .hud-bits .stat { min-height: 0; }
 body.vs-mode .vs-status { font-size: 10px; white-space: nowrap; overflow: hidden; }
 .incoming {
@@ -1709,25 +1729,23 @@ footer p.accent { color: var(--accent); }
   opacity: 0.75;
 }
 
-/* Short screens: tighter spacing around the board so the whole game panel fits the window
-   with as big a board as possible (script.js's fitBoard sizes the board to what's left). */
-@media (max-height: 860px) {
-  body { padding-top: 8px; padding-bottom: 8px; }
-  .crt { padding-top: 12px; padding-bottom: 14px; }
-  h1 { font-size: 24px; }
-  header { margin-bottom: 6px; }
-  .level-bar { margin-top: 3px; }
-  .modes { margin-top: 6px; }
-  .mode-info { margin-top: 4px; }
-  .difficulty { margin-top: 6px; }
-  .difficulty button { padding-top: 4px; padding-bottom: 4px; }
-  .hud { margin: 8px 0; }
-  .stat { padding-top: 4px; padding-bottom: 4px; }
-  .message { margin-top: 4px; }
-  .controls { margin-top: 6px; }
-  .free-exploit-btn { padding-top: 6px; padding-bottom: 6px; }
-}
-
+/* Tight spacing around the board so the whole game panel fits the window with as big a board
+   as possible (script.js's fitBoard sizes the board to what's left). The phone layout, used on
+   every screen. */
+body { padding-top: 8px; padding-bottom: 8px; }
+.crt { padding-top: 12px; padding-bottom: 14px; }
+h1 { font-size: 24px; }
+header { margin-bottom: 6px; }
+.level-bar { margin-top: 3px; }
+.modes { margin-top: 6px; }
+.mode-info { margin-top: 4px; }
+.difficulty { margin-top: 6px; }
+.difficulty button { padding-top: 4px; padding-bottom: 4px; }
+.hud { margin: 8px 0; }
+.stat { padding-top: 4px; padding-bottom: 4px; }
+.message { margin-top: 4px; }
+.controls { margin-top: 6px; }
+.free-exploit-btn { padding-top: 6px; padding-bottom: 6px; }
 /* Themed scrollbars for the settings and RECORDS panels (the side columns get theirs on desktop) */
 .settings::-webkit-scrollbar,
 .records::-webkit-scrollbar { width: 6px; }
@@ -1805,15 +1823,11 @@ body.cards-in-settings .settings .dev-link { display: inline-flex; margin-top: 6
 .hud .stat .value { font-size: 16px; margin-top: 0; }
 .hud .bit-sq { width: 30px; height: 30px; margin-top: 2px; font-size: 15px; }
 .stat.keylogger .bit-row .bit-sq { width: 26px; height: 26px; font-size: 12px; }
-/* On phones all five boxes share one row, even with NEXT showing (Easy) */
-@media (max-width: 480px) {
-  .hud { gap: 5px; }
-  .hud .stat { min-width: 0; padding-left: 2px; padding-right: 2px; }
-  .hud-bits { gap: 5px; }
-  .hud-bits.has-next { flex: 2 1 110px; }
-  .hud .stat .label { font-size: 8px; letter-spacing: 0.5px; }
-}
-
+/* All five boxes share one row, even with NEXT showing (Easy) */
+.hud .stat { min-width: 0; padding-left: 2px; padding-right: 2px; }
+.hud-bits { gap: 5px; }
+.hud-bits.has-next { flex: 2 1 110px; }
+.hud .stat .label { font-size: 8px; letter-spacing: 0.5px; }
 /* Phones and the app: the game card fills the screen height with the same 16px gap at the top and
    bottom as at the sides; its contents center vertically inside it */
 body.cards-in-settings { padding: 16px; height: 100vh; height: 100dvh; height: var(--app-h, 100dvh); min-height: 0; }
