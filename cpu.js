@@ -106,12 +106,16 @@ const CpuBoard = (() => {
 
   // Lives for one VS match. rnd: the CPU's random stream; bits(): its next bit; layerEvery:
   // drops between rising layer rows (0 for none), as on your board.
-  function create(levelId, rnd, bits, layerEvery = 0, botId = 'bot') {
+  // exploits: the EXPLOITS setting. The CPU earns one with a chain of 3 or more and uses it when
+  // it pays off: WORM VIRUS wipes its tallest column, DICTIONARY ATTACK peels every layer by one.
+  function create(levelId, rnd, bits, layerEvery = 0, botId = 'bot', exploits = false) {
     let drops = 0;
     const level = LEVELS[levelId] || LEVELS.normal;
     const bot = BOTS[botId] || BOTS.bot;
     const rollDelay = () => level.delay * bot.speed * (bot.erratic ? 0.55 + rnd() * 0.9 : 1);
     let nextDelay = rollDelay();
+    let held = null; // an exploit waiting to be used
+    let used = null; // the one used on the last move (for script.js to announce)
     let columns = Array.from({ length: COLS }, () => []);
     let current = bits();
     let upcoming = bits();
@@ -161,14 +165,44 @@ const CpuBoard = (() => {
         frames = [];
         return out;
       },
+      held: () => held,
+      used: () => used,
       step() {
         if (dead) return 0;
+        used = null;
+        // An exploit when it pays off: the worm once a column is getting tall, the dictionary
+        // once there are layers to peel
+        if (held) {
+          const tallest = Math.max(...columns.map((c) => c.length));
+          const layers = columns.reduce((n, c) => n + c.filter((b) => b && b.type === 'firewall').length, 0);
+          if (held === 'worm-virus' && tallest >= ROWS - 2) {
+            const c = columns.findIndex((col) => col.length === tallest);
+            record({ pops: columns[c].map((_, r) => [r, c]) });
+            columns[c] = [];
+            record({ settled: true });
+            used = held;
+          } else if (held === 'dictionary-attack' && layers >= 4) {
+            const peeled = [];
+            columns.forEach((col, c) => col.forEach((b, r) => {
+              if (!b || b.type !== 'firewall') return;
+              b.level--;
+              if (b.level <= 0) col[r] = { type: 'number', val: reveal() };
+              peeled.push([r, c]);
+            }));
+            record({ peeled });
+            score += resolve(columns, reveal, record).points;
+            used = held;
+          }
+          if (used) held = null;
+        }
         const col = chooseColumn();
         nextDelay = rollDelay();
         record({ fall: { col, row: columns[col].length, val: current } });
         columns[col].push({ type: 'number', val: current });
         record({ landed: [[columns[col].length - 1, col]] });
-        let { points } = resolve(columns, reveal, record);
+        const first = resolve(columns, reveal, record);
+        let { points } = first;
+        if (exploits && !held && first.chain >= 3) held = rnd() < 0.5 ? 'worm-virus' : 'dictionary-attack';
         drops++;
         if (layerEvery && drops % layerEvery === 0 && !overflowed(columns)) {
           // A row of two-peel layers rises under every column

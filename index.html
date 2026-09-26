@@ -22,7 +22,7 @@
   } catch (e) {}
 </script>
 <title>BYTEFALL // decryption terminal</title>
-<link rel="stylesheet" href="style.css?v=152">
+<link rel="stylesheet" href="style.css?v=153">
 </head>
 <body>
   <main class="cabinet">
@@ -249,20 +249,20 @@
         <div class="stat cpu-face" id="cpu-face" hidden data-mood="idle" data-level="normal" data-bot="bot" aria-hidden="true">
           <svg class="cpu-bot" viewBox="0 0 16 17" shape-rendering="crispEdges">
             <defs>
-              <!-- Mosaic filters for switching bots: sample one pixel per 2x2 / 4x4 block, grow it to fill the block -->
+              <!-- Mosaic filters for switching bots: sample one pixel per 1.5 / 2 unit block, grow it to fill the block -->
               <filter id="bot-pix2" x="-3" y="-3" width="22" height="23" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse">
+                <feFlood x="0" y="0" width="1" height="1" flood-color="#000"/>
+                <feComposite width="1.5" height="1.5"/>
+                <feTile result="grid"/>
+                <feComposite in="SourceGraphic" in2="grid" operator="in"/>
+                <feMorphology operator="dilate" radius="0.75"/>
+              </filter>
+              <filter id="bot-pix4" x="-3" y="-3" width="22" height="23" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse">
                 <feFlood x="0" y="0" width="1" height="1" flood-color="#000"/>
                 <feComposite width="2" height="2"/>
                 <feTile result="grid"/>
                 <feComposite in="SourceGraphic" in2="grid" operator="in"/>
                 <feMorphology operator="dilate" radius="1"/>
-              </filter>
-              <filter id="bot-pix4" x="-3" y="-3" width="22" height="23" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse">
-                <feFlood x="0" y="0" width="1" height="1" flood-color="#000"/>
-                <feComposite width="4" height="4"/>
-                <feTile result="grid"/>
-                <feComposite in="SourceGraphic" in2="grid" operator="in"/>
-                <feMorphology operator="dilate" radius="2"/>
               </filter>
             </defs>
             <g class="bot-swap">
@@ -302,6 +302,7 @@
                 <g class="eyes eyes-squint"><rect x="5" y="7" width="2" height="1"/><rect x="9" y="7" width="2" height="1"/></g>
                 <g class="eyes eyes-hit"><rect x="5" y="5" width="1" height="1"/><rect x="6" y="6" width="1" height="1"/><rect x="5" y="7" width="1" height="1"/><rect x="10" y="5" width="1" height="1"/><rect x="9" y="6" width="1" height="1"/><rect x="10" y="7" width="1" height="1"/></g>
                 <g class="eyes eyes-wide"><rect x="5" y="5" width="2" height="3"/><rect x="9" y="5" width="2" height="3"/></g>
+                <g class="eyes eyes-devious"><rect x="4" y="5" width="3" height="1"/><rect x="11" y="4" width="1" height="1"/><rect x="10" y="5" width="1" height="1"/><rect x="5" y="7" width="2" height="1"/><rect x="9" y="7" width="2" height="1"/></g>
                 <g class="eyes eyes-annoyed"><rect x="4" y="7" width="3" height="1"/><rect x="9" y="7" width="3" height="1"/></g>
                 <g class="eyes eyes-angry"><rect x="4" y="5" width="1" height="1"/><rect x="5" y="6" width="2" height="1"/><rect x="5" y="7" width="2" height="1"/><rect x="11" y="5" width="1" height="1"/><rect x="9" y="6" width="2" height="1"/><rect x="9" y="7" width="2" height="1"/></g>
                 <rect class="mouth mouth-open" x="7" y="10" width="2" height="1"/>
@@ -310,6 +311,7 @@
                 <g class="mouth mouth-smile"><rect x="5" y="10" width="1" height="1"/><rect x="6" y="11" width="4" height="1"/><rect x="10" y="10" width="1" height="1"/></g>
                 <g class="mouth mouth-frown"><rect x="5" y="11" width="1" height="1"/><rect x="6" y="10" width="4" height="1"/><rect x="10" y="11" width="1" height="1"/></g>
                 <rect class="mouth mouth-under" x="7" y="11" width="2" height="1"/>
+                <g class="mouth mouth-grin"><rect x="4" y="9" width="1" height="1"/><rect x="5" y="10" width="6" height="1"/><rect x="11" y="9" width="1" height="1"/></g>
                 <g class="mouth mouth-teeth"><rect x="5" y="10" width="6" height="2"/></g>
               </g>
               <rect class="sweat" x="13" y="3" width="1" height="2"/>
@@ -350,6 +352,7 @@
           <!-- VS CPU: pick the opponent, then START (it bursts apart; it comes back after the match) -->
           <div class="vs-setup" id="vs-setup" hidden>
             <canvas class="vs-setup-bg" id="vs-setup-bg" aria-hidden="true"></canvas>
+            <p class="vs-setup-msg" id="vs-setup-msg" aria-live="polite"></p>
             <p class="vs-setup-title">// VS CPU</p>
             <p class="vs-setup-note">Your chains send encrypted blocks onto the CPU's board; its chains send them onto yours. First to overflow loses. Press and hold the CPU's board to see it full size.</p>
           <div class="difficulty vs-bots" id="vs-bots" role="group" aria-label="Opponent">
@@ -366,6 +369,9 @@
           </div>
           <div class="difficulty" id="vs-layers-row">
             <button type="button" id="vs-layers-btn">ENCRYPTED LAYERS: ON</button>
+          </div>
+          <div class="difficulty" id="vs-exploits-row">
+            <button type="button" id="vs-exploits-btn">EXPLOITS: OFF</button>
           </div>
           <button type="button" class="vs-start" id="vs-start">START</button>
           </div>
@@ -430,26 +436,26 @@
     </div>
   </div>
 
-  <script src="unlocks.js?v=152"></script>
-  <script src="progress.js?v=152"></script>
-  <script src="sfx.js?v=152"></script>
-  <script src="music-bytefall-theme.js?v=152"></script>
-  <script src="music-sleep-mode.js?v=152"></script>
-  <script src="music-brute-force.js?v=152"></script>
-  <script src="music-deep-web.js?v=152"></script>
-  <script src="music-zero-day.js?v=152"></script>
-  <script src="music-system-restore.js?v=152"></script>
-  <script src="music-night-drive.js?v=152"></script>
-  <script src="music-standby-mode.js?v=152"></script>
-  <script src="music-core-dump.js?v=152"></script>
-  <script src="music-handshake.js?v=152"></script>
-  <script src="music.js?v=152"></script>
-  <script src="puzzles.js?v=152"></script>
-  <script src="daily-puzzles.js?v=152"></script>
-  <script src="cpu.js?v=152"></script>
-  <script src="fx.js?v=152"></script>
-  <script src="viz.js?v=152"></script>
-  <script src="script.js?v=152"></script>
-  <script src="grid-bg.js?v=152"></script>
+  <script src="unlocks.js?v=153"></script>
+  <script src="progress.js?v=153"></script>
+  <script src="sfx.js?v=153"></script>
+  <script src="music-bytefall-theme.js?v=153"></script>
+  <script src="music-sleep-mode.js?v=153"></script>
+  <script src="music-brute-force.js?v=153"></script>
+  <script src="music-deep-web.js?v=153"></script>
+  <script src="music-zero-day.js?v=153"></script>
+  <script src="music-system-restore.js?v=153"></script>
+  <script src="music-night-drive.js?v=153"></script>
+  <script src="music-standby-mode.js?v=153"></script>
+  <script src="music-core-dump.js?v=153"></script>
+  <script src="music-handshake.js?v=153"></script>
+  <script src="music.js?v=153"></script>
+  <script src="puzzles.js?v=153"></script>
+  <script src="daily-puzzles.js?v=153"></script>
+  <script src="cpu.js?v=153"></script>
+  <script src="fx.js?v=153"></script>
+  <script src="viz.js?v=153"></script>
+  <script src="script.js?v=153"></script>
+  <script src="grid-bg.js?v=153"></script>
 </body>
 </html>

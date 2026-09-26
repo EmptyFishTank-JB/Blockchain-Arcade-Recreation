@@ -1055,7 +1055,7 @@ body.vs-mode .stat-best { display: none; }
 
 .difficulty#daily-kinds, .difficulty#vs-levels { gap: 6px; }
 .difficulty#daily-kinds button, .difficulty#vs-levels button { padding-left: 10px; padding-right: 10px; }
-.difficulty#vs-levels button, #vs-layers-btn { white-space: nowrap; padding-left: 8px; padding-right: 8px; }
+.difficulty#vs-levels button, #vs-layers-btn, #vs-exploits-btn { white-space: nowrap; padding-left: 8px; padding-right: 8px; }
 /* VS CPU: the opponent's mini board, the incoming-garbage badge, and a slimmer header */
 /* The CPU's board: a small copy of the grid with its numbers */
 .cpu-stat { cursor: zoom-in; user-select: none; -webkit-user-select: none; touch-action: none; }
@@ -1964,7 +1964,8 @@ body.vs-mode .cpu-face:not([hidden]) { display: flex; flex-direction: column; al
 .cpu-face[data-mood="worried"] :is(.eyes-wide, .mouth-flat, .sweat),
 .cpu-face[data-mood="dead"] :is(.eyes-x, .mouth-flat),
 .cpu-face[data-mood="smug"] :is(.eyes-squint, .mouth-smirk),
-.cpu-face[data-mood="annoyed"] :is(.eyes-annoyed, .mouth-under) { display: inline; }
+.cpu-face[data-mood="annoyed"] :is(.eyes-annoyed, .mouth-under),
+.cpu-face[data-mood="devious"] :is(.eyes-devious, .mouth-grin) { display: inline; }
 .bot-say { font-size: 9px; letter-spacing: 1px; color: var(--fg-dim); min-height: 1em; white-space: nowrap; }
 .cpu-face[data-mood="happy"] .bot-say, .cpu-face[data-mood="smug"] .bot-say { color: var(--bot); }
 .cpu-face:is([data-mood="hit"], [data-mood="worried"], [data-mood="dead"]) .bot-say,
@@ -1995,6 +1996,10 @@ body.vs-mode .cpu-face:not([hidden]) { display: flex; flex-direction: column; al
   66% { filter: url(#bot-pix2); opacity: 1; }
   100% { filter: none; opacity: 1; }
 }
+/* Devious (holding an exploit, or EXPLOITS switched on): a slow, scheming sway */
+.cpu-face[data-mood="devious"] .bot { animation: bot-scheme 1.6s ease-in-out infinite; transform-origin: 8px 14px; }
+.cpu-face[data-mood="devious"] .bot-say { color: var(--bot); }
+@keyframes bot-scheme { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
 /* Annoyed (-_-): a slow, flat-footed tap */
 .cpu-face[data-mood="annoyed"] .leg-b { animation: bot-step 0.6s steps(1) infinite; }
 .cpu-face[data-bot="glitch"] .slice-a { animation: bot-slip 1.7s steps(1) infinite; }
@@ -2013,4 +2018,13 @@ body.vs-mode .overlay { background: transparent; }
 /* The opponent and level pickers: four buttons a row, on one line */
 .vs-setup .difficulty { flex-wrap: nowrap; gap: 4px; }
 .vs-setup .difficulty button { padding: 5px 6px; font-size: 11px; letter-spacing: 1px; white-space: nowrap; }
-.vs-setup #vs-layers-row button { font-size: 12px; padding: 6px 10px; }
+.vs-setup :is(#vs-layers-row, #vs-exploits-row) button { font-size: 12px; padding: 6px 10px; }
+
+/* VS setup: a notice above the title (a locked bot or level), fading in and pulsing like the
+   game's warnings, then bursting into pixels (script.js) */
+.vs-setup-msg { margin: 0; min-height: 1.3em; max-width: 100%; white-space: nowrap; overflow: hidden; font-size: 12px; letter-spacing: 1px; color: var(--accent); text-shadow: 0 0 6px var(--accent); visibility: hidden; }
+.vs-setup-msg.show { visibility: visible; animation: alarm-in 0.25s ease-out, warn-pulse 1s ease-in-out 0.25s infinite; }
+
+/* Tablets and phones: no double-tap zoom (it threw the layout off on iPad) */
+html { touch-action: manipulation; }
+.cpu-stat { overflow: hidden; }

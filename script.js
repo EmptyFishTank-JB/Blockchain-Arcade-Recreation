@@ -156,7 +156,7 @@ const MODES = {
     label: 'VS CPU',
     // Rising layers are optional in VS (the LAYERS toggle); both boards get them when on
     get noLayers() { return !vsLayers; },
-    noHacks: true,
+    get noHacks() { return !vsExploits; }, // the EXPLOITS setting
     info: () => `VS CPU // ${CpuBoard.BOTS[vsBot].label} // ${CpuBoard.LEVELS[vsLevel].label} // LAYERS ${vsLayers ? 'ON' : 'OFF'}: your chains send encrypted blocks onto the CPU's board, and its chains send them onto yours. Your chains cancel blocks headed your way first. The first to overflow loses. The CPU starts with your first drop.`,
   },
   breach: {
@@ -186,6 +186,7 @@ if (!vsLevelOpen(vsLevel)) vsLevel = 'normal';
 if (!vsBotOpen(vsBot)) vsBot = 'bot';
 const vsName = () => `${CpuBoard.BOTS[vsBot].label === 'BOT' ? '' : `${CpuBoard.BOTS[vsBot].label} `}${CpuBoard.LEVELS[vsLevel].label} CPU`;
 let vsLayers = storage.get('bytefall-vs-layers') !== 'off'; // new layer rows every 8 drops, for both boards
+let vsExploits = storage.get('bytefall-vs-exploits') === 'on'; // exploits for both sides (the CPU's: cpu.js)
 let topMode = TOP_MODES.includes(storage.get('bytefall-mode')) ? storage.get('bytefall-mode') : 'classic';
 let dailyKind = DAILY_KINDS[storage.get('bytefall-daily-kind')] ? storage.get('bytefall-daily-kind') : 'decrypt';
 let daily = false;
@@ -528,14 +529,16 @@ function fitBoard() {
 // plus a cheap poll, refitting the board whenever anything changed.
 function viewportHeight() {
   const vv = window.visualViewport;
-  const heights = [window.innerHeight, document.documentElement.clientHeight];
+  const heights = [document.documentElement.clientHeight];
+  // (zoomed in, innerHeight and the visual viewport shrink with the zoom: use the page's size)
   if (vv) heights.push(vv.height * vv.scale);
+  if (!vv || Math.abs(vv.scale - 1) < 0.01) heights.push(window.innerHeight);
   return Math.floor(Math.min(...heights.filter((h) => h > 0)));
 }
 let viewportKey = '';
 function checkViewport(force) {
   const h = viewportHeight();
-  const key = `${window.innerWidth}x${h}`;
+  const key = `${document.documentElement.clientWidth}x${h}`;
   if (!force && key === viewportKey) return;
   viewportKey = key;
   document.documentElement.style.setProperty('--app-h', `${h}px`);
@@ -1523,6 +1526,15 @@ vsLayersBtn.addEventListener('click', () => {
     botMood('annoyed', 2200); // -_- : still not playing
   });
 });
+const vsExploitsBtn = document.getElementById('vs-exploits-btn');
+vsExploitsBtn.addEventListener('click', () => {
+  requestReset(vsExploitsBtn, 'CONFIRM?', () => {
+    vsExploits = !vsExploits;
+    storage.set('bytefall-vs-exploits', vsExploits ? 'on' : 'off');
+    // Exploits on: the bot starts scheming; off: -_-
+    botMood(vsExploits ? 'devious' : 'annoyed', vsExploits ? 2600 : 2200);
+  });
+});
 
 // VS CPU's opponent level
 document.querySelectorAll('#vs-levels button[data-vs]').forEach((btn) => {
@@ -1531,16 +1543,36 @@ document.querySelectorAll('#vs-levels button[data-vs]').forEach((btn) => {
     if (next === vsLevel) return;
     if (!vsLevelOpen(next)) {
       SFX.play('denied');
-      showToast(`LOCKED // ${Progress.unlock(`vs-${next}`).need.toUpperCase()}`);
+      vsNotice(`LOCKED // ${Progress.unlock(`vs-${next}`).need.toUpperCase()}`);
       return;
     }
     requestReset(btn, 'CONFIRM?', () => {
       vsLevel = next;
       storage.set('bytefall-vs-level', next);
-      botMood('annoyed', 2200); // -_- : still not playing
     });
   });
 });
+
+// A notice above the setup's title (a locked bot or level): it fades in and pulses like the
+// game's warnings, then bursts into pixels
+let vsNoticeTimer = 0;
+function vsNotice(text) {
+  const el = document.getElementById('vs-setup-msg');
+  clearTimeout(vsNoticeTimer);
+  el.classList.remove('show');
+  void el.offsetWidth;
+  el.textContent = text;
+  el.style.fontSize = '';
+  let size = parseFloat(getComputedStyle(el).fontSize);
+  while (el.scrollWidth > el.clientWidth && size > 7) el.style.fontSize = `${(size -= 0.5)}px`; // one line
+  el.classList.add('show');
+  vsNoticeTimer = setTimeout(() => {
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    FX.burst([{ rect: range.getBoundingClientRect(), type: 'warning' }]);
+    el.classList.remove('show');
+  }, 2200);
+}
 
 // VS CPU's opponent: which bot (its look, lines and play style)
 document.querySelectorAll('#vs-bots button[data-bot]').forEach((btn) => {
@@ -1549,13 +1581,12 @@ document.querySelectorAll('#vs-bots button[data-bot]').forEach((btn) => {
     if (next === vsBot) return;
     if (!vsBotOpen(next)) {
       SFX.play('denied');
-      showToast(`LOCKED // ${Progress.unlock(`bot-${next}`).need.toUpperCase()}`);
+      vsNotice(`LOCKED // ${Progress.unlock(`bot-${next}`).need.toUpperCase()}`);
       return;
     }
     requestReset(btn, 'CONFIRM?', () => {
       vsBot = next;
       storage.set('bytefall-vs-bot', next);
-      botMood('annoyed', 2400); // the new bot arrives -_-
     });
   });
 });
@@ -1607,6 +1638,8 @@ function applyModeUi() {
   });
   vsLayersBtn.textContent = `ENCRYPTED LAYERS: ${vsLayers ? 'ON' : 'OFF'}`;
   vsLayersBtn.classList.toggle('active', vsLayers);
+  vsExploitsBtn.textContent = `EXPLOITS: ${vsExploits ? 'ON' : 'OFF'}`;
+  vsExploitsBtn.classList.toggle('active', vsExploits);
   document.body.classList.toggle('vs-mode', mode === 'vs'); // a slimmer header, room for the boards
   // (VS keeps it with layers off, dimmed, so nothing shifts when the option changes)
   document.getElementById('pulse-stat').hidden = !!MODES[mode].noLayers && mode !== 'puzzle' && mode !== 'breach' && mode !== 'vs';
@@ -1690,7 +1723,7 @@ function startVs() {
   }
   const rnd = seeded(hashString(`bytefall:vs:${vsSeed}:cpu`));
   const bits = seeded(hashString(`bytefall:vs:${vsSeed}:queue`)); // the same bits you get
-  cpu = CpuBoard.create(vsLevel, rnd, () => 1 + Math.floor(bits() * CpuBoard.COLS), vsLayers ? BASE_INTERVAL : 0, vsBot);
+  cpu = CpuBoard.create(vsLevel, rnd, () => 1 + Math.floor(bits() * CpuBoard.COLS), vsLayers ? BASE_INTERVAL : 0, vsBot, vsExploits);
   cpuFrames = []; // (a new match: nothing of the last one left to play)
   showVs();
 }
@@ -1748,6 +1781,14 @@ function cpuMove() {
   const scored = cpu.step();
   sendToPlayer(vsBlocks(scored));
   if (scored > 0) botMood('happy', 1100);
+  if (cpu.used()) {
+    botMood('happy', 1400);
+    const note = `${CpuBoard.BOTS[vsBot].label} // ${HACKS[cpu.used()].name}`;
+    if (!busy) {
+      setMessage(note, 'warn');
+      setTimeout(() => { if (messageEl.textContent === note) setMessage(''); }, 1800);
+    }
+  }
   if (cpuPending > 0 && !cpu.isDead()) {
     const n = Math.min(cpuPending, VS_MAX_BLOCKS);
     cpuPending -= n;
@@ -1901,10 +1942,10 @@ const botSayEl = document.getElementById('bot-say');
 // Its lines: at rest by level, and each bot's own for the rest
 const BOT_REST = { easy: 'HI!', normal: 'READY', hard: 'GRR', insane: 'KILL -9' };
 const BOT_LINES = {
-  bot: { think: '...', happy: 'HA!', hit: 'OOF', worried: 'UH OH', dead: 'ERR', smug: 'GG', annoyed: 'ANY DAY NOW' },
-  grifter: { think: 'HMM', happy: 'MINE!', hit: 'HEY!', worried: 'NO NO', dead: 'BROKE', smug: 'PAY UP', annoyed: 'TICK TOCK' },
-  bunker: { think: '...', happy: 'STEADY', hit: 'HOLD', worried: 'BRACE', dead: 'BREACH', smug: 'SECURE', annoyed: 'WAITING' },
-  glitch: { think: '?#@', happy: 'H4H4', hit: 'ERR0R', worried: 'W4RN', dead: 'NULL', smug: 'G_G', annoyed: '-_-' },
+  bot: { think: '...', happy: 'HA!', hit: 'OOF', worried: 'UH OH', dead: 'ERR', smug: 'GG', annoyed: 'ANY DAY NOW', devious: 'HEH HEH' },
+  grifter: { think: 'HMM', happy: 'MINE!', hit: 'HEY!', worried: 'NO NO', dead: 'BROKE', smug: 'PAY UP', annoyed: 'TICK TOCK', devious: 'OH YES' },
+  bunker: { think: '...', happy: 'STEADY', hit: 'HOLD', worried: 'BRACE', dead: 'BREACH', smug: 'SECURE', annoyed: 'WAITING', devious: 'PLANNING' },
+  glitch: { think: '?#@', happy: 'H4H4', hit: 'ERR0R', worried: 'W4RN', dead: 'NULL', smug: 'G_G', annoyed: '-_-', devious: '>:)' },
 };
 let botFlash = null; // { mood, until }
 // A new bot picked: the old one pixelates out, then the new one resolves in (0.25s each)
@@ -1934,6 +1975,7 @@ function botMood(flash = null, ms = 900) {
   if (gameOver && vsStarted) mood = cpuDown ? 'dead' : 'smug';
   else if (botFlash && performance.now() < botFlash.until) mood = botFlash.mood;
   else if (cpu && Math.max(...cpu.columns().map((c) => c.length)) >= CpuBoard.ROWS - 1) mood = 'worried';
+  else if (vsStarted && cpu && cpu.held()) mood = 'devious'; // holding an exploit: scheming
   else if (vsStarted && cpu && cpuClock > cpu.delay - 450) mood = 'think';
   cpuFaceEl.dataset.level = vsLevel;
   swapBot();
