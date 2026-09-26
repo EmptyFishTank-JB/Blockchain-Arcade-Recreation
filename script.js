@@ -693,7 +693,14 @@ function updateHud() {
   }
   scoreEl.textContent = score;
   bestEl.textContent = best;
-  if (queue[0]) showPiece(currentEl, queue[0]);
+  // VS before START: the first bit stays hidden, so a refresh or an option change can't be
+  // used to fish for a good one
+  if (mode === 'vs' && !vsStarted) {
+    currentEl.textContent = '[?]';
+    currentEl.classList.remove('hack', 'has-glyph');
+    currentEl.removeAttribute('aria-label');
+    currentEl.title = '';
+  } else if (queue[0]) showPiece(currentEl, queue[0]);
   else {
     currentEl.textContent = '';
     currentEl.classList.remove('hack');
@@ -1762,6 +1769,7 @@ function startMatch() {
   FX.burst([{ el: vsSetupEl, type: 'warning' }]);
   vsSetupEl.hidden = true;
   SFX.play('static');
+  updateHud(); // the first bit shows
 }
 document.getElementById('vs-start').addEventListener('click', startMatch);
 
