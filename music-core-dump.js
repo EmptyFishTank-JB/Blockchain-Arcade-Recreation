@@ -4,7 +4,8 @@
 // Synthesized live with Web Audio like the other tracks.
 // 32-bar loop: segfault (tremolo riff, then blasts), stack trace (gallop chugs and the lead),
 // overflow (sweep arpeggios over blasts), core dump (half-time breakdown, glitch stutter out).
-// schedule() takes an intensity from 0 to 1 and an optional solo layer id.
+// schedule() takes an intensity from 0 to 1 and an optional solo layer id. ARCHIVED layers were
+// taken out; TRIAL layers are candidates to try on the dev page. The game plays neither.
 function createCoreDump(ctx, out) {
   const BPM = 190;
   const STEP = 60 / BPM / 4;
@@ -47,8 +48,18 @@ function createCoreDump(ctx, out) {
     { id: 'china', label: 'China cymbal on every beat', from: 0.05, span: 0.25 },
     { id: 'sweeps', label: 'Sweep arpeggios an octave up over the riffs', from: 0.4, span: 0.25 },
     { id: 'harmony', label: 'The lead harmonized a fifth up, and the breakdown chugs doubled an octave up', from: 0.4, span: 0.25 },
-    { id: 'glitch', label: 'A glitching "core dump" alarm', from: 0.72, span: 0.25 },
+    { id: 'glitch', label: 'The original: a glitching "core dump" alarm on beats 1 and 3', from: 0.72, span: 0.25, archived: true },
+    // TRIAL layers: candidates to audition on the dev page (PLAY adds one to the mix); the game
+    // leaves them out until they're picked
+    { id: 'pinch', label: 'Pinch-harmonic squeals bending up off the open chugs', from: 0.72, span: 0.25, trial: true },
+    { id: 'blastfill', label: '32nd-note kick and snare fills at the end of every 4th bar', from: 0.4, span: 0.25, trial: true },
+    { id: 'noodle', label: 'An alien high lead: harmonic-minor 8ths with an echo, over the tremolo riff and the breakdown', from: 0.72, span: 0.25, trial: true },
+    { id: 'bassdrop', label: 'A sub-bass drop into each section and under the breakdown\'s dives', from: 0.4, span: 0.25, trial: true },
   ];
+  // ARCHIVED and TRIAL layers stay here for the dev page's audio compendium but the game never plays them
+  const DEFAULT_MUTED = LAYERS.filter((l) => l.archived || l.trial).map((l) => l.id);
+  // The noodle lead: harmonic minor, falling and rising (8ths)
+  const NOODLE = [93, 92, 89, 88, 84, 83, 80, 81, 84, 88, 89, 92, 93, 96, 92, 88];
 
   const bus = ctx.createGain();
   bus.gain.value = 0.24;
@@ -143,7 +154,7 @@ function createCoreDump(ctx, out) {
   }
 
   const ride = (t, level = 1) => noise(t, NOISE_HIGH, 0.035 * level, 0.04, 7500);
-  const china = (t, level = 1) => noise(t, NOISE_MID, 0.08 * level, 0.3, 3500);
+  const china = (t, level = 1) => noise(t, NOISE_MID, 0.05 * level, 0.28, 3500);
   const crash = (t) => noise(t, NOISE_HIGH, 0.09, 0.9, 4000);
 
   function pulse(t, m, dur, level, duty, dest = bus) {
@@ -177,10 +188,41 @@ function createCoreDump(ctx, out) {
 
   const bass = (t, m, dur) => pulse(t, m, dur, 0.09, 50);
 
+  // A sub-bass drop: a sine falling from 90 to 28 Hz
+  function subDrop(t, level) {
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(90, t);
+    osc.frequency.exponentialRampToValueAtTime(28, t + 1.1);
+    osc.connect(envGain(t, 0.55 * level, 1.2, bus));
+    osc.start(t); osc.stop(t + 1.25);
+  }
+
+  // A pinch harmonic: a squeal two octaves and a fifth up, bending up a whole step with vibrato
+  function pinch(t, m, level) {
+    const osc = ctx.createOscillator();
+    osc.setPeriodicWave(DUTY[25]);
+    osc.frequency.setValueAtTime(freq(m), t);
+    osc.frequency.exponentialRampToValueAtTime(freq(m + 2), t + STEP * 2);
+    const vib = ctx.createOscillator();
+    vib.frequency.value = 7;
+    const depth = ctx.createGain();
+    depth.gain.value = freq(m) * 0.02;
+    vib.connect(depth); depth.connect(osc.frequency);
+    const env = ctx.createGain();
+    env.gain.setValueAtTime(level, t);
+    env.gain.linearRampToValueAtTime(level * 0.6, t + STEP * 3);
+    env.gain.linearRampToValueAtTime(0, t + STEP * 4);
+    osc.connect(env); env.connect(gtrIn);
+    osc.start(t); osc.stop(t + STEP * 4 + 0.01);
+    vib.start(t); vib.stop(t + STEP * 4 + 0.01);
+  }
+
   return {
     step: STEP,
     loopSteps: 32 * 16,
     layers: LAYERS,
+    defaultMuted: DEFAULT_MUTED,
     // solo: a layer id to hear that layer alone at full strength; muted: layer ids to leave out
     // (both from the dev page)
     schedule(step, t, intensity = 0, solo = null, muted = null) {
@@ -188,7 +230,7 @@ function createCoreDump(ctx, out) {
       for (const { id, from, span } of LAYERS) {
         L[id] = solo ? Number(id === solo) : Math.max(0, Math.min(1, (intensity - from) / span));
       }
-      if (muted && !solo) for (const id of muted) L[id] = 0; // dev page MUTE buttons
+      for (const id of muted || DEFAULT_MUTED) if (!solo) L[id] = 0; // the game leaves ARCHIVED and TRIAL layers out; dev page: its MUTE buttons
       const base = !solo;
       const bar = Math.floor(step / 16) % 32;
       const section = Math.floor(bar / 8); // 0 segfault, 1 stack trace, 2 overflow, 3 core dump
@@ -225,7 +267,7 @@ function createCoreDump(ctx, out) {
           if (start !== s) continue;
           const dur = len * STEP * 0.95;
           if (base) lead(t, m, dur, 0.05);
-          if (L.harmony > 0) lead(t, m + 7, dur, 0.045 * L.harmony);
+          if (L.harmony > 0) lead(t, m + 7, dur, 0.07 * L.harmony);
         }
       } else if (section === 2) {
         // OVERFLOW: 32nd-note sweep arpeggios over blast beats
@@ -251,11 +293,11 @@ function createCoreDump(ctx, out) {
         } else if (dive) {
           if (base || solo === 'drive') guitar(t, root + 12, STEP * 4, g * 1.2, true);
           if (base) { kick(t); china(t); }
-          if (L.harmony > 0) guitar(t, root + 24, STEP * 4, g * 0.5 * L.harmony, true);
+          if (L.harmony > 0) guitar(t, root + 24, STEP * 4, g * 0.85 * L.harmony, true);
         } else if (BREAKDOWN.includes(s) && !(s > 12 && (i === 3 || i === 7))) {
           if (base || solo === 'drive') guitar(t, root, STEP * 1.4, g * 1.15);
           if (base) kick(t);
-          if (L.harmony > 0) guitar(t, root + 12, STEP * 1.4, g * 0.5 * L.harmony);
+          if (L.harmony > 0) guitar(t, root + 12, STEP * 1.4, g * 0.85 * L.harmony);
         }
         if (base && !glitchOut) {
           if (s === 8) snare(t);
@@ -266,16 +308,39 @@ function createCoreDump(ctx, out) {
       }
 
       // China on every beat (where the breakdown doesn't already hit it)
-      if (L.china > 0 && s % 4 === 0 && !booting && !(section === 3 && s === 0)) china(t, 0.7 * L.china);
+      if (L.china > 0 && s % 4 === 0 && !booting && !(section === 3 && s === 0)) china(t, 0.6 * L.china);
 
       // Sweep arpeggios an octave up over the riffs (the sweeps section already has its own)
       if (L.sweeps > 0 && section !== 2 && !booting) {
         const chord = section === 1 ? [TRACE_ROOTS[i] + 36, TRACE_ROOTS[i] + 39, TRACE_ROOTS[i] + 43] : SWEEP_CHORDS[i % 2 ? 6 : 0];
         const tones = sweepTones(chord);
-        pulse(t, tones[s % 12] + 12, STEP * 0.9, 0.05 * L.sweeps, 12);
+        pulse(t, tones[s % 12] + 12, STEP * 0.9, 0.085 * L.sweeps, 12);
       }
 
-      // The "core dump" alarm: a glitchy triple blip on beats 1 and 3
+      // TRIAL: pinch harmonics off the open chugs (stack trace's beats 1 and 3, the breakdown's
+      // first chug of every other bar and its dives)
+      if (L.pinch > 0) {
+        const open = section === 1 && (s === 0 || s === 8) && i % 2 === 1;
+        const drop = section === 3 && ((s === 0 && i % 2 === 1) || ((i === 3 || i === 7) && s === 12));
+        if (open || drop) pinch(t, (section === 1 ? TRACE_ROOTS[i] : DUMP_ROOTS[i]) + 43, 0.06 * L.pinch);
+      }
+      // TRIAL: 32nd-note fills on the last beat of every 4th bar (outside the blast sections)
+      if (L.blastfill > 0 && i % 4 === 3 && s >= 12 && (section === 1 || section === 3) && !(bar === 31)) {
+        kick(t, 0.8 * L.blastfill); kick(t + STEP / 2, 0.7 * L.blastfill);
+        snare(t + STEP / 4, 0.5 * L.blastfill); snare(t + STEP * 3 / 4, 0.6 * L.blastfill);
+      }
+      // TRIAL: the noodle lead, 8ths with a quieter echo three 16ths later
+      if (L.noodle > 0 && s % 2 === 0 && ((section === 0 && i >= 4) || section === 3) && bar !== 31) {
+        const m = NOODLE[(i * 8 + s / 2) % NOODLE.length];
+        lead(t, m, STEP * 1.6, 0.075 * L.noodle);
+        pulse(t + STEP * 3, m, STEP * 1.2, 0.03 * L.noodle, 12);
+      }
+      // TRIAL: sub drops into each section and under the breakdown's dives
+      if (L.bassdrop > 0 && ((i === 0 && s === 0 && bar !== 0) || (bar === 2 && s === 0) || (section === 3 && (i === 3 || i === 7) && s === 12))) {
+        subDrop(t, L.bassdrop);
+      }
+
+      // ARCHIVED: the "core dump" alarm, a glitchy triple blip on beats 1 and 3
       if (L.glitch > 0 && (s === 0 || s === 8)) {
         for (let k = 0; k < 3; k++) pulse(t + k * STEP / 3, 96 - k * 5, STEP / 4, 0.07 * L.glitch, 50);
       }
