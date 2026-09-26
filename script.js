@@ -2214,7 +2214,7 @@ function fitFontNames() {
 }
 applyFont();
 
-const PLAYLIST_SLOTS = 10; // unmade tracks show as COMING SOON
+const PLAYLIST_SLOTS = 16; // unmade tracks show as COMING SOON
 const settingsBtn = document.getElementById('settings-btn');
 const settingsEl = document.getElementById('settings');
 const playlistTracksEl = document.getElementById('playlist-tracks');

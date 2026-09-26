@@ -121,9 +121,11 @@ BIT, BITE-SIZED). The font changes all the
 game's text (the particles and the dev page too); the fonts are bundled in
 `fonts/` and scaled so the layout stays the same as in Courier.
 
-**Permanent unlocks:** Hard mode (score 2,000 on Normal) and tracks 02-10
-(125 / 350 / 800 / 1,600 / 3,000 / 5,000 / 7,500 / 11,000 / 15,000 bits decrypted in
-total; 09-10 are still to come).
+**Permanent unlocks:** Hard mode (score 2,000 on Normal) and tracks 02-16
+(125 / 350 / 800 / 1,600 / 3,000 / 5,000 / 7,500 / 11,000 / 15,000 / 20,000 / 26,000 /
+33,000 / 41,000 / 50,000 / 60,000 bits decrypted in total; 10-16 are still to come).
+COLLECTOR, DJ and AUDIOPHILE need all 16 tracks, so they open up once the last
+one is made.
 
 The menu icon (lines / trophy, top left) opens three tabs, each its own card:
 **RULES**, **RECORDS** and **EXPLOITS**. RECORDS has level and DECRYPTOR rank,
@@ -288,6 +290,11 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
   soul ballad at 112 BPM in B♭ major (walking upright bass, finger snaps and
   guiro, clean guitar, a breathy saxophone melody in a warm room reverb;
   standby, signal, connected, hold). Unlocked at 7,500 bits.
+- `music-core-dump.js` — track 09, CORE DUMP: original 8-bit tech-death at
+  190 BPM in A harmonic minor (distorted pulse-wave guitars: tremolo riffs,
+  gallop chugs and octave dives; square bass; noise-channel blast beats and a
+  china cymbal; 32nd-note sweep arpeggios; segfault, stack trace, overflow,
+  core dump). Unlocked at 11,000 bits.
 - `dev-tools/audio.html` — the audio compendium, opened by the `</>` icon in
   the footer: every sound effect and track with a play button, where each is
   used in the game, a seekable progress line and a live intensity slider for
@@ -297,7 +304,7 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
   dial-up modem, ZERO DAY's air-raid siren): the game never plays them, and
   here they start muted so they can still be heard
 - `audio/` — offline WAV renders of the music for reference (not loaded by
-  the game). `01-bytefall-theme.wav` through `08-standby-mode.wav` are one full
+  the game). `01-bytefall-theme.wav` through `09-core-dump.wav` are one full
   loop of each track at full intensity (stack 6+, every layer the game plays,
   archived layers left out). Older versions: `bytefall-theme-v1.wav` is the
   original 16-bar theme loop, `bytefall-theme-v2.wav` the first 32-bar

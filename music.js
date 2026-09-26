@@ -24,6 +24,7 @@ const Music = (() => {
     { id: 'system-restore', title: 'SYSTEM RESTORE', create: createSystemRestore },
     { id: 'night-drive', title: 'NIGHT DRIVE', create: createNightDrive },
     { id: 'standby-mode', title: 'STANDBY MODE', create: createStandbyMode },
+    { id: 'core-dump', title: 'CORE DUMP', create: createCoreDump },
   ];
   let enabled = true;
   let backgroundPlay = false;

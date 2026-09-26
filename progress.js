@@ -105,7 +105,7 @@ const Progress = (() => {
   } catch (e) {}
 
   // Tracks 02-10: each roughly 1.5-2.8x the last, so the early ones come quickly
-  const TRACK_BITS = [125, 350, 800, 1600, 3000, 5000, 7500, 11000, 15000];
+  const TRACK_BITS = [125, 350, 800, 1600, 3000, 5000, 7500, 11000, 15000, 20000, 26000, 33000, 41000, 50000, 60000]; // tracks 02-16
 
   const MAX_LEVEL = 80;
   // 100 bits (12.5 bytes) per level. Lv 80 starts at 7,900 bits and its bar fills at 8,000,
@@ -188,7 +188,8 @@ const Progress = (() => {
   const trackIds = UNLOCKS.filter((u) => u.group === 'TRACKS').map((u) => u.id);
   let exploitCount = 7; // set by script.js from HACKS
   let puzzleCount = 30; // set by script.js from PUZZLES
-  let trackCount = 7; // set by script.js from Music.tracks()
+  let trackCount = 7; // the tracks made so far: set by script.js from Music.tracks()
+  const ALL_TRACKS = 16; // the playlist's full length (the music achievements need all of them)
   let themeCount = 10; // set by script.js from THEMES
   let sittingRestarts = 0; // live sessions restarted since the page loaded
   let sittingThemes = 0; // theme changes since the page loaded
@@ -229,7 +230,8 @@ const Progress = (() => {
     { id: 'maxed-out', name: 'MAXED OUT', desc: 'Fill Lv 80 as DECRYPTOR 9', value: () => (d.decryptor >= 10 || (d.decryptor >= 9 && levelInfo().maxed) ? 1 : 0), goal: 1 },
     { id: 'rollover', name: 'ROLLOVER', desc: 'Rank up to DECRYPTOR 1', value: () => d.decryptor, goal: 1 },
     { id: 'full-spectrum', name: 'FULL SPECTRUM', desc: 'Unlock every theme', value: () => themeIds.filter(isUnlocked).length, goal: themeIds.length },
-    { id: 'collector', name: 'COLLECTOR', desc: 'Unlock every music track (15,000 bits)', value: () => trackIds.filter(isUnlocked).length, goal: trackIds.length },
+    // All 16 tracks: only tracks that exist count, so these wait until track 16 is made
+    { id: 'collector', name: 'COLLECTOR', desc: 'Unlock all 16 music tracks', value: () => 1 + trackIds.slice(0, trackCount - 1).filter(isUnlocked).length, goal: ALL_TRACKS },
     // Skill
     { id: 'zero-day', name: 'ZERO-DAY', desc: 'Decrypt a bit with the first drop of a session', value: () => d.firstDropClears, goal: 1 },
     { id: 'surgical', name: 'SURGICAL', desc: '20 drops in a row that each decrypt a bit (exploit drops skip)', value: () => d.bestClearStreak, goal: 20 },
@@ -259,8 +261,8 @@ const Progress = (() => {
     { id: 'insert-coin', name: 'INSERT COIN', desc: 'Play a full session (10+ drops) in the PRESS START font', value: () => (d.fontsPlayed['press-start'] ? 1 : 0), goal: 1 },
     { id: 'bit-by-bit', name: 'BIT BY BIT', desc: 'Play a full session (10+ drops) in the BITCOUNT font', value: () => (d.fontsPlayed.bitcount ? 1 : 0), goal: 1 },
     { id: 'bite-sized', name: 'BITE-SIZED', desc: 'Play a full session (10+ drops) in the BYTESIZED font', value: () => (d.fontsPlayed.bytesized ? 1 : 0), goal: 1 },
-    { id: 'dj', name: 'DJ', desc: 'Listen to every track', value: () => count(d.tracksHeard), goal: () => trackCount },
-    { id: 'audiophile', name: 'AUDIOPHILE', desc: 'Play a full session (10+ drops) on every track', value: () => count(d.tracksPlayed), goal: () => trackCount },
+    { id: 'dj', name: 'DJ', desc: 'Listen to all 16 tracks', value: () => count(d.tracksHeard), goal: ALL_TRACKS },
+    { id: 'audiophile', name: 'AUDIOPHILE', desc: 'Play a full session (10+ drops) on all 16 tracks', value: () => count(d.tracksPlayed), goal: ALL_TRACKS },
     { id: 'chameleon', name: 'CHAMELEON', desc: 'Play a full session (10+ drops) in every theme', value: () => count(d.themesPlayed), goal: () => themeCount },
     { id: 'lv-40', name: 'LV 40', desc: 'Reach level 40', value: () => (d.decryptor > 0 ? 40 : levelInfo().level), goal: 40 },
     { id: 'gigabit', name: 'GIGABIT', desc: 'Decrypt 1,000,000,000 bits', value: () => d.bits, goal: 1000000000, impossible: true },

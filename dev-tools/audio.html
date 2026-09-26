@@ -280,16 +280,17 @@
   <footer>GENERATED FROM SOURCE &mdash; NO AUDIO FILES, ALL SYNTHESIZED ON PLAY</footer>
 </div>
 
-<script src="../sfx.js?v=144"></script>
-<script src="../music-bytefall-theme.js?v=144"></script>
-<script src="../music-sleep-mode.js?v=144"></script>
-<script src="../music-brute-force.js?v=144"></script>
-<script src="../music-deep-web.js?v=144"></script>
-<script src="../music-zero-day.js?v=144"></script>
-<script src="../music-system-restore.js?v=144"></script>
-<script src="../music-night-drive.js?v=144"></script>
-<script src="../music-standby-mode.js?v=144"></script>
-<script src="../viz.js?v=144"></script>
+<script src="../sfx.js?v=145"></script>
+<script src="../music-bytefall-theme.js?v=145"></script>
+<script src="../music-sleep-mode.js?v=145"></script>
+<script src="../music-brute-force.js?v=145"></script>
+<script src="../music-deep-web.js?v=145"></script>
+<script src="../music-zero-day.js?v=145"></script>
+<script src="../music-system-restore.js?v=145"></script>
+<script src="../music-night-drive.js?v=145"></script>
+<script src="../music-standby-mode.js?v=145"></script>
+<script src="../music-core-dump.js?v=145"></script>
+<script src="../viz.js?v=145"></script>
 <script>
 (() => {
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -458,6 +459,17 @@
         ['0:17', 'Signal', 'The saxophone takes the melody.'],
         ['0:34', 'Connected', 'The melody climbs an octave higher.'],
         ['0:51', 'Hold', 'The melody back down, with bluesy slides into each note, then round into the loop.'],
+      ],
+    },
+    {
+      id: 'core-dump', num: '09', title: 'CORE DUMP', create: createCoreDump, file: 'music-core-dump.js',
+      meta: ['8-bit tech-death', '190 BPM', 'A harmonic minor', '32 bars', '~40s loop'],
+      desc: 'Original 8-bit tech-death: distorted pulse-wave guitars (tremolo riffs, palm-muted chugs, open notes diving an octave), a square bass, noise-channel blast beats and a china cymbal, and 32nd-note sweep arpeggios on a thin 12.5% pulse.',
+      sections: [
+        ['0:00', 'Segfault', 'A chromatic tremolo riff alone for two bars, then a snare roll into full blast beats.'],
+        ['0:10', 'Stack trace', 'Galloping chugs over 16th-note double kick, snare on 2 and 4, and a sliding alien lead.'],
+        ['0:20', 'Overflow', 'Sweep arpeggios in 32nds, two octaves up and back (Am–B♭–G♯dim–Am–E), over blasts.'],
+        ['0:30', 'Core dump', 'A half-time breakdown: chugs, china and pitch dives, then a stuttering glitch back into the loop.'],
       ],
     },
   ];
