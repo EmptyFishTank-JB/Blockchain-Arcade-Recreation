@@ -105,6 +105,8 @@ const Progress = (() => {
   } catch (e) {}
 
   // Tracks 02-10: each roughly 1.5-2.8x the last, so the early ones come quickly
+  // Bots to play in VS (BOT is free): [id, name, total wins to unlock]
+  const BOT_ORDER = [['grifter', 'GRIFTER', 3], ['bunker', 'BUNKER', 10], ['glitch', 'GLITCH', 20]];
   const TRACK_BITS = [125, 350, 800, 1600, 3000, 5000, 7500, 11000, 15000, 20000, 26000, 33000, 41000, 50000, 60000]; // tracks 02-16
 
   const MAX_LEVEL = 80;
@@ -171,6 +173,12 @@ const Progress = (() => {
   // group: where it shows in the UNLOCKS list. value() / goal drive its tracker.
   const UNLOCKS = [
     { id: 'mode-hard', group: 'MODE', name: 'HARD MODE', need: 'Score 2,000 on Normal', value: () => best('normal'), goal: 2000 },
+    // VS CPU: the harder CPU levels and more bots, earned by beating it
+    { id: 'vs-hard', group: 'VS CPU', name: 'HARD CPU', need: 'Win 5 VS matches on Normal', value: () => d.vsWins.normal || 0, goal: 5 },
+    { id: 'vs-insane', group: 'VS CPU', name: 'INSANE CPU', need: 'Win 5 VS matches on Hard', value: () => d.vsWins.hard || 0, goal: 5 },
+    ...BOT_ORDER.map(([id, name, goal]) => ({
+      id: `bot-${id}`, group: 'VS CPU', name: `BOT: ${name}`, need: `Win ${goal} VS matches`, value: () => Object.values(d.vsWins).reduce((n, w) => n + w, 0), goal,
+    })),
     ...TRACK_BITS.map((goal, i) => ({
       id: `track-${i + 2}`, group: 'TRACKS', name: `TRACK ${String(i + 2).padStart(2, '0')}`,
       need: `Decrypt ${goal.toLocaleString('en-US')} bits`, value: () => d.bits, goal,

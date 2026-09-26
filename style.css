@@ -1930,42 +1930,57 @@ html.theme-fade *::after {
   transition-timing-function: ease-in-out !important;
 }
 
-/* BOT: the CPU's face in VS, a pixel chip with legs in the theme's color. data-mood (script.js)
-   picks the eyes and mouth: idle (bobs and blinks), think (looks around), happy, hit, worried,
+/* BOT: the CPU's face in VS, a pixel creature with legs. data-bot picks its body and color
+   (BOT, GRIFTER's horns, BUNKER's helmet, GLITCH's slipping slices); data-level its resting face
+   (EASY happy, NORMAL confident, HARD angry, INSANE red-eyed with bared teeth); data-mood
+   (script.js) what it's doing: idle (bobs and blinks), think (looks around), happy, hit, worried,
    dead (you won), smug (it won) */
 .cpu-face { display: none; }
 body.vs-mode .cpu-face:not([hidden]) { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 4px; background: var(--inset-bg); }
 .cpu-bot { width: 78%; max-height: 80%; overflow: visible; }
-.cpu-bot .bot-body { fill: var(--fg); filter: drop-shadow(0 0 1px rgba(var(--fg-rgb), 0.8)); }
+.cpu-face { --bot: var(--fg); --bot-rgb: var(--fg-rgb); }
+.cpu-face[data-bot="grifter"] { --bot: var(--accent); --bot-rgb: var(--accent-rgb); }
+.cpu-face[data-bot="bunker"] { --bot: var(--layer-text); --bot-rgb: var(--layer-rgb); }
+.cpu-face[data-bot="glitch"] { --bot: var(--danger); --bot-rgb: var(--danger-rgb); }
+.cpu-bot .bot-body { fill: var(--bot); filter: drop-shadow(0 0 1px rgba(var(--bot-rgb), 0.8)); }
 .cpu-bot .bot-face { fill: var(--board-bg); }
-.cpu-bot .eyes, .cpu-bot .mouth, .cpu-bot .sweat { display: none; }
+.cpu-bot .shape, .cpu-bot .eyes, .cpu-bot .mouth, .cpu-bot .sweat, .cpu-bot .teeth { display: none; }
+.cpu-face[data-bot="bot"] .shape-bot,
+.cpu-face[data-bot="grifter"] .shape-grifter,
+.cpu-face[data-bot="bunker"] .shape-bunker,
+.cpu-face[data-bot="glitch"] .shape-glitch { display: inline; }
 .cpu-bot .sweat { fill: var(--accent); }
-.bot-say { font-size: 9px; letter-spacing: 1px; color: var(--fg-dim); min-height: 1em; }
-.cpu-face[data-mood="idle"] .eyes-open,
-.cpu-face[data-mood="think"] .eyes-open,
-.cpu-face[data-mood="happy"] .eyes-happy,
-.cpu-face[data-mood="hit"] .eyes-hit,
-.cpu-face[data-mood="worried"] .eyes-wide,
-.cpu-face[data-mood="dead"] .eyes-x,
-.cpu-face[data-mood="smug"] .eyes-squint { display: inline; }
-.cpu-face[data-mood="happy"] .mouth-open,
-.cpu-face[data-mood="hit"] .mouth-open,
-.cpu-face[data-mood="smug"] .mouth-smirk,
-.cpu-face[data-mood="worried"] .mouth-flat,
-.cpu-face[data-mood="dead"] .mouth-flat,
-.cpu-face[data-mood="worried"] .sweat { display: inline; }
-.cpu-face[data-mood="happy"] .bot-say, .cpu-face[data-mood="smug"] .bot-say { color: var(--fg); }
-.cpu-face[data-mood="hit"] .bot-say, .cpu-face[data-mood="worried"] .bot-say, .cpu-face[data-mood="dead"] .bot-say { color: var(--danger); }
-/* Idle: a bob and a blink; think: eyes darting; happy: hops; hit: shakes; worried: shivers and sweats */
+.cpu-bot .teeth { fill: var(--bot); }
+/* Resting (idle, and thinking): the level's face */
+.cpu-face:is([data-mood="idle"], [data-mood="think"])[data-level="easy"] :is(.eyes-happy, .mouth-smile),
+.cpu-face:is([data-mood="idle"], [data-mood="think"])[data-level="normal"] :is(.eyes-open, .mouth-smirk),
+.cpu-face:is([data-mood="idle"], [data-mood="think"])[data-level="hard"] :is(.eyes-angry, .mouth-frown),
+.cpu-face:is([data-mood="idle"], [data-mood="think"])[data-level="insane"] :is(.eyes-angry, .mouth-teeth, .teeth) { display: inline; }
+.cpu-face[data-level="insane"] .eyes-angry { fill: var(--danger); filter: drop-shadow(0 0 1px var(--danger)); }
+.cpu-face[data-level="insane"][data-bot="glitch"] .eyes-angry { fill: var(--alarm-text); filter: drop-shadow(0 0 1px var(--alarm-text)); } /* (red on its red body) */
+/* Moments and endings */
+.cpu-face[data-mood="happy"] :is(.eyes-happy, .mouth-open),
+.cpu-face[data-mood="hit"] :is(.eyes-hit, .mouth-open),
+.cpu-face[data-mood="worried"] :is(.eyes-wide, .mouth-flat, .sweat),
+.cpu-face[data-mood="dead"] :is(.eyes-x, .mouth-flat),
+.cpu-face[data-mood="smug"] :is(.eyes-squint, .mouth-smirk) { display: inline; }
+.bot-say { font-size: 9px; letter-spacing: 1px; color: var(--fg-dim); min-height: 1em; white-space: nowrap; }
+.cpu-face[data-mood="happy"] .bot-say, .cpu-face[data-mood="smug"] .bot-say { color: var(--bot); }
+.cpu-face:is([data-mood="hit"], [data-mood="worried"], [data-mood="dead"]) .bot-say,
+.cpu-face[data-level="insane"]:is([data-mood="idle"], [data-mood="think"]) .bot-say { color: var(--danger); }
+/* Idle: a bob and a blink; think: eyes darting; happy: hops; hit: shakes; worried: shivers and
+   sweats; GLITCH's slices slip about all the time */
 .cpu-face[data-mood="idle"] .bot { animation: bot-bob 1.2s steps(2) infinite; }
-.cpu-face[data-mood="idle"] .eyes-open { animation: bot-blink 3.6s steps(1) infinite; transform-origin: 8px 7px; }
-.cpu-face[data-mood="think"] .eyes-open { animation: bot-look 0.8s steps(1) infinite; }
+.cpu-face[data-mood="idle"] .eyes { animation: bot-blink 3.6s steps(1) infinite; transform-origin: 8px 7px; }
+.cpu-face[data-mood="think"] .eyes { animation: bot-look 0.8s steps(1) infinite; }
 .cpu-face[data-mood="happy"] .bot { animation: bot-hop 0.3s steps(2) infinite; }
-.cpu-face[data-mood="happy"] .leg-a, .cpu-face[data-mood="smug"] .leg-a { animation: bot-step 0.3s steps(1) infinite; }
+.cpu-face:is([data-mood="happy"], [data-mood="smug"]) .leg-a { animation: bot-step 0.3s steps(1) infinite; }
 .cpu-face[data-mood="hit"] .bot { animation: bot-shake 0.12s steps(2) infinite; }
 .cpu-face[data-mood="worried"] .bot { animation: bot-shake 0.5s steps(2) infinite; }
 .cpu-face[data-mood="worried"] .sweat { animation: bot-sweat 0.9s steps(4) infinite; }
 .cpu-face[data-mood="dead"] .bot { transform: translateY(1px); }
+.cpu-face[data-bot="glitch"] .slice-a { animation: bot-slip 1.7s steps(1) infinite; }
+.cpu-face[data-bot="glitch"] .slice-c { animation: bot-slip 1.3s steps(1) infinite reverse; }
 @keyframes bot-bob { 0% { transform: translateY(0); } 100% { transform: translateY(-0.5px); } }
 @keyframes bot-blink { 0%, 92% { transform: scaleY(1); } 94% { transform: scaleY(0.15); } 97% { transform: scaleY(1); } }
 @keyframes bot-look { 0% { transform: translateX(-1px); } 50% { transform: translateX(1px); } }
@@ -1973,4 +1988,11 @@ body.vs-mode .cpu-face:not([hidden]) { display: flex; flex-direction: column; al
 @keyframes bot-step { 0% { transform: translateY(0); } 50% { transform: translateY(-1px); } }
 @keyframes bot-shake { 0% { transform: translateX(-0.5px); } 100% { transform: translateX(0.5px); } }
 @keyframes bot-sweat { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(3px); opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { .cpu-face .bot, .cpu-face .eyes, .cpu-face .leg, .cpu-face .sweat { animation: none !important; } }
+@keyframes bot-slip { 0%, 70% { transform: translateX(0); } 75% { transform: translateX(1px); } 85% { transform: translateX(-1px); } 90% { transform: translateX(0); } }
+@media (prefers-reduced-motion: reduce) { .cpu-face .bot, .cpu-face .eyes, .cpu-face .leg, .cpu-face .sweat, .cpu-face .slice-a, .cpu-face .slice-c { animation: none !important; } }
+/* VS: the win / loss banner shows over the boards without darkening them */
+body.vs-mode .overlay { background: transparent; }
+/* The opponent and level pickers: four buttons a row, on one line */
+.vs-setup .difficulty { flex-wrap: nowrap; gap: 4px; }
+.vs-setup .difficulty button { padding: 5px 6px; font-size: 11px; letter-spacing: 1px; white-space: nowrap; }
+.vs-setup #vs-layers-row button { font-size: 12px; padding: 6px 10px; }

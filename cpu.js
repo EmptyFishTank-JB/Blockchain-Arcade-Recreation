@@ -16,6 +16,15 @@ const CpuBoard = (() => {
     easy: { label: 'EASY', delay: 2600, blunder: 0.35, lookahead: false },
     normal: { label: 'NORMAL', delay: 1800, blunder: 0.12, lookahead: false },
     hard: { label: 'HARD', delay: 1150, blunder: 0, lookahead: true },
+    insane: { label: 'INSANE', delay: 800, blunder: 0, lookahead: true },
+  };
+  // The bots: how each one weighs points against a risky board, extra blunders, and its speed
+  // (a multiple of the level's delay; GLITCH's jumps around each move)
+  const BOTS = {
+    bot: { label: 'BOT', pointsW: 1.5, riskW: 1, blunder: 0, speed: 1 },
+    grifter: { label: 'GRIFTER', pointsW: 3, riskW: 0.55, blunder: 0, speed: 1 },
+    bunker: { label: 'BUNKER', pointsW: 0.8, riskW: 1.8, blunder: 0, speed: 1.15 },
+    glitch: { label: 'GLITCH', pointsW: 1.5, riskW: 1, blunder: 0.08, speed: 0.8, erratic: true },
   };
 
   const clone = (columns) => columns.map((col) => col.map((cell) => cell && { ...cell }));
@@ -97,9 +106,12 @@ const CpuBoard = (() => {
 
   // Lives for one VS match. rnd: the CPU's random stream; bits(): its next bit; layerEvery:
   // drops between rising layer rows (0 for none), as on your board.
-  function create(levelId, rnd, bits, layerEvery = 0) {
+  function create(levelId, rnd, bits, layerEvery = 0, botId = 'bot') {
     let drops = 0;
     const level = LEVELS[levelId] || LEVELS.normal;
+    const bot = BOTS[botId] || BOTS.bot;
+    const rollDelay = () => level.delay * bot.speed * (bot.erratic ? 0.55 + rnd() * 0.9 : 1);
+    let nextDelay = rollDelay();
     let columns = Array.from({ length: COLS }, () => []);
     let current = bits();
     let upcoming = bits();
@@ -114,14 +126,14 @@ const CpuBoard = (() => {
     function chooseColumn() {
       const options = tryAll(columns, current);
       if (!options.length) return Math.floor(rnd() * COLS);
-      if (rnd() < level.blunder) return options[Math.floor(rnd() * options.length)].col;
+      if (rnd() < level.blunder + bot.blunder) return options[Math.floor(rnd() * options.length)].col;
       let best = options[0];
       let bestScore = -Infinity;
       for (const o of options) {
-        let value = o.points * 1.5 - risk(o.next);
+        let value = o.points * bot.pointsW - risk(o.next) * bot.riskW;
         if (level.lookahead) {
           const follow = tryAll(o.next, upcoming);
-          value += follow.length ? Math.max(...follow.map((f) => f.points - risk(f.next) * 0.5)) * 0.6 : -500;
+          value += follow.length ? Math.max(...follow.map((f) => f.points * bot.pointsW / 1.5 - risk(f.next) * 0.5 * bot.riskW)) * 0.6 : -500;
         }
         value += rnd() * 3; // break ties
         if (value > bestScore) {
@@ -134,7 +146,9 @@ const CpuBoard = (() => {
 
     return {
       level: levelId,
-      delay: level.delay,
+      bot: botId,
+      // ms until its next move (GLITCH's lurches between 55% and 145% of it, move to move)
+      get delay() { return nextDelay; },
       // Drops until its next layer row
       layerIn: () => (layerEvery ? layerEvery - (drops % layerEvery) : 0),
       columns: () => columns,
@@ -150,6 +164,7 @@ const CpuBoard = (() => {
       step() {
         if (dead) return 0;
         const col = chooseColumn();
+        nextDelay = rollDelay();
         record({ fall: { col, row: columns[col].length, val: current } });
         columns[col].push({ type: 'number', val: current });
         record({ landed: [[columns[col].length - 1, col]] });
@@ -188,5 +203,5 @@ const CpuBoard = (() => {
     };
   }
 
-  return { create, LEVELS, COLS, ROWS, MAX_ROWS };
+  return { create, LEVELS, BOTS, COLS, ROWS, MAX_ROWS };
 })();

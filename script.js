@@ -157,7 +157,7 @@ const MODES = {
     // Rising layers are optional in VS (the LAYERS toggle); both boards get them when on
     get noLayers() { return !vsLayers; },
     noHacks: true,
-    info: () => `VS CPU // ${CpuBoard.LEVELS[vsLevel].label} // LAYERS ${vsLayers ? 'ON' : 'OFF'}: your chains send encrypted blocks onto the CPU's board, and its chains send them onto yours. Your chains cancel blocks headed your way first. The first to overflow loses. The CPU starts with your first drop.`,
+    info: () => `VS CPU // ${CpuBoard.BOTS[vsBot].label} // ${CpuBoard.LEVELS[vsLevel].label} // LAYERS ${vsLayers ? 'ON' : 'OFF'}: your chains send encrypted blocks onto the CPU's board, and its chains send them onto yours. Your chains cancel blocks headed your way first. The first to overflow loses. The CPU starts with your first drop.`,
   },
   breach: {
     label: 'BREACH',
@@ -178,6 +178,13 @@ let overlayNext = null; // what the overlay button does in PUZZLE: 'next' or 're
 const TOP_MODES = ['classic', 'daily', 'blitz', 'zen', 'puzzle', 'vs'];
 // VS CPU: the opponent's level
 let vsLevel = CpuBoard.LEVELS[storage.get('bytefall-vs-level')] ? storage.get('bytefall-vs-level') : 'normal';
+let vsBot = CpuBoard.BOTS[storage.get('bytefall-vs-bot')] ? storage.get('bytefall-vs-bot') : 'bot';
+// HARD and INSANE CPUs and the bots past BOT are unlocked by winning (progress.js's VS CPU group)
+const vsLevelOpen = (id) => (id === 'hard' || id === 'insane' ? Progress.isUnlocked(`vs-${id}`) : true);
+const vsBotOpen = (id) => id === 'bot' || Progress.isUnlocked(`bot-${id}`);
+if (!vsLevelOpen(vsLevel)) vsLevel = 'normal';
+if (!vsBotOpen(vsBot)) vsBot = 'bot';
+const vsName = () => `${CpuBoard.BOTS[vsBot].label === 'BOT' ? '' : `${CpuBoard.BOTS[vsBot].label} `}${CpuBoard.LEVELS[vsLevel].label} CPU`;
 let vsLayers = storage.get('bytefall-vs-layers') !== 'off'; // new layer rows every 8 drops, for both boards
 let topMode = TOP_MODES.includes(storage.get('bytefall-mode')) ? storage.get('bytefall-mode') : 'classic';
 let dailyKind = DAILY_KINDS[storage.get('bytefall-daily-kind')] ? storage.get('bytefall-daily-kind') : 'decrypt';
@@ -1337,10 +1344,10 @@ function endGame(reason = 'trace') {
     time: ["TIME'S UP", 'The connection timed out.'],
     daily: [mode === 'breach' ? 'BREACH COMPLETE' : 'DAILY COMPLETE', `All ${dealLimit()} bits dropped.`],
     breached: ['FIREWALL BREACHED', `Every block cleared. +${BREACH_CLEAR_BONUS}`],
-    win: ['YOU WIN', `The ${CpuBoard.LEVELS[vsLevel].label} CPU overflowed first.`],
+    win: ['YOU WIN', `The ${vsName()} overflowed first.`],
   };
   if (mode === 'vs') {
-    if (reason === 'trace') endings.trace = ['CPU WINS', `The ${CpuBoard.LEVELS[vsLevel].label} CPU traced you first.`];
+    if (reason === 'trace') endings.trace = [`${CpuBoard.BOTS[vsBot].label} WINS`, `The ${vsName()} traced you first.`];
     Progress.vsResult(vsLevel, reason === 'win');
     stopVs();
     holdCpu(false);
@@ -1521,9 +1528,31 @@ document.querySelectorAll('#vs-levels button[data-vs]').forEach((btn) => {
   btn.addEventListener('click', () => {
     const next = btn.dataset.vs;
     if (next === vsLevel) return;
+    if (!vsLevelOpen(next)) {
+      SFX.play('denied');
+      showToast(`LOCKED // ${Progress.unlock(`vs-${next}`).need.toUpperCase()}`);
+      return;
+    }
     requestReset(btn, 'CONFIRM?', () => {
       vsLevel = next;
       storage.set('bytefall-vs-level', next);
+    });
+  });
+});
+
+// VS CPU's opponent: which bot (its look, lines and play style)
+document.querySelectorAll('#vs-bots button[data-bot]').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const next = btn.dataset.bot;
+    if (next === vsBot) return;
+    if (!vsBotOpen(next)) {
+      SFX.play('denied');
+      showToast(`LOCKED // ${Progress.unlock(`bot-${next}`).need.toUpperCase()}`);
+      return;
+    }
+    requestReset(btn, 'CONFIRM?', () => {
+      vsBot = next;
+      storage.set('bytefall-vs-bot', next);
     });
   });
 });
@@ -1543,7 +1572,22 @@ document.querySelectorAll('#daily-kinds button').forEach((btn) => {
 
 // Shows what the current mode changes: the mode row, its note, the difficulty row (CLASSIC
 // only), the layer countdown (not in ZEN) and the BLITZ clock.
+// The VS setup's level and bot buttons: which is picked, which are still locked
+function refreshVsPicks() {
+  if (!vsLevelOpen(vsLevel)) vsLevel = 'normal';
+  if (!vsBotOpen(vsBot)) vsBot = 'bot';
+  document.querySelectorAll('#vs-levels button[data-vs]').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.vs === vsLevel);
+    btn.classList.toggle('locked', !vsLevelOpen(btn.dataset.vs));
+  });
+  document.querySelectorAll('#vs-bots button[data-bot]').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.bot === vsBot);
+    btn.classList.toggle('locked', !vsBotOpen(btn.dataset.bot));
+  });
+}
+
 function applyModeUi() {
+  refreshVsPicks();
   document.querySelectorAll('.modes button').forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.mode === topMode);
   });
@@ -1643,7 +1687,7 @@ function startVs() {
   }
   const rnd = seeded(hashString(`bytefall:vs:${vsSeed}:cpu`));
   const bits = seeded(hashString(`bytefall:vs:${vsSeed}:queue`)); // the same bits you get
-  cpu = CpuBoard.create(vsLevel, rnd, () => 1 + Math.floor(bits() * CpuBoard.COLS), vsLayers ? BASE_INTERVAL : 0);
+  cpu = CpuBoard.create(vsLevel, rnd, () => 1 + Math.floor(bits() * CpuBoard.COLS), vsLayers ? BASE_INTERVAL : 0, vsBot);
   cpuFrames = []; // (a new match: nothing of the last one left to play)
   showVs();
 }
@@ -1851,7 +1895,14 @@ cpuStatEl.addEventListener('contextmenu', (e) => e.preventDefault()); // a long 
 // otherwise its standing mood: dead / smug once the match is over, worried with a tall stack,
 // thinking just before a move, idle
 const botSayEl = document.getElementById('bot-say');
-const BOT_SAYS = { idle: 'READY', think: '...', happy: 'HA!', hit: 'OOF', worried: 'UH OH', dead: 'ERR', smug: 'GG' };
+// Its lines: at rest by level, and each bot's own for the rest
+const BOT_REST = { easy: 'HI!', normal: 'READY', hard: 'GRR', insane: 'KILL -9' };
+const BOT_LINES = {
+  bot: { think: '...', happy: 'HA!', hit: 'OOF', worried: 'UH OH', dead: 'ERR', smug: 'GG' },
+  grifter: { think: 'HMM', happy: 'MINE!', hit: 'HEY!', worried: 'NO NO', dead: 'BROKE', smug: 'PAY UP' },
+  bunker: { think: '...', happy: 'STEADY', hit: 'HOLD', worried: 'BRACE', dead: 'BREACH', smug: 'SECURE' },
+  glitch: { think: '?#@', happy: 'H4H4', hit: 'ERR0R', worried: 'W4RN', dead: 'NULL', smug: 'G_G' },
+};
 let botFlash = null; // { mood, until }
 function botMood(flash = null, ms = 900) {
   if (flash) botFlash = { mood: flash, until: performance.now() + ms };
@@ -1860,9 +1911,12 @@ function botMood(flash = null, ms = 900) {
   else if (botFlash && performance.now() < botFlash.until) mood = botFlash.mood;
   else if (cpu && Math.max(...cpu.columns().map((c) => c.length)) >= CpuBoard.ROWS - 1) mood = 'worried';
   else if (vsStarted && cpu && cpuClock > cpu.delay - 450) mood = 'think';
-  if (cpuFaceEl.dataset.mood !== mood) {
+  cpuFaceEl.dataset.level = vsLevel;
+  cpuFaceEl.dataset.bot = vsBot;
+  const say = mood === 'idle' ? BOT_REST[vsLevel] : BOT_LINES[vsBot][mood];
+  if (cpuFaceEl.dataset.mood !== mood || botSayEl.textContent !== say) {
     cpuFaceEl.dataset.mood = mood;
-    botSayEl.textContent = BOT_SAYS[mood];
+    botSayEl.textContent = say;
   }
 }
 setInterval(() => { if (mode === 'vs' && cpu) botMood(); }, 150);
@@ -1901,7 +1955,7 @@ vsQuitBtn.addEventListener('click', quitVs);
 // The status line in the mode row's place, and how many stat rows the left column has
 function updateVsChrome() {
   const rows = [...document.querySelectorAll('.hud > .stat:not(.cpu-stat):not(.cpu-face), .hud > .hud-bits')].filter((el) => !el.hidden && getComputedStyle(el).display !== 'none').length;
-  document.getElementById('vs-status').textContent = `${CpuBoard.LEVELS[vsLevel].label} // LAYERS ${vsLayers ? 'ON' : 'OFF'}`;
+  document.getElementById('vs-status').textContent = `${CpuBoard.BOTS[vsBot].label} ${CpuBoard.LEVELS[vsLevel].label} // LAYERS ${vsLayers ? 'ON' : 'OFF'}`;
   fitVsStatus();
   document.querySelector('.hud').style.setProperty('--vs-rows', rows);
 }
@@ -2967,6 +3021,7 @@ function applyUnlocks() {
   hardBtn.classList.toggle('locked', hardLocked);
   hardBtn.title = hardLocked ? `${Progress.unlock('mode-hard').need} to unlock` : '';
   Music.refreshUnlocks();
+  refreshVsPicks();
   applyTheme();
   applyFont();
   renderPlaylist();
