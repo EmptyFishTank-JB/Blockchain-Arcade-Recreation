@@ -1520,7 +1520,7 @@ vsLayersBtn.addEventListener('click', () => {
   requestReset(vsLayersBtn, 'CONFIRM?', () => {
     vsLayers = !vsLayers;
     storage.set('bytefall-vs-layers', vsLayers ? 'on' : 'off');
-    if (!vsStarted) botMood('annoyed', 2200); // -_- : still not playing
+    botMood('annoyed', 2200); // -_- : still not playing
   });
 });
 
@@ -1537,6 +1537,7 @@ document.querySelectorAll('#vs-levels button[data-vs]').forEach((btn) => {
     requestReset(btn, 'CONFIRM?', () => {
       vsLevel = next;
       storage.set('bytefall-vs-level', next);
+      botMood('annoyed', 2200); // -_- : still not playing
     });
   });
 });
@@ -1554,6 +1555,7 @@ document.querySelectorAll('#vs-bots button[data-bot]').forEach((btn) => {
     requestReset(btn, 'CONFIRM?', () => {
       vsBot = next;
       storage.set('bytefall-vs-bot', next);
+      botMood('annoyed', 2400); // the new bot arrives -_-
     });
   });
 });
@@ -1905,6 +1907,27 @@ const BOT_LINES = {
   glitch: { think: '?#@', happy: 'H4H4', hit: 'ERR0R', worried: 'W4RN', dead: 'NULL', smug: 'G_G', annoyed: '-_-' },
 };
 let botFlash = null; // { mood, until }
+// A new bot picked: the old one pixelates out, then the new one resolves in (0.25s each)
+let botSwapping = false;
+function swapBot() {
+  if (!cpuFaceEl.dataset.shown || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    cpuFaceEl.dataset.bot = vsBot; // (the first draw, or no motion: straight in)
+    cpuFaceEl.dataset.shown = '1';
+    return;
+  }
+  if (cpuFaceEl.dataset.bot === vsBot || botSwapping) return;
+  botSwapping = true;
+  cpuFaceEl.classList.add('pix-out');
+  setTimeout(() => {
+    cpuFaceEl.dataset.bot = vsBot;
+    cpuFaceEl.classList.replace('pix-out', 'pix-in');
+    setTimeout(() => {
+      cpuFaceEl.classList.remove('pix-in');
+      botSwapping = false;
+      swapBot(); // (picked again mid-swap: carry on to the latest)
+    }, 250);
+  }, 250);
+}
 function botMood(flash = null, ms = 900) {
   if (flash) botFlash = { mood: flash, until: performance.now() + ms };
   let mood = 'idle';
@@ -1913,7 +1936,7 @@ function botMood(flash = null, ms = 900) {
   else if (cpu && Math.max(...cpu.columns().map((c) => c.length)) >= CpuBoard.ROWS - 1) mood = 'worried';
   else if (vsStarted && cpu && cpuClock > cpu.delay - 450) mood = 'think';
   cpuFaceEl.dataset.level = vsLevel;
-  cpuFaceEl.dataset.bot = vsBot;
+  swapBot();
   const say = mood === 'idle' ? BOT_REST[vsLevel] : BOT_LINES[vsBot][mood];
   if (cpuFaceEl.dataset.mood !== mood || botSayEl.textContent !== say) {
     cpuFaceEl.dataset.mood = mood;

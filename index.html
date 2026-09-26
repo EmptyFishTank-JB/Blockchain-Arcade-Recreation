@@ -22,7 +22,7 @@
   } catch (e) {}
 </script>
 <title>BYTEFALL // decryption terminal</title>
-<link rel="stylesheet" href="style.css?v=151">
+<link rel="stylesheet" href="style.css?v=152">
 </head>
 <body>
   <main class="cabinet">
@@ -248,6 +248,24 @@
         <!-- VS CPU: BOT, the CPU's face (script.js sets its mood) -->
         <div class="stat cpu-face" id="cpu-face" hidden data-mood="idle" data-level="normal" data-bot="bot" aria-hidden="true">
           <svg class="cpu-bot" viewBox="0 0 16 17" shape-rendering="crispEdges">
+            <defs>
+              <!-- Mosaic filters for switching bots: sample one pixel per 2x2 / 4x4 block, grow it to fill the block -->
+              <filter id="bot-pix2" x="-3" y="-3" width="22" height="23" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse">
+                <feFlood x="0" y="0" width="1" height="1" flood-color="#000"/>
+                <feComposite width="2" height="2"/>
+                <feTile result="grid"/>
+                <feComposite in="SourceGraphic" in2="grid" operator="in"/>
+                <feMorphology operator="dilate" radius="1"/>
+              </filter>
+              <filter id="bot-pix4" x="-3" y="-3" width="22" height="23" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse">
+                <feFlood x="0" y="0" width="1" height="1" flood-color="#000"/>
+                <feComposite width="4" height="4"/>
+                <feTile result="grid"/>
+                <feComposite in="SourceGraphic" in2="grid" operator="in"/>
+                <feMorphology operator="dilate" radius="2"/>
+              </filter>
+            </defs>
+            <g class="bot-swap">
             <g class="bot">
               <g class="bot-body">
                 <g class="shape shape-bot">
@@ -296,6 +314,7 @@
               </g>
               <rect class="sweat" x="13" y="3" width="1" height="2"/>
               <g class="teeth"><rect x="6" y="10" width="1" height="1"/><rect x="8" y="10" width="1" height="1"/><rect x="10" y="10" width="1" height="1"/><rect x="7" y="11" width="1" height="1"/><rect x="9" y="11" width="1" height="1"/></g>
+            </g>
             </g>
           </svg>
           <span class="bot-say" id="bot-say">READY</span>
@@ -411,26 +430,26 @@
     </div>
   </div>
 
-  <script src="unlocks.js?v=151"></script>
-  <script src="progress.js?v=151"></script>
-  <script src="sfx.js?v=151"></script>
-  <script src="music-bytefall-theme.js?v=151"></script>
-  <script src="music-sleep-mode.js?v=151"></script>
-  <script src="music-brute-force.js?v=151"></script>
-  <script src="music-deep-web.js?v=151"></script>
-  <script src="music-zero-day.js?v=151"></script>
-  <script src="music-system-restore.js?v=151"></script>
-  <script src="music-night-drive.js?v=151"></script>
-  <script src="music-standby-mode.js?v=151"></script>
-  <script src="music-core-dump.js?v=151"></script>
-  <script src="music-handshake.js?v=151"></script>
-  <script src="music.js?v=151"></script>
-  <script src="puzzles.js?v=151"></script>
-  <script src="daily-puzzles.js?v=151"></script>
-  <script src="cpu.js?v=151"></script>
-  <script src="fx.js?v=151"></script>
-  <script src="viz.js?v=151"></script>
-  <script src="script.js?v=151"></script>
-  <script src="grid-bg.js?v=151"></script>
+  <script src="unlocks.js?v=152"></script>
+  <script src="progress.js?v=152"></script>
+  <script src="sfx.js?v=152"></script>
+  <script src="music-bytefall-theme.js?v=152"></script>
+  <script src="music-sleep-mode.js?v=152"></script>
+  <script src="music-brute-force.js?v=152"></script>
+  <script src="music-deep-web.js?v=152"></script>
+  <script src="music-zero-day.js?v=152"></script>
+  <script src="music-system-restore.js?v=152"></script>
+  <script src="music-night-drive.js?v=152"></script>
+  <script src="music-standby-mode.js?v=152"></script>
+  <script src="music-core-dump.js?v=152"></script>
+  <script src="music-handshake.js?v=152"></script>
+  <script src="music.js?v=152"></script>
+  <script src="puzzles.js?v=152"></script>
+  <script src="daily-puzzles.js?v=152"></script>
+  <script src="cpu.js?v=152"></script>
+  <script src="fx.js?v=152"></script>
+  <script src="viz.js?v=152"></script>
+  <script src="script.js?v=152"></script>
+  <script src="grid-bg.js?v=152"></script>
 </body>
 </html>

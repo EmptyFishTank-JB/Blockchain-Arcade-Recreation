@@ -1980,6 +1980,21 @@ body.vs-mode .cpu-face:not([hidden]) { display: flex; flex-direction: column; al
 .cpu-face[data-mood="worried"] .bot { animation: bot-shake 0.5s steps(2) infinite; }
 .cpu-face[data-mood="worried"] .sweat { animation: bot-sweat 0.9s steps(4) infinite; }
 .cpu-face[data-mood="dead"] .bot { transform: translateY(1px); }
+/* Switching bots: the old one pixelates out and the new one resolves in, 0.25s each (script.js) */
+.cpu-face.pix-out .bot-swap { animation: bot-pix-out 0.25s steps(1) forwards; }
+.cpu-face.pix-in .bot-swap { animation: bot-pix-in 0.25s steps(1) forwards; }
+@keyframes bot-pix-out {
+  0% { filter: url(#bot-pix2); opacity: 1; }
+  33% { filter: url(#bot-pix4) blur(0.08px); opacity: 0.9; }
+  66% { filter: url(#bot-pix4) blur(0.16px); opacity: 0.6; }
+  100% { filter: url(#bot-pix4) blur(0.25px); opacity: 0; }
+}
+@keyframes bot-pix-in {
+  0% { filter: url(#bot-pix4) blur(0.2px); opacity: 0.35; }
+  33% { filter: url(#bot-pix4) blur(0.08px); opacity: 0.75; }
+  66% { filter: url(#bot-pix2); opacity: 1; }
+  100% { filter: none; opacity: 1; }
+}
 /* Annoyed (-_-): a slow, flat-footed tap */
 .cpu-face[data-mood="annoyed"] .leg-b { animation: bot-step 0.6s steps(1) infinite; }
 .cpu-face[data-bot="glitch"] .slice-a { animation: bot-slip 1.7s steps(1) infinite; }
