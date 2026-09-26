@@ -17,9 +17,14 @@
 [data-font-preview="bitcount"] { font-family: 'Bitcount Single', 'Courier New', monospace !important; }
 [data-font-preview="bytesized"] { font-family: 'Bytesized', 'Courier New', monospace !important; }
 /* PRESS START's small labels need a floor to stay readable */
-:root[data-font="press-start"] .stat .label,
 :root[data-font="press-start"] .lock-tag,
 :root[data-font="press-start"] .combo { font-size: 12px; }
+:root[data-font="press-start"] .stat .label { font-size: 10px; }
+/* PRESS START's glyphs fill their whole line, so wrapped lines touch: give them room */
+:root[data-font="press-start"] .stat .label,
+:root[data-font="press-start"] .mode-info,
+:root[data-font="press-start"] footer p,
+:root[data-font="press-start"] .footer-meta { line-height: 1.7; }
 
 /* [data-theme] also works on any element, so the settings panel's theme swatches preview each theme. */
 :root,
@@ -503,7 +508,7 @@ body.vs-mode .vs-title span { color: var(--accent); text-shadow: 0 0 8px var(--a
   min-width: 72px;
   display: flex;
   flex-direction: column;
-  justify-content: center; /* short boxes (SCORE, CHAIN...) centre beside the taller bit boxes */
+  justify-content: space-between; /* the label at the top, the value (or bit) at the bottom */
   text-align: center;
   position: relative;
   isolation: isolate; /* the starlight canvas (.stat-bg) sits under the text */
@@ -519,6 +524,7 @@ body.vs-mode .vs-title span { color: var(--accent); text-shadow: 0 0 8px var(--a
 
 .stat .label {
   display: block;
+  line-height: 1.15;
   font-size: 9px;
   color: var(--fg-dim);
   letter-spacing: 1px;
@@ -526,6 +532,8 @@ body.vs-mode .vs-title span { color: var(--accent); text-shadow: 0 0 8px var(--a
 
 .stat .value {
   display: block;
+  line-height: 1;
+  white-space: nowrap;
   font-size: 18px;
   font-weight: bold;
   margin-top: 2px;
@@ -903,6 +911,9 @@ body.vs-mode .vs-title span { color: var(--accent); text-shadow: 0 0 8px var(--a
 }
 
 .stat .sub span { color: var(--accent); }
+/* BEST: its own box, the number in the accent color (not in VS) */
+.stat-best .value { color: var(--accent); }
+body.vs-mode .stat-best { display: none; }
 
 .stat[hidden] { display: none; }
 
@@ -1845,8 +1856,14 @@ body.cards-in-settings .settings .dev-link { display: inline-flex; margin-top: 6
 .stat.keylogger .bit-row .bit-sq { width: 26px; height: 26px; font-size: 12px; }
 /* All five boxes share one row, even with NEXT showing (Easy) */
 .hud .stat { min-width: 0; padding-left: 2px; padding-right: 2px; }
-.hud-bits { gap: 5px; }
-.hud-bits.has-next { flex: 2 1 110px; }
+/* Every box the same width: SCORE, BEST, CHAIN, NEW LAYER IN, CURRENT (and NEXT) */
+.hud { flex-wrap: nowrap; gap: 5px; }
+.hud > .stat { flex: 1 1 0; }
+/* (the pair's basis makes up for what each other box's padding and border add, 6px, plus the 5px
+   gap between CURRENT and NEXT, so every box comes out the same width) */
+.hud-bits { gap: 5px; flex: 1 1 6px; }
+.hud-bits.has-next { flex: 2 1 17px; }
+.hud-bits .stat-current { flex-grow: 1; }
 .hud .stat .label { font-size: 8px; letter-spacing: 0.5px; }
 /* Phones and the app: the game card fills the screen height with the same 16px gap at the top and
    bottom as at the sides; its contents center vertically inside it */

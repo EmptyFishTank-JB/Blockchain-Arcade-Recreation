@@ -494,6 +494,7 @@ function alignHeader() {
 
 function fitBoard() {
   layoutVsTop();
+  fitStatValues();
   alignHeader();
   const frame = document.querySelector('.board-frame');
   boardWrapEl.style.maxWidth = '';
@@ -700,6 +701,21 @@ function dangerLevel() {
   return (tallest - (ROWS - 4)) / 3;
 }
 
+// A HUD number (or a label's word) too long for its box shrinks until it fits
+function fitStatValues() {
+  const labels = [...document.querySelectorAll('.hud .stat:not(.cpu-stat) .label')];
+  for (const el of [scoreEl, bestEl, chainEl, pulseCounterEl, ...labels]) {
+    el.style.fontSize = '';
+    if (!el.offsetParent) continue;
+    const label = el.classList.contains('label');
+    let size = parseFloat(getComputedStyle(el).fontSize);
+    while (el.scrollWidth > el.clientWidth && size > (label ? 5 : 8)) {
+      size -= label ? 0.5 : 1;
+      el.style.fontSize = `${size}px`;
+    }
+  }
+}
+
 function updateHud() {
   if (score > best && bestKey()) {
     best = score;
@@ -749,6 +765,7 @@ function updateHud() {
   document.querySelectorAll('.hack-item').forEach((el) => {
     el.classList.toggle('held', el.dataset.hack === heldHack);
   });
+  fitStatValues(); // (after the labels and numbers above have changed)
 }
 
 function setMessage(text, tone = '') {
@@ -1859,7 +1876,7 @@ vsQuitBtn.addEventListener('click', quitVs);
 
 // The status line in the mode row's place, and how many stat rows the left column has
 function updateVsChrome() {
-  const rows = [...document.querySelectorAll('.hud > .stat:not(.cpu-stat), .hud > .hud-bits')].filter((el) => !el.hidden).length;
+  const rows = [...document.querySelectorAll('.hud > .stat:not(.cpu-stat), .hud > .hud-bits')].filter((el) => !el.hidden && getComputedStyle(el).display !== 'none').length;
   document.getElementById('vs-status').textContent = `${CpuBoard.LEVELS[vsLevel].label} // LAYERS ${vsLayers ? 'ON' : 'OFF'}`;
   fitVsStatus();
   document.querySelector('.hud').style.setProperty('--vs-rows', rows);
