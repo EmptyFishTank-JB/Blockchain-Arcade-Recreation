@@ -1396,7 +1396,7 @@ function disarmReset() {
 
 function armReset(btn, confirmText) {
   disarmReset();
-  // Icon buttons (RESTART, QUIT) keep their icon and ask with an amber glow pulse instead
+  // Icon buttons (RESTART, QUIT) keep their icon and turn red to ask instead
   const icon = btn.classList.contains('corner-btn');
   armed = { btn, icon, label: btn.textContent, timer: setTimeout(disarmReset, RESET_CONFIRM_MS) };
   if (!icon) btn.textContent = confirmText;

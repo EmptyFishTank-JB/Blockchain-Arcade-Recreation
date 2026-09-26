@@ -217,7 +217,7 @@ scrolls. The header sits at the top of the card, level with the icons; the
 board stays centered.
 
 RESTART and the difficulty buttons ask for a second press mid-run (RESTART
-glows and pulses amber; the text buttons read CONFIRM?; either cancels itself
+turns red, like the other confirms; the text buttons read CONFIRM?; either cancels itself
 after a few seconds), then the board melts down like a traced run before the
 new one starts. Once a run is over, or before the first drop, they act straight
 away.

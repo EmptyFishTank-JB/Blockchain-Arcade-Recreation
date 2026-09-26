@@ -1770,7 +1770,7 @@ footer p.accent { color: var(--accent); }
 }
 .corner-btn[hidden] { display: none; }
 #restart-btn.corner-btn, #vs-quit.corner-btn { padding: 0; letter-spacing: 0; } /* not the old text buttons' padding */
-#restart-btn.corner-btn.danger, #vs-quit.corner-btn.danger { background: rgba(var(--accent-rgb), 0.1); color: var(--accent); border-color: var(--accent); }
+#restart-btn.corner-btn.danger, #vs-quit.corner-btn.danger { background: rgba(var(--danger-rgb), 0.12); color: var(--danger); border-color: var(--danger); }
 #restart-btn.corner-btn:hover { background: rgba(var(--fg-rgb), 0.08); }
 /* Nothing to restart yet (before the first drop, or once the run is over): greyed out */
 #restart-btn.corner-btn:disabled { color: var(--fg-dim); opacity: 0.4; cursor: default; background: rgba(255, 255, 255, 0.02); }
@@ -1788,8 +1788,9 @@ footer p.accent { color: var(--accent); }
 .exploit-icon.ready { color: var(--fg); opacity: 1; border-color: var(--fg); box-shadow: 0 0 12px rgba(var(--fg-rgb), 0.7); text-shadow: 0 0 8px rgba(var(--fg-rgb), 0.9); }
 /* Armed as the next drop: glowing, pulsing amber */
 .exploit-icon.armed { color: var(--accent); opacity: 1; border-color: var(--accent); animation: amber-pulse 0.9s ease-in-out infinite; }
-/* RESTART / QUIT waiting on the confirming press: an amber glow pulse */
-.corner-btn.danger { color: var(--accent); border-color: var(--accent); animation: amber-pulse 0.9s ease-in-out infinite; }
+/* RESTART / QUIT waiting on the confirming press: red, like the other confirms (mode switches,
+   DECRYPTOR, reset progress) */
+.corner-btn.danger { color: var(--danger); border-color: var(--danger); background: rgba(var(--danger-rgb), 0.12); }
 @keyframes amber-pulse {
   0%, 100% { box-shadow: 0 0 4px rgba(var(--accent-rgb), 0.4); }
   50% { box-shadow: 0 0 18px rgba(var(--accent-rgb), 0.95); }
