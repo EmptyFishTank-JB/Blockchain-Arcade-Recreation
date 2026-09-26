@@ -1520,6 +1520,7 @@ vsLayersBtn.addEventListener('click', () => {
   requestReset(vsLayersBtn, 'CONFIRM?', () => {
     vsLayers = !vsLayers;
     storage.set('bytefall-vs-layers', vsLayers ? 'on' : 'off');
+    if (!vsStarted) botMood('annoyed', 2200); // -_- : still not playing
   });
 });
 
@@ -1898,10 +1899,10 @@ const botSayEl = document.getElementById('bot-say');
 // Its lines: at rest by level, and each bot's own for the rest
 const BOT_REST = { easy: 'HI!', normal: 'READY', hard: 'GRR', insane: 'KILL -9' };
 const BOT_LINES = {
-  bot: { think: '...', happy: 'HA!', hit: 'OOF', worried: 'UH OH', dead: 'ERR', smug: 'GG' },
-  grifter: { think: 'HMM', happy: 'MINE!', hit: 'HEY!', worried: 'NO NO', dead: 'BROKE', smug: 'PAY UP' },
-  bunker: { think: '...', happy: 'STEADY', hit: 'HOLD', worried: 'BRACE', dead: 'BREACH', smug: 'SECURE' },
-  glitch: { think: '?#@', happy: 'H4H4', hit: 'ERR0R', worried: 'W4RN', dead: 'NULL', smug: 'G_G' },
+  bot: { think: '...', happy: 'HA!', hit: 'OOF', worried: 'UH OH', dead: 'ERR', smug: 'GG', annoyed: 'ANY DAY NOW' },
+  grifter: { think: 'HMM', happy: 'MINE!', hit: 'HEY!', worried: 'NO NO', dead: 'BROKE', smug: 'PAY UP', annoyed: 'TICK TOCK' },
+  bunker: { think: '...', happy: 'STEADY', hit: 'HOLD', worried: 'BRACE', dead: 'BREACH', smug: 'SECURE', annoyed: 'WAITING' },
+  glitch: { think: '?#@', happy: 'H4H4', hit: 'ERR0R', worried: 'W4RN', dead: 'NULL', smug: 'G_G', annoyed: '-_-' },
 };
 let botFlash = null; // { mood, until }
 function botMood(flash = null, ms = 900) {
