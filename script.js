@@ -1644,8 +1644,8 @@ function applyModeUi() {
   // (VS keeps it with layers off, dimmed, so nothing shifts when the option changes)
   document.getElementById('pulse-stat').hidden = !!MODES[mode].noLayers && mode !== 'puzzle' && mode !== 'breach' && mode !== 'vs';
   document.getElementById('pulse-stat').classList.toggle('off', mode === 'vs' && !vsLayers);
-  document.getElementById('pulse-label').textContent = mode === 'puzzle' ? 'BITS LEFT' : mode === 'breach' ? 'LAYERS LEFT' : 'NEW LAYER IN';
-  updateVsChrome(); // (after NEW LAYER IN shows or hides: it counts the stat rows)
+  document.getElementById('pulse-label').textContent = mode === 'puzzle' ? 'BITS LEFT' : mode === 'breach' ? 'LAYERS LEFT' : 'ENCRYPT IN';
+  updateVsChrome(); // (after ENCRYPT IN shows or hides: it counts the stat rows)
   puzzleNavEl.hidden = mode !== 'puzzle' || daily;
   if (mode === 'puzzle' && !daily) updatePuzzleNav();
   // The overlay goes back to its trace look until a puzzle result changes it
@@ -2060,9 +2060,9 @@ function layoutVsTop() {
   hud.style.marginTop = `${top - vsTop}px`;
   hud.style.height = `${bottom - top}px`;
   // BOT's box and the CPU's board are the same width: as wide as the board's height allows (its
-  // label takes ~24px), leaving the info panels at least 96px
+  // label takes ~24px), leaving the 2x2 info grid at least 124px
   const gridH = bottom - top - 24;
-  hud.style.setProperty('--vs-cpu-w', `${Math.round(Math.min((hud.clientWidth - 12 - 96) / 2, gridH * 7 / 8 + 12))}px`);
+  hud.style.setProperty('--vs-cpu-w', `${Math.round(Math.min((hud.clientWidth - 18 - 124) / 2, gridH * 7 / 8 + 12))}px`);
   fitVsStatus();
   alignVsTitle();
 }
