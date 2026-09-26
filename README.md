@@ -111,7 +111,7 @@ daily games always use the five standard exploits, so they're the same for
 everyone.
 
 **Themes** unlock by DECRYPTOR rank, for good: CIPHER (1), AMBER CRT (2), MONOCHROME
-(3), REDLINE (4), SYNTHWAVE (5), DOT MATRIX (6), PAPER (7), GLYPH (8),
+(3), ANAGLYPH (4), SYNTHWAVE (5), DOT MATRIX (6), PAPER (7), GLYPH (8),
 SPECTRUM (9).
 
 **Fonts** (SETTINGS → FONT) unlock by achievements earned, for good: COURIER is
@@ -189,7 +189,7 @@ Themes (picked from the swatch grid in settings; the page fades to the new one o
 | CIPHER | cyan | magenta | yellow | orange-red |
 | AMBER CRT | amber | grey | white | red |
 | MONOCHROME | light grey | striped grey | white | white |
-| REDLINE | red | steel blue | yellow | white |
+| ANAGLYPH | off-white with red/cyan 3D fringes | red | cyan | red |
 | SYNTHWAVE | pink | purple | orange | cyan |
 | DOT MATRIX | olive green | dark green | pale green | red |
 | PAPER | near-black ink on paper | grey | dark amber (gold) | red |

@@ -2049,7 +2049,7 @@ const THEMES = [
   { id: 'cipher', label: 'CIPHER', desc: 'cyan bits, magenta layers, yellow cracks and exploits.' },
   { id: 'amber-crt', label: 'AMBER CRT', desc: 'an old amber monitor: grey layers, white cracks and exploits.' },
   { id: 'monochrome', label: 'MONOCHROME', desc: 'black and white; layers are told apart by stripes and dashed borders.' },
-  { id: 'redline', label: 'REDLINE', desc: 'red-alert intrusion: steel-blue layers, yellow cracks, a white trace.' },
+  { id: 'anaglyph', label: 'ANAGLYPH', desc: 'red/cyan 3D glasses: every bit split into a red and a cyan edge, red layers, cyan cracks.' },
   { id: 'synthwave', label: 'SYNTHWAVE', desc: 'pink bits, purple layers, orange cracks and a cyan trace.' },
   { id: 'dot-matrix', label: 'DOT MATRIX', desc: 'four shades of olive green, like an old handheld game screen.' },
   { id: 'paper', label: 'PAPER', desc: 'near-black ink and grey on pale paper with gold accents, for bright rooms and outdoors.' },

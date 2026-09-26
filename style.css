@@ -173,41 +173,60 @@
   --heat-peak-bg: #4a4a4a;
 }
 
-/* REDLINE: a red-alert intrusion; steel-blue layers, yellow cracks, a white trace */
-[data-theme="redline"] {
-  --bg: #0a0404;
-  --bg-solid: #040101;
-  --bg-center: #1c0808;
-  --panel: #140707;
-  --panel-text: #f2c4c4;
-  --popup-bg: #120606;
-  --overlay-bg: #0d0505;
-  --grid-line: #401818;
-  --board-bg: #120404;
-  --cell-bg: #1c0606;
-  --fg: #ff4040;
-  --fg-rgb: 255, 64, 64;
-  --fg-dim: #8a2424;
-  --accent: #ffe066;
-  --accent-rgb: 255, 224, 102;
-  --danger: #ffffff;
-  --danger-rgb: 255, 255, 255;
-  --layer-a: #1c2a38;
-  --layer-b: #111a23;
-  --layer-border: #6f95b8;
-  --layer-text: #9cc3e6;
-  --layer-rgb: 111, 149, 184;
-  --exploit-bg: #1e1a08;
-  --alarm-text: #fffbe6;
-  --byte-text: #ffe0e0;
-  --hot-rgb: 255, 120, 120;
-  --burst-hot-rgb: 255, 170, 170;
-  --heat-text: #ff9a9a;
-  --heat-bg: #3a0c0c;
-  --heat-peak-border: #ffe0e0;
-  --heat-peak-text: #fff5f5;
-  --heat-peak-bg: #6a1414;
+/* ANAGLYPH: red/cyan 3D glasses. Off-white bits and titles with a red fringe on the left and a
+   cyan one on the right; layers in the red lens, cracks in the cyan one, a bright red trace */
+[data-theme="anaglyph"] {
+  --bg: #07080a;
+  --bg-solid: #030405;
+  --bg-center: #101318;
+  --panel: #0c0e11;
+  --panel-text: #c9d1d8;
+  --popup-bg: #0b0d10;
+  --overlay-bg: #08090b;
+  --grid-line: #262c33;
+  --board-bg: #08090c;
+  --cell-bg: #121519;
+  --fg: #eef3f7;
+  --fg-rgb: 238, 243, 247;
+  --fg-dim: #76828d;
+  --accent: #29dcff;
+  --accent-rgb: 41, 220, 255;
+  --danger: #ff2e56;
+  --danger-rgb: 255, 46, 86;
+  --layer-a: #2a0c14;
+  --layer-b: #19070c;
+  --layer-border: #c23a57;
+  --layer-text: #ff7d96;
+  --layer-rgb: 194, 58, 87;
+  --exploit-bg: #0a1d24;
+  --alarm-text: #eaffff;
+  --byte-text: #e8fbff;
+  --hot-rgb: 255, 110, 140;
+  --burst-hot-rgb: 140, 235, 255;
+  --heat-text: #ff9db0;
+  --heat-bg: #2e0b13;
+  --heat-peak-border: #eaffff;
+  --heat-peak-text: #ffffff;
+  --heat-peak-bg: #104552;
+  --ana-l: rgba(255, 40, 80, 0.8);
+  --ana-r: rgba(0, 220, 255, 0.8);
 }
+/* The 3D-glasses fringes: text and edges split into a red left and a cyan right */
+[data-theme="anaglyph"] h1,
+[data-theme="anaglyph"] h1 span,
+[data-theme="anaglyph"] .vs-title,
+[data-theme="anaglyph"] .vs-title span,
+[data-theme="anaglyph"] .cell.disc,
+[data-theme="anaglyph"] .hud .stat .value,
+[data-theme="anaglyph"] #current-piece,
+[data-theme="anaglyph"] .bit-sq,
+[data-theme="anaglyph"] .cpu-grid i.bit,
+[data-theme="anaglyph"] .overlay-box h2 {
+  text-shadow: -1.5px 0 var(--ana-l), 1.5px 0 var(--ana-r);
+}
+[data-theme="anaglyph"] .cell.disc { box-shadow: -1.5px 0 0 var(--ana-l), 1.5px 0 0 var(--ana-r); }
+[data-theme="anaglyph"] .crt { box-shadow: -3px 0 0 rgba(255, 40, 80, 0.55), 3px 0 0 rgba(0, 220, 255, 0.55), 0 0 30px rgba(0, 0, 0, 0.6), inset 0 0 40px rgba(0, 0, 0, 0.5); }
+[data-theme="anaglyph"] .cell .glyph { filter: drop-shadow(-1.5px 0 var(--ana-l)) drop-shadow(1.5px 0 var(--ana-r)); }
 
 /* SYNTHWAVE: pink bits, purple layers, orange cracks and a cyan trace */
 [data-theme="synthwave"] {

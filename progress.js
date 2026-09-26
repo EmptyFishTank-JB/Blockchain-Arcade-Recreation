@@ -162,7 +162,7 @@ const Progress = (() => {
   }
 
   // Each DECRYPTOR rank permanently unlocks the next theme
-  const THEME_ORDER = [['cipher', 'CIPHER'], ['amber-crt', 'AMBER CRT'], ['monochrome', 'MONOCHROME'], ['redline', 'REDLINE'],
+  const THEME_ORDER = [['cipher', 'CIPHER'], ['amber-crt', 'AMBER CRT'], ['monochrome', 'MONOCHROME'], ['anaglyph', 'ANAGLYPH'],
     ['synthwave', 'SYNTHWAVE'], ['dot-matrix', 'DOT MATRIX'], ['paper', 'PAPER'], ['glyph', 'GLYPH'], ['spectrum', 'SPECTRUM']];
 
   // Pixel fonts (COURIER is free): [id, name, achievements needed]
