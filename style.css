@@ -483,11 +483,17 @@ body.vs-mode .vs-title span { color: var(--accent); text-shadow: 0 0 8px var(--a
   flex-direction: column;
   justify-content: center; /* short boxes (SCORE, CHAIN...) centre beside the taller bit boxes */
   text-align: center;
-  background: var(--inset-bg);
+  position: relative;
+  isolation: isolate; /* the starlight canvas (.stat-bg) sits under the text */
+  background: var(--board-bg);
   border: 1px solid var(--grid-line);
   border-radius: 6px;
   padding: 6px 4px;
 }
+.stat-bg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; border-radius: 5px; pointer-events: none; }
+.cpu-stat { background: var(--inset-bg); }
+/* VS with ENCRYPTED LAYERS off: NEW LAYER IN stays in place, dimmed */
+.stat.off { opacity: 0.35; }
 
 .stat .label {
   display: block;
@@ -1082,9 +1088,11 @@ body.vs-mode .vs-status { display: flex; align-items: center; justify-content: c
   gap: 12px;
   padding: 16px;
   text-align: center;
-  background: rgba(0, 0, 0, 0.78);
+  background: var(--board-bg); /* with the defrag canvas (#vs-setup-bg) over it */
+  isolation: isolate;
   animation: byte-in 0.35s ease-out;
 }
+.vs-setup-bg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
 .vs-setup[hidden] { display: none; }
 .vs-setup-title { margin: 0; font-size: 16px; letter-spacing: 3px; color: var(--accent); text-shadow: 0 0 8px rgba(var(--accent-rgb), 0.6); }
 .vs-setup-note { margin: 0; max-width: 300px; font-size: 11px; line-height: 1.5; color: var(--panel-text); }
@@ -1632,7 +1640,7 @@ footer {
   transition: opacity 0.25s ease, filter 0.25s ease;
 }
 
-.dev-link svg { width: 26px; height: 14px; display: block; }
+.dev-link { width: auto; height: auto; padding: 4px 2px; font-size: 11px; letter-spacing: 1px; white-space: nowrap; text-decoration: none; }
 
 .dev-link:hover,
 .dev-link:focus-visible {

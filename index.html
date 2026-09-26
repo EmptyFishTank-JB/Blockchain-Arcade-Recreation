@@ -22,7 +22,7 @@
   } catch (e) {}
 </script>
 <title>BYTEFALL // decryption terminal</title>
-<link rel="stylesheet" href="style.css?v=126">
+<link rel="stylesheet" href="style.css?v=127">
 </head>
 <body>
   <main class="cabinet">
@@ -272,6 +272,7 @@
           <div class="board cpu-full" id="cpu-full" hidden aria-hidden="true"></div>
           <!-- VS CPU: pick the opponent, then START (it bursts apart; it comes back after the match) -->
           <div class="vs-setup" id="vs-setup" hidden>
+            <canvas class="vs-setup-bg" id="vs-setup-bg" aria-hidden="true"></canvas>
             <p class="vs-setup-title">// VS CPU</p>
             <p class="vs-setup-note">Your chains send encrypted blocks onto the CPU's board; its chains send them onto yours. First to overflow loses. Press and hold the CPU's board to see it full size.</p>
           <div class="difficulty" id="vs-levels" role="group" aria-label="CPU level">
@@ -327,13 +328,7 @@
       </p>
       <p class="accent">// Inspired by Blockchain from Arcade Paradise</p>
     </div>
-    <a class="dev-link" href="dev-tools/audio.html" aria-label="Dev tools: audio compendium" title="Dev tools: audio compendium">
-      <svg viewBox="0 0 46 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <path d="M15 2 L4 12 L15 22" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M31 2 L42 12 L31 22" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M26 3 L20 21" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
-      </svg>
-    </a>
+    <a class="dev-link" href="dev-tools/audio.html" title="Dev tools: audio compendium">&lt;/&gt; DEV</a>
   </footer>
 
   <canvas id="board-fx" aria-hidden="true"></canvas>
@@ -351,24 +346,24 @@
     </div>
   </div>
 
-  <script src="unlocks.js?v=126"></script>
-  <script src="progress.js?v=126"></script>
-  <script src="sfx.js?v=126"></script>
-  <script src="music-bytefall-theme.js?v=126"></script>
-  <script src="music-sleep-mode.js?v=126"></script>
-  <script src="music-brute-force.js?v=126"></script>
-  <script src="music-deep-web.js?v=126"></script>
-  <script src="music-zero-day.js?v=126"></script>
-  <script src="music-system-restore.js?v=126"></script>
-  <script src="music-night-drive.js?v=126"></script>
-  <script src="music-standby-mode.js?v=126"></script>
-  <script src="music.js?v=126"></script>
-  <script src="puzzles.js?v=126"></script>
-  <script src="daily-puzzles.js?v=126"></script>
-  <script src="cpu.js?v=126"></script>
-  <script src="fx.js?v=126"></script>
-  <script src="viz.js?v=126"></script>
-  <script src="script.js?v=126"></script>
-  <script src="grid-bg.js?v=126"></script>
+  <script src="unlocks.js?v=127"></script>
+  <script src="progress.js?v=127"></script>
+  <script src="sfx.js?v=127"></script>
+  <script src="music-bytefall-theme.js?v=127"></script>
+  <script src="music-sleep-mode.js?v=127"></script>
+  <script src="music-brute-force.js?v=127"></script>
+  <script src="music-deep-web.js?v=127"></script>
+  <script src="music-zero-day.js?v=127"></script>
+  <script src="music-system-restore.js?v=127"></script>
+  <script src="music-night-drive.js?v=127"></script>
+  <script src="music-standby-mode.js?v=127"></script>
+  <script src="music.js?v=127"></script>
+  <script src="puzzles.js?v=127"></script>
+  <script src="daily-puzzles.js?v=127"></script>
+  <script src="cpu.js?v=127"></script>
+  <script src="fx.js?v=127"></script>
+  <script src="viz.js?v=127"></script>
+  <script src="script.js?v=127"></script>
+  <script src="grid-bg.js?v=127"></script>
 </body>
 </html>

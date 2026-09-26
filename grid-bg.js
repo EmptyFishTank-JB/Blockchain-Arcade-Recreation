@@ -2,7 +2,9 @@
 // shuffled toward the top-left one move at a time while a few shimmer. Before
 // a pass finishes, a freshly scattered pass starts and the two crossfade, so
 // the cycle reads as one continuous process instead of snapping back.
-function startGridBackground(canvas) {
+// { defrag: false } draws only the starlight: the scattered blocks shimmering, never moving
+// (the HUD boxes).
+function startGridBackground(canvas, { defrag = true } = {}) {
   const BLOCK = 5; // css px
   const GAP = 2;
   const PITCH = BLOCK + GAP;
@@ -48,7 +50,8 @@ function startGridBackground(canvas) {
   }
 
   function resize() {
-    const rect = canvas.getBoundingClientRect();
+    // (its layout size: a pop-in animation's scale mustn't count)
+    const rect = { width: canvas.clientWidth, height: canvas.clientHeight };
     const dpr = window.devicePixelRatio || 1;
     canvas.width = Math.round(rect.width * dpr);
     canvas.height = Math.round(rect.height * dpr);
@@ -88,7 +91,7 @@ function startGridBackground(canvas) {
 
   function tick(now) {
     const newest = layers[layers.length - 1].pass;
-    if (!fadeStart && newest.misplaced <= OVERLAP_MS / TICK_MS) {
+    if (defrag && !fadeStart && newest.misplaced <= OVERLAP_MS / TICK_MS) {
       layers.push({ pass: createPass(), weight: 0 });
       fadeStart = now;
     }
@@ -102,7 +105,7 @@ function startGridBackground(canvas) {
       }
     }
     for (const { pass } of layers) {
-      step(pass);
+      if (defrag) step(pass);
       for (let i = 0; i < size; i++) pass.glow[i] *= 0.9;
       for (let k = 0; k < 3; k++) {
         const i = Math.floor(Math.random() * size);
@@ -127,3 +130,13 @@ function startGridBackground(canvas) {
 }
 
 startGridBackground(document.getElementById('board-bg'));
+// VS setup: the defrag behind its options (the board's cells are covered)
+startGridBackground(document.getElementById('vs-setup-bg'));
+// The HUD boxes (SCORE, CHAIN, NEW LAYER IN, CURRENT...): the starlight only
+document.querySelectorAll('.hud .stat:not(.cpu-stat)').forEach((stat) => {
+  const canvas = document.createElement('canvas');
+  canvas.className = 'stat-bg';
+  canvas.setAttribute('aria-hidden', 'true');
+  stat.prepend(canvas);
+  startGridBackground(canvas, { defrag: false });
+});

@@ -716,7 +716,7 @@ function updateHud() {
     showPiece(sq, piece);
     nextEl.appendChild(sq);
   }
-  pulseCounterEl.textContent = mode === 'puzzle' ? queue.length : mode === 'breach' ? layersLeft() : pulseInterval - dropsSinceLastPulse;
+  pulseCounterEl.textContent = mode === 'puzzle' ? queue.length : mode === 'breach' ? layersLeft() : mode === 'vs' && !vsLayers ? '-' : pulseInterval - dropsSinceLastPulse;
   if (dealLimit() < Infinity) showClock();
   pulseCounterEl.closest('.stat').classList.toggle('danger', !gameOver && !MODES[mode].noLayers && pulseInterval - dropsSinceLastPulse === 1);
   if (pivotFrom !== null && !(queue[0] && queue[0].id === 'pivot')) clearPivotChoice();
@@ -1522,7 +1522,9 @@ function applyModeUi() {
   vsLayersBtn.textContent = `ENCRYPTED LAYERS: ${vsLayers ? 'ON' : 'OFF'}`;
   vsLayersBtn.classList.toggle('active', vsLayers);
   document.body.classList.toggle('vs-mode', mode === 'vs'); // a slimmer header, room for the boards
-  document.getElementById('pulse-stat').hidden = !!MODES[mode].noLayers && mode !== 'puzzle' && mode !== 'breach';
+  // (VS keeps it with layers off, dimmed, so nothing shifts when the option changes)
+  document.getElementById('pulse-stat').hidden = !!MODES[mode].noLayers && mode !== 'puzzle' && mode !== 'breach' && mode !== 'vs';
+  document.getElementById('pulse-stat').classList.toggle('off', mode === 'vs' && !vsLayers);
   document.getElementById('pulse-label').textContent = mode === 'puzzle' ? 'BITS LEFT' : mode === 'breach' ? 'LAYERS LEFT' : 'NEW LAYER IN';
   updateVsChrome(); // (after NEW LAYER IN shows or hides: it counts the stat rows)
   puzzleNavEl.hidden = mode !== 'puzzle' || daily;
@@ -1587,8 +1589,9 @@ function startVs() {
   cpuClock = 0;
   vsStarted = false;
   // The setup overlay: shown (popping back in) whenever a match hasn't started
+  const setupWasShown = !vsSetupEl.hidden;
   vsSetupEl.hidden = mode !== 'vs';
-  if (mode === 'vs') {
+  if (mode === 'vs' && !setupWasShown) { // (not when it's already up: changing an option)
     vsSetupEl.style.animation = 'none';
     void vsSetupEl.offsetWidth;
     vsSetupEl.style.animation = '';
