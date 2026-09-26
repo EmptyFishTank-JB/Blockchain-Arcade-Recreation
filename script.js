@@ -654,6 +654,15 @@ function buildGrid() {
   return grid;
 }
 
+// The ==== line under a board, where encryption layers rise from: flashing amber when the next
+// drop brings one
+function layerLine(next) {
+  const line = document.createElement('div');
+  line.className = next ? 'layer-line next' : 'layer-line';
+  line.textContent = '='.repeat(80);
+  return line;
+}
+
 function render(popped = [], falling = null) {
   boardEl.innerHTML = '';
   const grid = buildGrid();
@@ -700,6 +709,7 @@ function render(popped = [], falling = null) {
       boardEl.appendChild(line);
     }
   }
+  boardEl.appendChild(layerLine(!gameOver && !MODES[mode].noLayers && pulseInterval - dropsSinceLastPulse === 1));
   updateColumnButtons();
   Music.setIntensity(dangerLevel());
 }
@@ -714,15 +724,19 @@ function dangerLevel() {
 // A HUD number (or a label's word) too long for its box shrinks until it fits
 function fitStatValues() {
   const labels = [...document.querySelectorAll('.hud .stat:not(.cpu-stat) .label')];
+  const labelMin = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--label-min')) || 7;
   for (const el of [scoreEl, bestEl, chainEl, pulseCounterEl, ...labels]) {
     el.style.fontSize = '';
+    el.style.whiteSpace = '';
     if (!el.offsetParent) continue;
     const label = el.classList.contains('label');
     let size = parseFloat(getComputedStyle(el).fontSize);
-    while (el.scrollWidth > el.clientWidth && size > (label ? 5 : 8)) {
+    // (labels no smaller than the font's readable floor, --label-min: past that they wrap instead)
+    while (el.scrollWidth > el.clientWidth && size > (label ? labelMin : 8)) {
       size -= label ? 0.5 : 1;
       el.style.fontSize = `${size}px`;
     }
+    if (label && el.scrollWidth > el.clientWidth) el.style.whiteSpace = 'normal';
   }
 }
 
@@ -765,7 +779,10 @@ function updateHud() {
   }
   pulseCounterEl.textContent = mode === 'puzzle' ? queue.length : mode === 'breach' ? layersLeft() : mode === 'vs' && !vsLayers ? '-' : pulseInterval - dropsSinceLastPulse;
   if (dealLimit() < Infinity) showClock();
-  pulseCounterEl.closest('.stat').classList.toggle('danger', !gameOver && !MODES[mode].noLayers && pulseInterval - dropsSinceLastPulse === 1);
+  const layerNext = !gameOver && !MODES[mode].noLayers && pulseInterval - dropsSinceLastPulse === 1;
+  pulseCounterEl.closest('.stat').classList.toggle('danger', layerNext);
+  const layerLineEl = boardEl.querySelector('.layer-line');
+  if (layerLineEl) layerLineEl.classList.toggle('next', layerNext);
   if (pivotFrom !== null && !(queue[0] && queue[0].id === 'pivot')) clearPivotChoice();
   const sniffing = snifferBits > 0 && queue[0] && queue[0].type === 'number';
   currentEl.closest('.stat').classList.toggle('sniffing', !!sniffing);
@@ -1863,6 +1880,7 @@ function drawCpu(frame, falling = null) {
       const i = document.createElement('i');
       if (r >= CpuBoard.ROWS) i.classList.add('over');
       if (r === CpuBoard.ROWS) i.classList.add('over-edge');
+      if (r === 0) i.classList.add('under-edge');
       if (b && b.type === 'number') {
         i.classList.add('bit');
         if (glyphs) i.innerHTML = glyphSvg(b.val);
@@ -1881,6 +1899,7 @@ function drawCpu(frame, falling = null) {
   }
   const tallest = Math.max(...cols.map((col) => col.filter(Boolean).length));
   cpuStatEl.classList.toggle('low', tallest >= CpuBoard.ROWS - 1);
+  cpuGridEl.classList.toggle('layer-next', cpu.layerIn() === 1); // its bottom edge flashes amber
   if (!cpuFullEl.hidden) drawCpuFull(view, falling);
 }
 
@@ -1920,6 +1939,7 @@ function drawCpuFull(view = cpuPlaying ? null : { columns: cpu.columns() }, fall
       cpuFullEl.appendChild(line);
     }
   }
+  cpuFullEl.appendChild(layerLine(cpu.layerIn() === 1));
   if (bursts.length) FX.burst(bursts);
 }
 function holdCpu(on) {
@@ -2062,7 +2082,18 @@ function layoutVsTop() {
   // BOT's box and the CPU's board are the same width: as wide as the board's height allows (its
   // label takes ~24px), leaving the 2x2 info grid at least 124px
   const gridH = bottom - top - 24;
-  hud.style.setProperty('--vs-cpu-w', `${Math.round(Math.min((hud.clientWidth - 18 - 124) / 2, gridH * 7 / 8 + 12))}px`);
+  // The 2x2 info squares: as big as the height allows under the status line, unless that would
+  // squeeze BOT's box and the board below 80px wide
+  const statusH = document.getElementById('vs-status').offsetHeight;
+  const W = hud.clientWidth;
+  let sq = (bottom - top - statusH - 18) / 2;
+  let cpuW = Math.min(gridH * 7 / 8 + 12, (W - 24 - 2 * sq) / 2);
+  if (cpuW < 80) {
+    cpuW = Math.min(80, gridH * 7 / 8 + 12);
+    sq = (W - 24 - 2 * cpuW) / 2;
+  }
+  hud.style.setProperty('--vs-cpu-w', `${Math.floor(cpuW)}px`);
+  hud.style.setProperty('--vs-sq', `${Math.floor(sq)}px`);
   fitVsStatus();
   alignVsTitle();
 }
@@ -2105,7 +2136,7 @@ function showVs() {
   if (!vs) return;
   incomingEl.textContent = `\u25BC ${incoming} INCOMING`;
   // CPU // its score, and the blocks headed its way
-  document.getElementById('cpu-label').textContent = `CPU // ${fmt(cpu.score())}${cpuPending ? ` \u25BC${cpuPending}` : ''}`;
+  document.getElementById('cpu-label').innerHTML = `CPU // <b class="cpu-score">${fmt(cpu.score())}</b>${cpuPending ? ` \u25BC${cpuPending}` : ''}`;
   drawCpu();
 }
 

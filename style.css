@@ -20,6 +20,10 @@
 :root[data-font="press-start"] .lock-tag,
 :root[data-font="press-start"] .combo { font-size: 12px; }
 :root[data-font="press-start"] .stat .label { font-size: 10px; }
+/* The smallest a HUD label may shrink to and stay readable (script.js's fitStatValues; past it,
+   labels wrap): PRESS START is drawn at 62% size, so it needs a higher floor */
+:root { --label-min: 7; }
+:root[data-font="press-start"] { --label-min: 8; }
 /* PRESS START's glyphs fill their whole line, so wrapped lines touch: give them room (a quarter
    of the text's height between the mode description's and the footer's lines) */
 :root[data-font="press-start"] .stat .label { line-height: 1.7; }
@@ -825,6 +829,13 @@ body.vs-mode .vs-title span { color: var(--accent); text-shadow: 0 0 8px var(--a
 }
 
 .overflow-line.hot { animation: line-hot 0.9s ease-in-out infinite; }
+/* The ==== line under the board: dim, flashing amber when the next drop brings a layer */
+.layer-line { grid-column: 1 / -1; overflow: hidden; white-space: nowrap; text-align: center; font-size: 12px; line-height: 12px; letter-spacing: 2px; color: var(--fg-dim); opacity: 0.55; }
+.layer-line.next { color: var(--accent); opacity: 1; text-shadow: 0 0 6px var(--accent); animation: warn-pulse 0.6s ease-in-out infinite; }
+.cpu-grid i.under-edge { border-bottom: 2px solid rgba(var(--fg-rgb), 0.3); }
+.cpu-grid.layer-next i.under-edge { border-bottom-color: var(--accent); animation: warn-pulse 0.6s ease-in-out infinite; }
+/* VS: the CPU's score, bright amber */
+.cpu-score { color: var(--accent); font-weight: bold; text-shadow: 0 0 6px var(--accent); }
 
 @keyframes line-hot {
   0%, 100% { opacity: 0.6; text-shadow: 0 0 2px rgba(var(--danger-rgb), 0.5); }
@@ -1169,6 +1180,18 @@ body.vs-mode .hud > #score-stat { grid-column: 1; grid-row: 2; }
 body.vs-mode .hud > #chain-stat { grid-column: 2; grid-row: 2; }
 body.vs-mode .hud > #pulse-stat { grid-column: 1; grid-row: 3; }
 body.vs-mode .hud > .hud-bits { grid-column: 2; grid-row: 3; }
+/* The four boxes are squares (--vs-sq, set by script.js's layoutVsTop), packed together in the
+   middle of their area */
+body.vs-mode .hud > :is(#score-stat, #chain-stat, #pulse-stat, .hud-bits) { width: var(--vs-sq, 60px); height: var(--vs-sq, 60px); }
+body.vs-mode .hud > :is(#score-stat, #chain-stat) { align-self: end; }
+body.vs-mode .hud > :is(#pulse-stat, .hud-bits) { align-self: start; }
+body.vs-mode .hud > :is(#score-stat, #pulse-stat) { justify-self: end; }
+body.vs-mode .hud > :is(#chain-stat, .hud-bits) { justify-self: start; }
+/* In each square the value sits dead center, and the label centered in the space above it */
+body.vs-mode .hud > :is(#score-stat, #chain-stat, #pulse-stat) .value,
+body.vs-mode .hud-bits:not(.has-next) #current-piece { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); max-width: calc(100% - 6px); }
+body.vs-mode .hud > :is(#score-stat, #chain-stat, #pulse-stat) .label,
+body.vs-mode .hud-bits:not(.has-next) .stat-current .label { position: absolute; left: 1px; right: 1px; top: 0; letter-spacing: 0 !important; height: calc(50% - 8px); display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1.1 !important; }
 body.vs-mode .hud > .cpu-face { grid-column: 3; grid-row: 1 / -1; }
 body.vs-mode .hud > .cpu-stat { grid-column: 4; grid-row: 1 / -1; justify-content: flex-start; padding: 4px 6px; }
 /* CURRENT's square splits when a KEYLOGGER shows the next bits (VS has no NEXT otherwise) */
