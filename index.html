@@ -22,7 +22,7 @@
   } catch (e) {}
 </script>
 <title>BYTEFALL // decryption terminal</title>
-<link rel="stylesheet" href="style.css?v=141">
+<link rel="stylesheet" href="style.css?v=142">
 </head>
 <body>
   <main class="cabinet">
@@ -44,13 +44,13 @@
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 2 H15 L19 6 V22 H6 Z M15 2 V6 H19 M9 11 H16 M9 14.5 H16 M9 18 H13" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
             RULES
           </button>
-          <button type="button" role="tab" data-pane="exploits">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 10-13h-7z" fill="currentColor"/></svg>
-            EXPLOITS
-          </button>
           <button type="button" role="tab" data-pane="records">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 3 H17 V9 A5 5 0 0 1 7 9 Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M7 5 H3 V7 A4 4 0 0 0 7.5 11 M17 5 H21 V7 A4 4 0 0 1 16.5 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 14 V18 M8 21 H16 M9.5 18 H14.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
             RECORDS
+          </button>
+          <button type="button" role="tab" data-pane="exploits">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 10-13h-7z" fill="currentColor"/></svg>
+            EXPLOITS
           </button>
         </div>
         <div class="menu-pane" data-pane="rules">
@@ -66,6 +66,17 @@
             <p><b>Hard</b> is a full byte: an 8&times;8 terminal with bits up to 8, and new layers come faster as your score climbs. Every 8 bits a single drop decrypts make a <b>BYTE</b>, worth 256 bonus points.</p>
             <p class="keys" id="rules-keys">Click a column or press 1&ndash;7 to drop</p>
           </aside>
+        </div>
+        <div class="menu-pane" data-pane="records">
+          <section class="panel panel-records">
+            <h2>RECORDS</h2>
+            <div class="records-tabs" role="tablist">
+              <button type="button" role="tab" data-tab="unlocks">UNLOCKS</button>
+              <button type="button" role="tab" data-tab="achievements">ACHIEVEMENTS</button>
+              <button type="button" role="tab" data-tab="stats">STATS</button>
+            </div>
+            <div id="records-body" class="records-body"></div>
+          </section>
         </div>
         <div class="menu-pane" data-pane="exploits">
           <aside class="panel panel-hacks" id="hacks-panel">
@@ -138,17 +149,6 @@
               <p class="lock-tag"></p>
             </div>
           </aside>
-        </div>
-        <div class="menu-pane" data-pane="records">
-          <section class="panel panel-records">
-            <h2>RECORDS</h2>
-            <div class="records-tabs" role="tablist">
-              <button type="button" role="tab" data-tab="unlocks">UNLOCKS</button>
-              <button type="button" role="tab" data-tab="achievements">ACHIEVEMENTS</button>
-              <button type="button" role="tab" data-tab="stats">STATS</button>
-            </div>
-            <div id="records-body" class="records-body"></div>
-          </section>
         </div>
       </div>
       <button type="button" id="settings-btn" class="settings-btn" aria-label="Settings and music" aria-expanded="false" aria-controls="settings">
@@ -349,24 +349,24 @@
     </div>
   </div>
 
-  <script src="unlocks.js?v=141"></script>
-  <script src="progress.js?v=141"></script>
-  <script src="sfx.js?v=141"></script>
-  <script src="music-bytefall-theme.js?v=141"></script>
-  <script src="music-sleep-mode.js?v=141"></script>
-  <script src="music-brute-force.js?v=141"></script>
-  <script src="music-deep-web.js?v=141"></script>
-  <script src="music-zero-day.js?v=141"></script>
-  <script src="music-system-restore.js?v=141"></script>
-  <script src="music-night-drive.js?v=141"></script>
-  <script src="music-standby-mode.js?v=141"></script>
-  <script src="music.js?v=141"></script>
-  <script src="puzzles.js?v=141"></script>
-  <script src="daily-puzzles.js?v=141"></script>
-  <script src="cpu.js?v=141"></script>
-  <script src="fx.js?v=141"></script>
-  <script src="viz.js?v=141"></script>
-  <script src="script.js?v=141"></script>
-  <script src="grid-bg.js?v=141"></script>
+  <script src="unlocks.js?v=142"></script>
+  <script src="progress.js?v=142"></script>
+  <script src="sfx.js?v=142"></script>
+  <script src="music-bytefall-theme.js?v=142"></script>
+  <script src="music-sleep-mode.js?v=142"></script>
+  <script src="music-brute-force.js?v=142"></script>
+  <script src="music-deep-web.js?v=142"></script>
+  <script src="music-zero-day.js?v=142"></script>
+  <script src="music-system-restore.js?v=142"></script>
+  <script src="music-night-drive.js?v=142"></script>
+  <script src="music-standby-mode.js?v=142"></script>
+  <script src="music.js?v=142"></script>
+  <script src="puzzles.js?v=142"></script>
+  <script src="daily-puzzles.js?v=142"></script>
+  <script src="cpu.js?v=142"></script>
+  <script src="fx.js?v=142"></script>
+  <script src="viz.js?v=142"></script>
+  <script src="script.js?v=142"></script>
+  <script src="grid-bg.js?v=142"></script>
 </body>
 </html>

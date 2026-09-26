@@ -127,7 +127,7 @@ game's text (the particles and the dev page too); the fonts are bundled in
 total; 09-10 are still to come).
 
 The menu icon (lines / trophy, top left) opens three tabs, each its own card:
-**RULES**, **EXPLOITS** and **RECORDS**. RECORDS has level and DECRYPTOR rank,
+**RULES**, **RECORDS** and **EXPLOITS**. RECORDS has level and DECRYPTOR rank,
 every unlock and achievement with a progress tracker, and lifetime stats
 (UNLOCKS / ACHIEVEMENTS / STATS). New unlocks, level-ups
 and achievements pop up as they happen. Progress is saved in the browser
