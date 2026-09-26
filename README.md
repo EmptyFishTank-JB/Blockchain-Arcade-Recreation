@@ -60,7 +60,7 @@ A drop earns at most one exploit, picked from the longest chain it set off.
 | Mode | What changes |
 |---|---|
 | CLASSIC | The main game, on EASY / NORMAL / HARD |
-| DAILY | Four daily games, picked on a second row under the modes. Each is the same for everyone that UTC day, and each keeps a daily streak. **DECRYPT**: a fixed stack of 40 bits dealt from a seed of the date (Normal rules, the five standard exploits); it ends when the stack runs out. **PUZZLE**: a new puzzle every day (from `daily-puzzles.js`), harder through the week: Monday is 1 bit, Sunday 4 bits with layers; retries are free and your tries are counted. **BLITZ**: the same bits for everyone against a 60-second clock. **BREACH** (daily only): the board starts with a 3-row firewall of level 1 and 2 layers and you get 30 bits to break through; each layer broken is +25 and clearing the whole board is +1,000. For DECRYPT, BLITZ and BREACH your first run each day is the official score and later runs are practice. SHARE on the results screen sends or copies your result |
+| DAILY | Four daily games, picked on a second row under the modes. Each is the same for everyone that UTC day, and each keeps a daily streak. **DECRYPT**: a fixed stack of 40 bits dealt from a seed of the date (Normal rules, the five standard exploits); it ends when the stack runs out. **PUZZLE**: a new puzzle every day (from `daily-puzzles.js`), harder through the week: Monday is 1 bit, Sunday 4 bits with layers; you get 4 tries a day (a try counts from its first drop); once it's solved or the tries are used up, later runs are practice. **BLITZ**: the same bits for everyone against a 60-second clock. **BREACH** (daily only): the board starts with a 3-row firewall of level 1 and 2 layers and you get 30 bits to break through; each layer broken is +25 and clearing the whole board is +1,000. For DECRYPT, BLITZ and BREACH your first run each day is the official score and later runs are practice. SHARE on the results screen (every daily game, win or lose; the puzzle shares one square per try) sends or copies your result |
 | BLITZ | Normal rules against a 2-minute clock that starts on your first drop (paused while the tab is hidden) |
 | ZEN | Normal rules with no encryption layers and no clock |
 | VS | VS CPU (`cpu.js`): you against an EASY / NORMAL / HARD computer opponent (faster and smarter up the levels), on Normal rules with no exploits and the same bits in the same order. A setup screen over your board picks the level and, below it, ENCRYPTED LAYERS: ON / OFF (the usual layer row every 8 drops, on both boards); START bursts it apart and starts the CPU's clock, and it comes back after the win / loss screen. Every 30 points a drop scores sends one encrypted block (a one-peel layer hiding a random bit) onto the other board, dropping onto the top of random columns after its next move; your chains cancel blocks headed your way first. The first to overflow loses. In a match the header gives way to a VS. CPU title between the top icons (green VS., amber CPU), the level and layers line, your stats and the CPU's board (with its numbers, playing each move back: bits falling, decrypting and layers peeling; press and hold it to see it full size over yours with all your board's effects), laid out so your board keeps its regular size and place; QUIT (the lower-left corner) in a match turns red and a second press ends it, back to the setup screen; on the setup screen one press goes back to your previous mode (dragging off the button before letting go cancels a press). CURRENT shows [?] until START. The CPU pauses while a panel is open. RECORDS → STATS keeps wins and losses per level |
@@ -181,7 +181,7 @@ The gear/speaker icon in the corner opens the settings: sound and music on or
 off, whether the drop buttons sit under or above the grid, the color theme
 and the playlist.
 
-Themes (picked from the swatch grid in settings):
+Themes (picked from the swatch grid in settings; the page fades to the new one over 1 second, 1.25 into or out of PAPER):
 
 | Theme | Bits | Layers | Cracks & exploits | Trace |
 |---|---|---|---|---|
@@ -250,7 +250,7 @@ with a cached older script (GitHub Pages lets browsers cache for 10 minutes).
   audio compendium, plus a retro 8-bit "data burst" for clears; toggle with
   the SOUND button in settings
 - `music.js` — the music player: scheduler, playlist and intensity input.
-  Music starts on your first click or key press on track 01 (toggle with the
+  Music starts on your first click or key press, on the track you last picked or played (track 01 at first) (toggle with the
   MUSIC button in settings) and intensifies as your tallest stack nears the
   red line (from height 4, full at 6; one higher on Hard's 8×8). The settings panel holds the playlist,
   which also has

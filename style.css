@@ -1578,6 +1578,7 @@ body.vs-mode header #mode-info { display: none; }
 .settings .theme-option {
   flex-direction: column;
   align-items: stretch;
+  text-align: center; /* the name centered across the button, like the fonts */
   gap: 5px;
   padding: 6px 7px;
   font-size: 10px;
@@ -1868,3 +1869,19 @@ button.danger:hover,
    off (which cancels the press: script.js) */
 button.pressing:not(:disabled):not(.danger):not(#restart-btn):not(#vs-quit),
 a.pressing { box-shadow: inset 0 0 0 999px rgba(var(--fg-rgb), 0.16); }
+
+/* Picking a theme: every color on the page fades to the new theme (script.js adds .theme-fade for
+   --theme-fade: 1s, or 1.25s into or out of the light PAPER so it doesn't flash). A pick mid-fade
+   carries on from wherever the colors are. The gradients' colors are registered so they fade too. */
+@property --bg-center { syntax: '<color>'; inherits: true; initial-value: #000; }
+@property --bg-solid { syntax: '<color>'; inherits: true; initial-value: #000; }
+@property --layer-a { syntax: '<color>'; inherits: true; initial-value: #000; }
+@property --layer-b { syntax: '<color>'; inherits: true; initial-value: #000; }
+html.theme-fade,
+html.theme-fade *,
+html.theme-fade *::before,
+html.theme-fade *::after {
+  transition-property: color, background-color, border-color, outline-color, box-shadow, text-shadow, fill, stroke, --bg-center, --bg-solid, --layer-a, --layer-b !important;
+  transition-duration: var(--theme-fade, 1s) !important;
+  transition-timing-function: ease-in-out !important;
+}

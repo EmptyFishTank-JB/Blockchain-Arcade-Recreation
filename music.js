@@ -5,6 +5,7 @@ const Music = (() => {
   const STORAGE_KEY = 'bytefall-music';
   const BG_KEY = 'bytefall-music-bg';
   const MODE_KEY = 'bytefall-music-mode';
+  const TRACK_KEY = 'bytefall-music-track';
   const MODES = ['repeat', 'sequence', 'shuffle'];
   const FADE_OUT = 3; // seconds of fade at the end of a track's last loop
   const LOOPS_PER_TRACK = 4; // sequence/shuffle: plays before moving to the next track
@@ -26,12 +27,22 @@ const Music = (() => {
   ];
   let enabled = true;
   let backgroundPlay = false;
-  let trackId = TRACKS[0].id; // every visit starts on track 01
+  let trackId = TRACKS[0].id; // the last track picked or played (saved), else track 01
   let mode = 'repeat';
   try {
     if (MODES.includes(localStorage.getItem(MODE_KEY))) mode = localStorage.getItem(MODE_KEY);
     enabled = localStorage.getItem(STORAGE_KEY) !== 'off';
     backgroundPlay = localStorage.getItem(BG_KEY) === 'on';
+  } catch (e) {}
+  const unlockId = (track) => `track-${TRACKS.indexOf(track) + 1}`;
+  const isLocked = (track) => !track.free && !Progress.isUnlocked(unlockId(track));
+  function setTrack(id) {
+    trackId = id;
+    try { localStorage.setItem(TRACK_KEY, id); } catch (e) {}
+  }
+  try {
+    const saved = TRACKS.find((t) => t.id === localStorage.getItem(TRACK_KEY));
+    if (saved && !isLocked(saved)) trackId = saved.id; // a refresh carries on with the same track
   } catch (e) {}
   let intensity = 0;
   let targetIntensity = 0;
@@ -57,9 +68,6 @@ const Music = (() => {
     fadeStarted = false;
   }
 
-  const unlockId = (track) => `track-${TRACKS.indexOf(track) + 1}`;
-  const isLocked = (track) => !track.free && !Progress.isUnlocked(unlockId(track));
-
   // Sequence and shuffle only move between tracks the player can play.
   function nextTrackId() {
     const open = TRACKS.filter((t) => !isLocked(t));
@@ -81,7 +89,7 @@ const Music = (() => {
     if (step >= end) {
       const old = session;
       setTimeout(() => old.disconnect(), (nextTime - ctx.currentTime + 1) * 1000);
-      trackId = nextTrackId();
+      setTrack(nextTrackId());
       openSession(0.8);
       if (onTrackChange) onTrackChange(trackId);
     }
@@ -166,7 +174,7 @@ const Music = (() => {
     play(id) {
       const track = TRACKS.find((t) => t.id === id);
       if (!track || isLocked(track)) return;
-      trackId = id;
+      setTrack(id);
       stop();
       setEnabled(true);
       Progress.heardTrack(id);
@@ -198,7 +206,7 @@ const Music = (() => {
     refreshUnlocks() {
       if (!isLocked(TRACKS.find((t) => t.id === trackId))) return;
       if (timer) this.play(TRACKS[0].id);
-      else trackId = TRACKS[0].id;
+      else setTrack(TRACKS[0].id);
     },
     setIntensity(value) {
       targetIntensity = Math.max(0, Math.min(1, value));

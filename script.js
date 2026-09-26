@@ -146,7 +146,10 @@ const MODES = {
     info: (date) => {
       const n = currentPuzzle().pieces.length;
       const rule = `Decrypt every block on the board with exactly the ${n === 1 ? 'bit' : `${n} bits`} given, in order.`;
-      return daily ? `DAILY PUZZLE // ${date} // ${WEEKDAYS[utcWeekday()]}, DIFFICULTY ${utcWeekday() + 1}/7: ${rule} Retry as often as you like.` : rule;
+      if (!daily) return rule;
+      const head = `DAILY PUZZLE // ${date} // ${WEEKDAYS[utcWeekday()]}, DIFFICULTY ${utcWeekday() + 1}/7`;
+      if (dailyOfficial) return `${head}: ${rule} ${DAILY_PUZZLE_TRIES - dailyPuzzleTries()} of ${DAILY_PUZZLE_TRIES} tries left today.`;
+      return `${head} // PRACTICE: ${dailyPuzzleSolvedAt() ? `solved today in ${dailyPuzzleSolvedAt()} of ${DAILY_PUZZLE_TRIES} tries` : `not solved in today's ${DAILY_PUZZLE_TRIES} tries`}. ${rule}`;
     },
   },
   vs: {
@@ -194,8 +197,15 @@ function todayPuzzle() {
   return DAILY_PUZZLES[((day % DAILY_PUZZLES.length) + DAILY_PUZZLES.length) % DAILY_PUZZLES.length];
 }
 const currentPuzzle = () => (daily ? todayPuzzle() : PUZZLES[puzzleIndex]);
+// DAILY PUZZLE: 4 official tries a day (a try counts from its first drop); once it's solved or
+// they're used up, it's practice. Every attempt, practice too, counts toward STUBBORN.
+const DAILY_PUZZLE_TRIES = 4;
 const dailyPuzzleTriesKey = () => `bytefall-daily-puzzle-tries-${todayKey()}`;
+const dailyPuzzleAttemptsKey = () => `bytefall-daily-puzzle-attempts-${todayKey()}`;
 const dailyPuzzleSolvedKey = () => `bytefall-daily-puzzle-solved-${todayKey()}`;
+const dailyPuzzleTries = () => Number(storage.get(dailyPuzzleTriesKey())) || 0;
+const dailyPuzzleSolvedAt = () => Number(storage.get(dailyPuzzleSolvedKey())) || 0; // the try it was solved on
+const dailyPuzzleOfficial = () => !dailyPuzzleSolvedAt() && dailyPuzzleTries() < DAILY_PUZZLE_TRIES;
 
 // Randomness. DAILY seeds each stream from the date, so the bits you're dealt are the same for
 // everyone however they play; bits revealed under layers and exploits use their own streams.
@@ -292,7 +302,7 @@ const dailyBitsLeft = () => dealLimit() - dealt + queue.filter((p) => p.type ===
 function initGame() {
   runId++;
   difficulty = mode === 'classic' ? classicDifficulty : 'normal';
-  dailyOfficial = daily && mode !== 'puzzle' && !storage.get(dailyPlayedKey());
+  dailyOfficial = daily && (mode === 'puzzle' ? dailyPuzzleOfficial() : !storage.get(dailyPlayedKey()));
   setupDice();
   Progress.startRun(difficulty, mode, mode === 'puzzle' && !daily ? puzzleIndex : null, daily);
   timeLeft = daily ? DAILY_BLITZ_SECONDS : BLITZ_SECONDS;
@@ -386,10 +396,10 @@ function setPuzzle(i) {
 // Runs at the end of each PUZZLE turn (when the board didn't overflow).
 function checkPuzzle() {
   if (daily && columns.every((c) => c.length === 0)) {
-    const first = !storage.get(dailyPuzzleSolvedKey());
+    const first = dailyOfficial;
     if (first) {
-      storage.set(dailyPuzzleSolvedKey(), storage.get(dailyPuzzleTriesKey()) || '1');
-      Progress.dailyPuzzleSolved(utcWeekday(), Number(storage.get(dailyPuzzleSolvedKey())));
+      storage.set(dailyPuzzleSolvedKey(), String(Math.max(1, dailyPuzzleTries())));
+      Progress.dailyPuzzleSolved(utcWeekday(), dailyPuzzleSolvedAt());
     }
     announce(Progress.check());
     showPuzzleResult(true, first);
@@ -415,9 +425,12 @@ function showPuzzleResult(solved, firstTime = false) {
   overlayNext = solved && !last ? 'next' : 'retry';
   document.querySelector('.overlay-box').classList.toggle('win', solved);
   document.getElementById('overlay-title').textContent = solved ? 'DECRYPTED' : 'OUT OF BITS';
-  const tries = Number(storage.get(dailyPuzzleSolvedKey())) || 0;
+  const triesLeft = DAILY_PUZZLE_TRIES - dailyPuzzleTries();
   document.getElementById('overlay-sub').textContent = daily
-    ? (solved ? `Today's puzzle cracked${tries ? ` in ${tries} ${tries === 1 ? 'try' : 'tries'}` : ''}.` : 'Blocks are still encrypted.')
+    ? (!dailyOfficial ? (solved ? 'Cracked (practice).' : 'Blocks are still encrypted (practice).')
+      : solved ? `Today's puzzle cracked on try ${dailyPuzzleSolvedAt()} of ${DAILY_PUZZLE_TRIES}.`
+      : triesLeft > 0 ? `Blocks are still encrypted. ${triesLeft} ${triesLeft === 1 ? 'try' : 'tries'} left today.`
+      : `Blocks are still encrypted. That was today's last try.`)
     : solved
     ? (last ? 'Every puzzle solved. The whole archive is yours.' : `Puzzle ${puzzleIndex + 1} cracked${firstTime ? '' : ' again'}.`)
     : 'Blocks are still encrypted.';
@@ -428,9 +441,10 @@ function showPuzzleResult(solved, firstTime = false) {
   note.textContent = daily
     ? `DAILY PUZZLE // ${todayKey()} // ${WEEKDAYS[utcWeekday()]}`
     : `PUZZLE ${puzzleIndex + 1} / ${PUZZLES.length} // ${PUZZLES.filter((_, n) => Progress.puzzleSolved(n)).length} SOLVED`;
-  shareBtn.hidden = !(daily && tries);
+  shareBtn.hidden = !daily; // every daily shares, win or lose
   shareBtn.textContent = 'SHARE';
-  document.getElementById('overlay-restart-btn').textContent = overlayNext === 'next' ? 'NEXT PUZZLE' : 'RETRY';
+  document.getElementById('overlay-restart-btn').textContent = overlayNext === 'next' ? 'NEXT PUZZLE'
+    : daily && dailyOfficial && !solved && triesLeft > 0 ? 'NEXT TRY' : daily && dailyOfficial ? 'PRACTICE' : 'RETRY';
   if (!daily) updatePuzzleNav();
   const run = runId;
   setTimeout(() => {
@@ -816,9 +830,10 @@ async function attemptDrop(col) {
   columns[col].push(piece);
   if (daily && dailyOfficial) storage.set(dailyPlayedKey(), '1'); // this is today's official run
   if (daily && mode === 'puzzle' && Progress.runDrops() === 0) {
-    const tries = (Number(storage.get(dailyPuzzleTriesKey())) || 0) + 1;
-    storage.set(dailyPuzzleTriesKey(), String(tries));
-    if (tries >= 10) Progress.secret('stubborn');
+    if (dailyOfficial) storage.set(dailyPuzzleTriesKey(), String(dailyPuzzleTries() + 1));
+    const attempts = (Number(storage.get(dailyPuzzleAttemptsKey())) || 0) + 1;
+    storage.set(dailyPuzzleAttemptsKey(), String(attempts));
+    if (attempts >= 10) Progress.secret('stubborn');
   }
   Progress.drop();
   started = true;
@@ -1939,8 +1954,14 @@ function dailyShareText() {
   const head = `BYTEFALL // ${DAILY_KINDS[mode]} ${todayKey()}`;
   const url = location.href.split(/[?#]/)[0];
   if (mode === 'puzzle') {
-    const tries = Number(storage.get(dailyPuzzleSolvedKey())) || 1;
-    return [`${head} // ${WEEKDAYS[utcWeekday()]} ${utcWeekday() + 1}/7`, `Solved in ${tries} ${tries === 1 ? 'try' : 'tries'}`, url].join('\n');
+    // One square per official try: green solved, red missed, black unused
+    const solvedAt = dailyPuzzleSolvedAt();
+    const used = solvedAt || dailyPuzzleTries();
+    const squares = Array.from({ length: DAILY_PUZZLE_TRIES }, (_, n) => (n + 1 === solvedAt ? '\u{1F7E9}' : n < used ? '\u{1F7E5}' : '\u2B1B')).join('');
+    const result = solvedAt ? `Solved on try ${solvedAt}/${DAILY_PUZZLE_TRIES}`
+      : used >= DAILY_PUZZLE_TRIES ? `Not solved // ${DAILY_PUZZLE_TRIES}/${DAILY_PUZZLE_TRIES} tries used`
+      : `Not solved yet // ${used}/${DAILY_PUZZLE_TRIES} tries used`;
+    return [`${head} // ${WEEKDAYS[utcWeekday()]} ${utcWeekday() + 1}/7`, result, squares, url].join('\n');
   }
   const practice = dailyOfficial ? '' : ' (practice)';
   if (mode === 'breach') {
@@ -2043,6 +2064,7 @@ const themeMeta = document.querySelector('meta[name="theme-color"]');
 Progress.setThemeCount(THEMES.length);
 let themeId = THEMES.some((t) => t.id === storage.get('bytefall-theme')) ? storage.get('bytefall-theme') : 'terminal';
 
+let themeFade = 0; // the timer that ends the page's fade to a newly picked theme
 function applyTheme() {
   const theme = THEMES.find((t) => t.id === themeId);
   const shown = themeAvailable(theme) ? theme : THEMES[0];
@@ -2084,8 +2106,20 @@ function applyTheme() {
           Progress.themeChanged();
           announce(Progress.check());
         }
+        if (themeId === t.id) return;
+        const lightChange = (themeId === 'paper') !== (t.id === 'paper');
         themeId = t.id;
         storage.set('bytefall-theme', themeId);
+        // The page fades to the new theme over 1s (1.25s into or out of the light PAPER, so it
+        // doesn't flash). A pick mid-fade cuts that fade short and fades to the latest.
+        const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (!reduce) {
+          const ms = lightChange ? 1250 : 1000;
+          document.documentElement.style.setProperty('--theme-fade', `${ms}ms`);
+          document.documentElement.classList.add('theme-fade');
+          clearTimeout(themeFade);
+          themeFade = setTimeout(() => document.documentElement.classList.remove('theme-fade'), ms + 100);
+        }
         applyTheme();
       });
     }
