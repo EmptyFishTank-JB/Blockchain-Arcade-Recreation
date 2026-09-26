@@ -859,18 +859,11 @@ body.vs-mode .vs-title span { color: var(--accent); text-shadow: 0 0 8px var(--a
 .free-exploit-btn:disabled { animation: none; opacity: 0.4; cursor: default; }
 #vibrate-btn, #fullscreen-btn { margin-top: 6px; }
 .rec-reset { margin-top: 14px; width: 100%; padding: 6px; background: none; border: 1px solid var(--grid-line); border-radius: 4px; color: var(--fg-dim); font-family: inherit; font-size: 11px; letter-spacing: 1px; cursor: pointer; }
-.rec-reset.danger { border-color: var(--danger); color: var(--danger); background: rgba(var(--danger-rgb), 0.12); }
 
 #restart-btn:hover, #overlay-restart-btn:hover {
   background: rgba(var(--fg-rgb), 0.15);
 }
 
-/* Armed restart or difficulty change, waiting on the confirming press */
-#restart-btn.danger {
-  background: rgba(var(--danger-rgb), 0.12);
-  border-color: var(--danger);
-  color: var(--danger);
-}
 
 
 .stat .sub {
@@ -926,7 +919,6 @@ body.vs-mode .vs-title span { color: var(--accent); text-shadow: 0 0 8px var(--a
 .rec-level .rec-name, .rec-level .rec-state { color: var(--fg); text-shadow: 0 0 6px rgba(var(--fg-rgb), 0.4); }
 .rec-level .rec-name em, .rec-level .rec-state em { font-style: normal; color: var(--accent); text-shadow: 0 0 6px rgba(var(--accent-rgb), 0.5); }
 .rec-rankup { margin-top: 8px; width: 100%; padding: 6px; background: rgba(var(--accent-rgb), 0.1); border: 1px solid var(--accent); border-radius: 4px; color: var(--accent); font-family: inherit; font-size: 11px; letter-spacing: 1px; cursor: pointer; }
-.rec-rankup.danger { border-color: var(--danger); color: var(--danger); background: rgba(var(--danger-rgb), 0.12); }
 
 .modes {
   display: flex;
@@ -957,7 +949,6 @@ body.vs-mode .vs-title span { color: var(--accent); text-shadow: 0 0 8px var(--a
 }
 .modes button:hover { color: var(--fg); border-color: var(--fg); }
 .modes button.active { color: var(--fg); border-color: var(--fg); box-shadow: 0 0 8px rgba(var(--fg-rgb), 0.3); }
-.modes button.danger { background: rgba(var(--danger-rgb), 0.12); border-color: var(--danger); color: var(--danger); }
 
 .mode-info {
   margin: 8px auto 0;
@@ -1144,11 +1135,6 @@ body.vs-mode .vs-status { font-size: 10px; white-space: nowrap; overflow: hidden
 }
 .incoming[hidden] { display: none; }
 body.vs-mode header #mode-info { display: none; }
-.difficulty button.danger {
-  background: rgba(var(--danger-rgb), 0.12);
-  border-color: var(--danger);
-  color: var(--danger);
-}
 
 .new-best {
   color: var(--accent);
@@ -1770,7 +1756,6 @@ footer p.accent { color: var(--accent); }
 }
 .corner-btn[hidden] { display: none; }
 #restart-btn.corner-btn, #vs-quit.corner-btn { padding: 0; letter-spacing: 0; } /* not the old text buttons' padding */
-#restart-btn.corner-btn.danger, #vs-quit.corner-btn.danger { background: rgba(var(--danger-rgb), 0.12); color: var(--danger); border-color: var(--danger); }
 #restart-btn.corner-btn:hover { background: rgba(var(--fg-rgb), 0.08); }
 /* Nothing to restart yet (before the first drop, or once the run is over): greyed out */
 #restart-btn.corner-btn:disabled { color: var(--fg-dim); opacity: 0.4; cursor: default; background: rgba(255, 255, 255, 0.02); }
@@ -1788,9 +1773,6 @@ footer p.accent { color: var(--accent); }
 .exploit-icon.ready { color: var(--fg); opacity: 1; border-color: var(--fg); box-shadow: 0 0 12px rgba(var(--fg-rgb), 0.7); text-shadow: 0 0 8px rgba(var(--fg-rgb), 0.9); }
 /* Armed as the next drop: glowing, pulsing amber */
 .exploit-icon.armed { color: var(--accent); opacity: 1; border-color: var(--accent); animation: amber-pulse 0.9s ease-in-out infinite; }
-/* RESTART / QUIT waiting on the confirming press: red, like the other confirms (mode switches,
-   DECRYPTOR, reset progress) */
-.corner-btn.danger { color: var(--danger); border-color: var(--danger); background: rgba(var(--danger-rgb), 0.12); }
 @keyframes amber-pulse {
   0%, 100% { box-shadow: 0 0 4px rgba(var(--accent-rgb), 0.4); }
   50% { box-shadow: 0 0 18px rgba(var(--accent-rgb), 0.95); }
@@ -1837,3 +1819,19 @@ body.cards-in-settings:not(.vs-mode):not(.vs-measure) .crt > .hud { margin-top: 
 body.cards-in-settings:not(.vs-mode):not(.vs-measure) .crt > .message-slot { margin-bottom: auto; }
 body.cards-in-settings:not(.vs-mode):not(.vs-measure) .crt::after { content: ""; flex: 0 1 var(--head-space, 0px); min-height: 0; }
 body.cards-in-settings .crt.measuring::after { display: none; }
+
+/* Every confirm (RESTART, QUIT, mode / difficulty / DAILY / VS switches mid-run, DECRYPTOR,
+   reset progress) looks the same while it waits for the second press: red border and text on
+   a red tint, no glow, whatever state or hover the button is in */
+button.danger,
+button.danger:hover {
+  color: var(--danger) !important;
+  border-color: var(--danger) !important;
+  background: rgba(var(--danger-rgb), 0.12) !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  filter: none !important;
+  animation: none !important;
+  opacity: 1 !important;
+  font-weight: normal !important;
+}
