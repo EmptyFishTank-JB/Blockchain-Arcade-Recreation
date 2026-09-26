@@ -70,12 +70,14 @@ function startGridBackground(canvas, { defrag = true } = {}) {
     return x - Math.floor(x);
   };
 
+  const ANA_CYCLE = [[70, 76, 84], [255, 40, 80], [205, 211, 217], [0, 220, 255]]; // dark grey, red, light grey, cyan
+
   function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const fg = getComputedStyle(document.documentElement).getPropertyValue('--fg-rgb').trim() || '57, 255, 143';
     const rainbow = document.documentElement.dataset.theme === 'spectrum';
-    // ANAGLYPH: each block drifts between red and cyan at its own speed and phase (like
-    // SPECTRUM's hues), over a red fringe on its left and a cyan one on its right, like the bits
+    // ANAGLYPH: each block cycles dark grey, red, light grey, cyan at its own speed and phase
+    // (like SPECTRUM's hues), over a red fringe on its left and a cyan one on its right, like the bits
     const anaglyph = document.documentElement.dataset.theme === 'anaglyph';
     const secs = performance.now() / 1000;
     const offX = (canvas.clientWidth - cols * PITCH + GAP) / 2;
@@ -95,8 +97,12 @@ function startGridBackground(canvas, { defrag = true } = {}) {
         ctx.fillStyle = `rgba(0, 220, 255, ${fringe})`;
         ctx.fillRect(x + 1, y, BLOCK, BLOCK);
         ctx.globalCompositeOperation = 'source-over';
-        const t = 0.5 + 0.5 * Math.sin(secs * (0.5 + hash(i, 2) * 1.5) + hash(i, 1) * 6.283); // 0 red .. 1 cyan
-        ctx.fillStyle = `rgba(${Math.round(255 - 255 * t)}, ${Math.round(40 + 180 * t)}, ${Math.round(80 + 175 * t)}, ${(alpha * 1.3).toFixed(3)})`;
+        const pos = (secs * (0.25 + hash(i, 2) * 0.75) + hash(i, 1) * ANA_CYCLE.length) % ANA_CYCLE.length;
+        const from = ANA_CYCLE[Math.floor(pos)];
+        const to = ANA_CYCLE[(Math.floor(pos) + 1) % ANA_CYCLE.length];
+        const t = pos % 1;
+        const mix = (k) => Math.round(from[k] + (to[k] - from[k]) * t);
+        ctx.fillStyle = `rgba(${mix(0)}, ${mix(1)}, ${mix(2)}, ${(alpha * 1.3).toFixed(3)})`;
         ctx.fillRect(x, y, BLOCK, BLOCK);
         continue;
       }
