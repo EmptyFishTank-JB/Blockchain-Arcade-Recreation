@@ -136,11 +136,17 @@ const Music = (() => {
     setTimeout(() => old.disconnect(), 600);
   }
 
+  // Browsers only let sound start from a tap, click or key press, and iPadOS / iOS only count a
+  // finished tap (not the press), and can pause the audio again (another app, the lock screen).
+  // So every tap, click and key press makes sure the music is actually running.
+  // (Safari 17+: 'playback' keeps it playing with the device set to silent, like a music app.)
+  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
   function unlock() {
-    if (enabled) start();
+    if (!enabled || document.hidden) return;
+    if (!timer) start();
+    else if (ctx && ctx.state !== 'running') ctx.resume();
   }
-  document.addEventListener('pointerdown', unlock, { once: true });
-  document.addEventListener('keydown', unlock, { once: true });
+  for (const type of ['pointerdown', 'touchend', 'click', 'keydown']) document.addEventListener(type, unlock, true);
 
   document.addEventListener('visibilitychange', () => {
     if (!ctx || !timer) return;

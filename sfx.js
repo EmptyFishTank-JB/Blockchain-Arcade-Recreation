@@ -9,7 +9,7 @@ const SFX = (() => {
 
   function getCtx() {
     if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
-    if (ctx.state === 'suspended') ctx.resume();
+    if (ctx.state !== 'running') ctx.resume(); // (iOS can also leave it 'interrupted')
     return ctx;
   }
 
